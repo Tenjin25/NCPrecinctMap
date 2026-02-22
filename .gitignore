@@ -1,0 +1,37 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
+
+# Logs
+*.log
+
+# Node (if added later)
+node_modules/
+
+# Local build/export artifacts
+dist/
+build/
+tmp/
+temp/
+
+# GIS intermediates and archives
+*.gpkg
+*.fgb
+*.mbtiles
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Large local downloads/scratch (keep repo lean)
+downloads/
+scratch/
