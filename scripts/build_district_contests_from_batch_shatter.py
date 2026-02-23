@@ -339,6 +339,32 @@ def party_group(party: str) -> str:
     return "other_votes"
 
 
+def apply_candidate_party_overrides(df: pd.DataFrame, election_year: int | None = None) -> pd.DataFrame:
+    """
+    Targeted overrides for known edge cases where ballot-party label should not
+    be treated as DEM/REP for margin calculations.
+    """
+    out = df.copy()
+    if out.empty:
+        return out
+
+    y = None
+    try:
+        if election_year is not None:
+            y = int(election_year)
+    except Exception:
+        y = None
+
+    if y == 2018:
+        cand = out["candidate"].astype(str).str.upper()
+        office = out["office"].astype(str).str.upper()
+        # Chris/Christopher Anglin in NC Supreme Court race should roll into Other.
+        mask = cand.str.contains(r"\bANGLIN\b", regex=True, na=False) & office.str.contains("SUPREME COURT", na=False)
+        out.loc[mask, "party_group"] = "other_votes"
+
+    return out
+
+
 def allocate_non_geo_by_candidate(
     df_office: pd.DataFrame, precinct_overrides: dict[str, str] | None = None
 ) -> pd.DataFrame:
@@ -419,13 +445,14 @@ def allocate_non_geo_by_candidate(
 
 
 def build_precinct_party_votes(
-    src: pd.DataFrame, office: str, precinct_overrides: dict[str, str] | None = None
+    src: pd.DataFrame, office: str, precinct_overrides: dict[str, str] | None = None, election_year: int | None = None
 ) -> tuple[pd.DataFrame, str, str]:
     df = src[src["office"] == office].copy()
     if df.empty:
         return pd.DataFrame(columns=["precinct_id", "dem_votes", "rep_votes", "other_votes"]), "", ""
     df["votes_num"] = pd.to_numeric(df["votes"], errors="coerce").fillna(0.0)
     df["party_group"] = df["party"].map(party_group)
+    df = apply_candidate_party_overrides(df, election_year=election_year)
 
     # Candidate labels (statewide top by party).
     dem_c = (
@@ -466,7 +493,7 @@ def build_precinct_party_votes(
 
 
 def build_precinct_party_votes_county_weight_mode(
-    src: pd.DataFrame, office: str, precinct_overrides: dict[str, str] | None = None
+    src: pd.DataFrame, office: str, precinct_overrides: dict[str, str] | None = None, election_year: int | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame, str, str]:
     df = src[src["office"] == office].copy()
     if df.empty:
@@ -476,6 +503,7 @@ def build_precinct_party_votes_county_weight_mode(
 
     df["votes_num"] = pd.to_numeric(df["votes"], errors="coerce").fillna(0.0)
     df["party_group"] = df["party"].map(party_group)
+    df = apply_candidate_party_overrides(df, election_year=election_year)
     df["county"] = df["county"].astype(str).str.strip().str.upper()
     df["precinct"] = df["precinct"].astype(str).str.strip().str.upper()
     df["precinct_id"] = df["county"] + " - " + df["precinct"]
@@ -733,11 +761,11 @@ def main() -> None:
         print(f"Processing {office} -> {contest_type}")
         if args.nongeo_allocation_mode == "county_weights":
             precinct_party, county_non_geo_party, dem_candidate, rep_candidate = build_precinct_party_votes_county_weight_mode(
-                src, office, precinct_overrides=precinct_overrides
+                src, office, precinct_overrides=precinct_overrides, election_year=args.year
             )
         else:
             precinct_party, dem_candidate, rep_candidate = build_precinct_party_votes(
-                src, office, precinct_overrides=precinct_overrides
+                src, office, precinct_overrides=precinct_overrides, election_year=args.year
             )
             county_non_geo_party = None
         if precinct_party.empty:

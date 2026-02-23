@@ -258,6 +258,9 @@
     <meta property="og:image" content="preview.png">
     <meta name="twitter:card" content="summary_large_image">
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
 /* Show floating button only when sidebar is minimized */
 #sidebar-float-toggle { display: flex; position: fixed; top: 10px; right: 10px; z-index: 10010; }
@@ -1073,6 +1076,110 @@ body {
       display: flex !important;
     }
   /* Removed empty ruleset for #map.sidebar-minimized */
+
+  /* Aesthetic refresh overrides */
+  :root {
+    --ui-bg: rgba(255, 255, 255, 0.9);
+    --ui-border: rgba(15, 23, 42, 0.12);
+    --ui-shadow: 0 14px 36px rgba(15, 23, 42, 0.2);
+    --ui-text: #0f172a;
+    --ui-muted: #475569;
+    --ui-accent: #2563eb;
+    --ui-accent-2: #1d4ed8;
+  }
+
+  body {
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 18% 12%, #dbeafe 0%, #eaf2ff 28%, #f8fafc 75%);
+    color: var(--ui-text);
+  }
+
+  #map {
+    background: linear-gradient(180deg, #e9eff7 0%, #dbe3ef 100%);
+  }
+
+  .main-controls,
+  .legend,
+  .sidebar,
+  .status-panel,
+  .vote-counter,
+  .viz-modes {
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    box-shadow: var(--ui-shadow);
+    backdrop-filter: blur(12px);
+  }
+
+  .controls-header h3,
+  .legend-header h4,
+  .sidebar-header h3 {
+    font-family: "Manrope", "IBM Plex Sans", sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--ui-text);
+  }
+
+  .main-controls {
+    border-radius: 14px;
+  }
+
+  .legend,
+  .vote-counter,
+  .viz-modes {
+    border-radius: 14px;
+  }
+
+  .sidebar {
+    border-left: 1px solid var(--ui-border);
+  }
+
+  .sidebar-header,
+  .legend-header {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.94) 100%);
+  }
+
+  .minimize-btn,
+  #sidebar-float-toggle,
+  #accessibility-toggle,
+  #label-toggle,
+  #precinct-toggle {
+    border: 1px solid rgba(37, 99, 235, 0.34);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+  }
+
+  .minimize-btn,
+  #sidebar-float-toggle {
+    background: linear-gradient(180deg, var(--ui-accent) 0%, var(--ui-accent-2) 100%);
+  }
+
+  .control-group select {
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ui-text);
+  }
+
+  .mode-toggle,
+  .viz-mode-btn {
+    border-radius: 9px;
+    font-family: "Manrope", "IBM Plex Sans", sans-serif;
+    font-weight: 700;
+  }
+
+  .mode-toggle.active,
+  .viz-mode-btn.active {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.32);
+  }
+
+  .legend-item {
+    color: var(--ui-muted);
+  }
+
+  .legend-color {
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
     </style>
 </head>
 <body>
@@ -1364,6 +1471,18 @@ document.addEventListener('DOMContentLoaded', function() {
     map.on('mousemove', (e) => {
       lastPointerPoint = e.point;
     });
+    map.on('move', () => {
+      queueHoverRefresh();
+    });
+    map.on('zoom', () => {
+      queueHoverRefresh();
+    });
+    map.on('moveend', () => {
+      queueHoverRefresh();
+    });
+    map.on('zoomend', () => {
+      queueHoverRefresh();
+    });
 
     const DEBUG = false;
     const debugLog = (...args) => { if (DEBUG) console.log(...args); };
@@ -1390,6 +1509,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let precinctSourceLoaded = false;
     let districtHoverRequestId = 0;
     let lastPointerPoint = null;
+    let hoverRefreshRaf = null;
     let appReady = false;
 
     function getVectorSourceLayer(sourceId) {
@@ -2318,6 +2438,14 @@ document.addEventListener('DOMContentLoaded', function() {
       } else if (layerName === 'state-senate-fill') {
         await renderDistrictHover(evt, 'state_senate', 'State Senate District', ['DISTRICT', 'SLDUST', 'district_id', 'district', 'NAMELSAD']);
       }
+    }
+
+    function queueHoverRefresh() {
+      if (hoverRefreshRaf) return;
+      hoverRefreshRaf = requestAnimationFrame(async () => {
+        hoverRefreshRaf = null;
+        await refreshHoverAtPointer();
+      });
     }
 
     async function renderDistrictHover(e, scope, districtLabel, districtFieldCandidates) {
