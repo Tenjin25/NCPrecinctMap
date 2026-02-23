@@ -1,6 +1,27 @@
 {
   "files": [
     {
+      "year": 2000,
+      "scope": "congressional",
+      "contest_type": "president",
+      "file": "congressional_president_2000.json",
+      "districts": 14
+    },
+    {
+      "year": 2000,
+      "scope": "state_house",
+      "contest_type": "president",
+      "file": "state_house_president_2000.json",
+      "districts": 120
+    },
+    {
+      "year": 2000,
+      "scope": "state_senate",
+      "contest_type": "president",
+      "file": "state_senate_president_2000.json",
+      "districts": 50
+    },
+    {
       "year": 2002,
       "scope": "congressional",
       "contest_type": "us_senate",
@@ -24,9 +45,23 @@
     {
       "year": 2004,
       "scope": "congressional",
+      "contest_type": "president",
+      "file": "congressional_president_2004.json",
+      "districts": 14
+    },
+    {
+      "year": 2004,
+      "scope": "congressional",
       "contest_type": "us_senate",
       "file": "congressional_us_senate_2004.json",
       "districts": 14
+    },
+    {
+      "year": 2004,
+      "scope": "state_house",
+      "contest_type": "president",
+      "file": "state_house_president_2004.json",
+      "districts": 120
     },
     {
       "year": 2004,
@@ -38,9 +73,23 @@
     {
       "year": 2004,
       "scope": "state_senate",
+      "contest_type": "president",
+      "file": "state_senate_president_2004.json",
+      "districts": 50
+    },
+    {
+      "year": 2004,
+      "scope": "state_senate",
       "contest_type": "us_senate",
       "file": "state_senate_us_senate_2004.json",
       "districts": 50
+    },
+    {
+      "year": 2008,
+      "scope": "congressional",
+      "contest_type": "president",
+      "file": "congressional_president_2008.json",
+      "districts": 14
     },
     {
       "year": 2008,
@@ -52,9 +101,23 @@
     {
       "year": 2008,
       "scope": "state_house",
+      "contest_type": "president",
+      "file": "state_house_president_2008.json",
+      "districts": 120
+    },
+    {
+      "year": 2008,
+      "scope": "state_house",
       "contest_type": "us_senate",
       "file": "state_house_us_senate_2008.json",
       "districts": 120
+    },
+    {
+      "year": 2008,
+      "scope": "state_senate",
+      "contest_type": "president",
+      "file": "state_senate_president_2008.json",
+      "districts": 50
     },
     {
       "year": 2008,
@@ -136,6 +199,13 @@
     {
       "year": 2012,
       "scope": "congressional",
+      "contest_type": "president",
+      "file": "congressional_president_2012.json",
+      "districts": 14
+    },
+    {
+      "year": 2012,
+      "scope": "congressional",
       "contest_type": "secretary_of_state",
       "file": "congressional_secretary_of_state_2012.json",
       "districts": 14
@@ -206,6 +276,13 @@
     {
       "year": 2012,
       "scope": "state_house",
+      "contest_type": "president",
+      "file": "state_house_president_2012.json",
+      "districts": 120
+    },
+    {
+      "year": 2012,
+      "scope": "state_house",
       "contest_type": "secretary_of_state",
       "file": "state_house_secretary_of_state_2012.json",
       "districts": 120
@@ -271,6 +348,13 @@
       "scope": "state_senate",
       "contest_type": "lieutenant_governor",
       "file": "state_senate_lieutenant_governor_2012.json",
+      "districts": 50
+    },
+    {
+      "year": 2012,
+      "scope": "state_senate",
+      "contest_type": "president",
+      "file": "state_senate_president_2012.json",
       "districts": 50
     },
     {
@@ -565,6 +649,90 @@
       "scope": "state_senate",
       "contest_type": "us_senate",
       "file": "state_senate_us_senate_2016.json",
+      "districts": 50
+    },
+    {
+      "year": 2018,
+      "scope": "congressional",
+      "contest_type": "nc_court_of_appeals_judge_seat_01",
+      "file": "congressional_nc_court_of_appeals_judge_seat_01_2018.json",
+      "districts": 14
+    },
+    {
+      "year": 2018,
+      "scope": "congressional",
+      "contest_type": "nc_court_of_appeals_judge_seat_02",
+      "file": "congressional_nc_court_of_appeals_judge_seat_02_2018.json",
+      "districts": 14
+    },
+    {
+      "year": 2018,
+      "scope": "congressional",
+      "contest_type": "nc_court_of_appeals_judge_seat_03",
+      "file": "congressional_nc_court_of_appeals_judge_seat_03_2018.json",
+      "districts": 14
+    },
+    {
+      "year": 2018,
+      "scope": "congressional",
+      "contest_type": "nc_supreme_court_associate_justice_seat_01",
+      "file": "congressional_nc_supreme_court_associate_justice_seat_01_2018.json",
+      "districts": 14
+    },
+    {
+      "year": 2018,
+      "scope": "state_house",
+      "contest_type": "nc_court_of_appeals_judge_seat_01",
+      "file": "state_house_nc_court_of_appeals_judge_seat_01_2018.json",
+      "districts": 120
+    },
+    {
+      "year": 2018,
+      "scope": "state_house",
+      "contest_type": "nc_court_of_appeals_judge_seat_02",
+      "file": "state_house_nc_court_of_appeals_judge_seat_02_2018.json",
+      "districts": 120
+    },
+    {
+      "year": 2018,
+      "scope": "state_house",
+      "contest_type": "nc_court_of_appeals_judge_seat_03",
+      "file": "state_house_nc_court_of_appeals_judge_seat_03_2018.json",
+      "districts": 120
+    },
+    {
+      "year": 2018,
+      "scope": "state_house",
+      "contest_type": "nc_supreme_court_associate_justice_seat_01",
+      "file": "state_house_nc_supreme_court_associate_justice_seat_01_2018.json",
+      "districts": 120
+    },
+    {
+      "year": 2018,
+      "scope": "state_senate",
+      "contest_type": "nc_court_of_appeals_judge_seat_01",
+      "file": "state_senate_nc_court_of_appeals_judge_seat_01_2018.json",
+      "districts": 50
+    },
+    {
+      "year": 2018,
+      "scope": "state_senate",
+      "contest_type": "nc_court_of_appeals_judge_seat_02",
+      "file": "state_senate_nc_court_of_appeals_judge_seat_02_2018.json",
+      "districts": 50
+    },
+    {
+      "year": 2018,
+      "scope": "state_senate",
+      "contest_type": "nc_court_of_appeals_judge_seat_03",
+      "file": "state_senate_nc_court_of_appeals_judge_seat_03_2018.json",
+      "districts": 50
+    },
+    {
+      "year": 2018,
+      "scope": "state_senate",
+      "contest_type": "nc_supreme_court_associate_justice_seat_01",
+      "file": "state_senate_nc_supreme_court_associate_justice_seat_01_2018.json",
       "districts": 50
     },
     {
