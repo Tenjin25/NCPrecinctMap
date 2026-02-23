@@ -73,6 +73,57 @@ def load_district_map(path: Path, block_col: str, district_col: str) -> pd.DataF
     return out.dropna().drop_duplicates(subset=["block_geoid20"], keep="first")
 
 
+def build_county_shares(
+    crosswalk_df: pd.DataFrame,
+    vap_df: pd.DataFrame,
+    district_map: pd.DataFrame,
+) -> pd.DataFrame:
+    cw = crosswalk_df.copy()
+    cw["county"] = cw["precinct_id"].astype(str).str.split(" - ").str[0].str.strip().str.upper()
+    v = vap_df.copy()
+    v["vap_count"] = pd.to_numeric(v["vap_count"], errors="coerce").fillna(0.0)
+    m = (
+        cw[["block_geoid20", "county"]]
+        .merge(v[["block_geoid20", "vap_count"]], on="block_geoid20", how="left")
+        .merge(district_map[["block_geoid20", "district"]], on="block_geoid20", how="inner")
+    )
+    m["vap_count"] = m["vap_count"].fillna(0.0)
+    g = m.groupby(["county", "district"], as_index=False)["vap_count"].sum()
+    den = g.groupby("county", as_index=False)["vap_count"].sum().rename(columns={"vap_count": "county_vap"})
+    g = g.merge(den, on="county", how="left")
+    g["share"] = g["vap_count"] / g["county_vap"]
+    return g[["county", "district", "share"]]
+
+
+def apply_unmatched_county_fallback(
+    district_df: pd.DataFrame,
+    results_df: pd.DataFrame,
+    matched_precincts: set[str],
+    county_shares: pd.DataFrame,
+) -> dict[str, int]:
+    d = district_df.copy()
+    d["district"] = d["district"].astype(str).str.strip()
+    d["votes_rounded"] = pd.to_numeric(d["votes_rounded"], errors="coerce").fillna(0.0)
+    base = d.set_index("district")["votes_rounded"].to_dict()
+
+    r = results_df.copy()
+    r["precinct_id"] = r["precinct_id"].astype(str).str.strip().str.upper()
+    r["votes"] = pd.to_numeric(r["votes"], errors="coerce").fillna(0.0)
+    r["county"] = r["precinct_id"].str.split(" - ").str[0].str.strip().str.upper()
+    unmatched = r[~r["precinct_id"].isin(matched_precincts)].copy()
+    if unmatched.empty:
+        return {str(k): int(round(v)) for k, v in base.items()}
+
+    u = unmatched.groupby("county", as_index=False)["votes"].sum().rename(columns={"votes": "unmatched_votes"})
+    alloc = u.merge(county_shares, on="county", how="left").dropna(subset=["district", "share"]).copy()
+    alloc["alloc_votes"] = alloc["unmatched_votes"] * alloc["share"]
+    add = alloc.groupby("district", as_index=False)["alloc_votes"].sum()
+    for _, row in add.iterrows():
+        dist = str(row["district"]).strip()
+        base[dist] = float(base.get(dist, 0.0)) + float(row["alloc_votes"])
+    return {str(k): int(round(v)) for k, v in base.items()}
+
+
 def party_group(party: str) -> str:
     p = str(party).strip().upper()
     if p == "DEM":
@@ -212,6 +263,8 @@ def agg_party_to_scope(
     map_path: Path,
     block_col: str,
     district_col: str,
+    county_shares: pd.DataFrame,
+    matched_precincts: set[str],
 ) -> tuple[dict[str, int], dict[str, int], dict[str, int], int, int]:
     party_district = {}
     matched = 0
@@ -226,10 +279,12 @@ def agg_party_to_scope(
         )
         matched = max(matched, int(len(audit)))
         agg = aggregate_to_districts(shattered, map_path, block_col, district_col)
-        party_district[col] = {
-            str(r["district"]).strip(): int(pd.to_numeric(r["votes_rounded"], errors="coerce"))
-            for _, r in agg.iterrows()
-        }
+        party_district[col] = apply_unmatched_county_fallback(
+            district_df=agg,
+            results_df=res_df,
+            matched_precincts=matched_precincts,
+            county_shares=county_shares,
+        )
     return (
         party_district["dem_votes"],
         party_district["rep_votes"],
@@ -308,6 +363,14 @@ def main() -> None:
     src = pd.read_csv(args.results_csv, dtype=str, low_memory=False)
     crosswalk_df = load_crosswalk(args.crosswalk_csv, "precinct_id", "block_geoid20")
     vap_df = load_vap(args.vap_csv, "block_geoid20", "vap_count")
+    matched_precincts = set(crosswalk_df["precinct_id"].astype(str).str.strip().str.upper().unique())
+
+    house_map = load_district_map(args.house_file, "Block", "District")
+    senate_map = load_district_map(args.senate_file, "Block", "District")
+    cd_map = load_district_map(args.cd_file, "GEOID", "CDFP")
+    house_shares = build_county_shares(crosswalk_df, vap_df, house_map)
+    senate_shares = build_county_shares(crosswalk_df, vap_df, senate_map)
+    cd_shares = build_county_shares(crosswalk_df, vap_df, cd_map)
 
     out_dir = args.district_contests_dir
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -324,13 +387,13 @@ def main() -> None:
             continue
 
         dem_h, rep_h, oth_h, matched, total = agg_party_to_scope(
-            precinct_party, crosswalk_df, vap_df, args.house_file, "Block", "District"
+            precinct_party, crosswalk_df, vap_df, args.house_file, "Block", "District", house_shares, matched_precincts
         )
         dem_s, rep_s, oth_s, _, _ = agg_party_to_scope(
-            precinct_party, crosswalk_df, vap_df, args.senate_file, "Block", "District"
+            precinct_party, crosswalk_df, vap_df, args.senate_file, "Block", "District", senate_shares, matched_precincts
         )
         dem_c, rep_c, oth_c, _, _ = agg_party_to_scope(
-            precinct_party, crosswalk_df, vap_df, args.cd_file, "GEOID", "CDFP"
+            precinct_party, crosswalk_df, vap_df, args.cd_file, "GEOID", "CDFP", cd_shares, matched_precincts
         )
 
         payloads = {

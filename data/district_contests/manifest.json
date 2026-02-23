@@ -950,210 +950,210 @@
       "scope": "state_house",
       "contest_type": "agriculture_commissioner",
       "file": "state_house_agriculture_commissioner_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "attorney_general",
       "file": "state_house_attorney_general_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "auditor",
       "file": "state_house_auditor_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "governor",
       "file": "state_house_governor_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "insurance_commissioner",
       "file": "state_house_insurance_commissioner_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "labor_commissioner",
       "file": "state_house_labor_commissioner_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "lieutenant_governor",
       "file": "state_house_lieutenant_governor_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "nc_court_of_appeals_judge_seat_12",
       "file": "state_house_nc_court_of_appeals_judge_seat_12_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "nc_court_of_appeals_judge_seat_14",
       "file": "state_house_nc_court_of_appeals_judge_seat_14_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "nc_court_of_appeals_judge_seat_15",
       "file": "state_house_nc_court_of_appeals_judge_seat_15_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "nc_supreme_court_associate_justice_seat_06",
       "file": "state_house_nc_supreme_court_associate_justice_seat_06_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "president",
       "file": "state_house_president_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "secretary_of_state",
       "file": "state_house_secretary_of_state_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "superintendent",
       "file": "state_house_superintendent_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_house",
       "contest_type": "treasurer",
       "file": "state_house_treasurer_2024.json",
-      "districts": 118
+      "districts": 120
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "agriculture_commissioner",
       "file": "state_senate_agriculture_commissioner_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "attorney_general",
       "file": "state_senate_attorney_general_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "auditor",
       "file": "state_senate_auditor_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "governor",
       "file": "state_senate_governor_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "insurance_commissioner",
       "file": "state_senate_insurance_commissioner_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "labor_commissioner",
       "file": "state_senate_labor_commissioner_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "lieutenant_governor",
       "file": "state_senate_lieutenant_governor_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "nc_court_of_appeals_judge_seat_12",
       "file": "state_senate_nc_court_of_appeals_judge_seat_12_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "nc_court_of_appeals_judge_seat_14",
       "file": "state_senate_nc_court_of_appeals_judge_seat_14_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "nc_court_of_appeals_judge_seat_15",
       "file": "state_senate_nc_court_of_appeals_judge_seat_15_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "nc_supreme_court_associate_justice_seat_06",
       "file": "state_senate_nc_supreme_court_associate_justice_seat_06_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "president",
       "file": "state_senate_president_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "secretary_of_state",
       "file": "state_senate_secretary_of_state_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "superintendent",
       "file": "state_senate_superintendent_2024.json",
-      "districts": 49
+      "districts": 50
     },
     {
       "year": 2024,
       "scope": "state_senate",
       "contest_type": "treasurer",
       "file": "state_senate_treasurer_2024.json",
-      "districts": 49
+      "districts": 50
     }
   ]
 }
