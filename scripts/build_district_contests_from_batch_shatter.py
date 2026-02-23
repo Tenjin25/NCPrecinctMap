@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -33,6 +34,52 @@ NON_GEO_FLAGS = [
     "CURBSIDE",
     "MAIL",
 ]
+
+KNOWN_OFFICE_KEYS = {
+    "US PRESIDENT": "president",
+    "US SENATE": "us_senate",
+    "NC GOVERNOR": "governor",
+    "NC LIEUTENANT GOVERNOR": "lieutenant_governor",
+    "NC ATTORNEY GENERAL": "attorney_general",
+    "NC AUDITOR": "auditor",
+    "NC COMMISSIONER OF AGRICULTURE": "agriculture_commissioner",
+    "NC COMMISSIONER OF LABOR": "labor_commissioner",
+    "NC COMMISSIONER OF INSURANCE": "insurance_commissioner",
+    "NC SECRETARY OF STATE": "secretary_of_state",
+    "NC TREASURER": "treasurer",
+    "NC SUPERINTENDENT OF PUBLIC INSTRUCTION": "superintendent",
+    "NC COURT OF APPEALS JUDGE SEAT 12": "nc_court_of_appeals_judge_seat_12",
+    "NC COURT OF APPEALS JUDGE SEAT 14": "nc_court_of_appeals_judge_seat_14",
+    "NC COURT OF APPEALS JUDGE SEAT 15": "nc_court_of_appeals_judge_seat_15",
+    "NC SUPREME COURT ASSOCIATE JUSTICE SEAT 06": "nc_supreme_court_associate_justice_seat_06",
+}
+
+
+def infer_office_key(office: str) -> str | None:
+    o = str(office).strip().upper()
+    o = re.sub(r"\s+", " ", o)
+    o = re.sub(r"\s+\(.*\)$", "", o)
+
+    direct = KNOWN_OFFICE_KEYS.get(o)
+    if direct:
+        return direct
+
+    m = re.match(r"^NC COURT OF APPEALS JUDGE SEAT\s*0*([0-9]+)$", o)
+    if m:
+        return f"nc_court_of_appeals_judge_seat_{int(m.group(1)):02d}"
+
+    m = re.match(r"^NC SUPREME COURT ASSOCIATE JUSTICE SEAT\s*0*([0-9]+)$", o)
+    if m:
+        return f"nc_supreme_court_associate_justice_seat_{int(m.group(1)):02d}"
+
+    m = re.match(r"^NC SUPREME COURT CHIEF JUSTICE SEAT\s*0*([0-9]+)$", o)
+    if m:
+        return f"nc_supreme_court_chief_justice_seat_{int(m.group(1)):02d}"
+
+    if o == "NC SUPREME COURT CHIEF JUSTICE":
+        return "nc_supreme_court_chief_justice"
+
+    return None
 
 
 def is_non_geographic_precinct(name: str) -> bool:
@@ -93,6 +140,50 @@ def build_county_shares(
     g = g.merge(den, on="county", how="left")
     g["share"] = g["vap_count"] / g["county_vap"]
     return g[["county", "district", "share"]]
+
+
+def load_allocation_weights(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def apply_county_share_overrides(
+    county_shares: pd.DataFrame,
+    *,
+    year: int,
+    scope: str,
+    allocation_weights: dict,
+    min_county_share: float = 0.0,
+) -> pd.DataFrame:
+    out = county_shares.copy()
+    inserts = []
+    scope_weights = (allocation_weights.get(str(int(year)), {}) or {}).get(str(scope), {}) or {}
+    for county, weights in scope_weights.items():
+        county_u = str(county).strip().upper()
+        out = out[out["county"].astype(str).str.upper() != county_u].copy()
+        raw = {str(k).strip(): float(v) for k, v in weights.items()}
+        if min_county_share > 0:
+            raw = {k: v for k, v in raw.items() if v >= float(min_county_share)}
+        if not raw:
+            continue
+        total = sum(raw.values())
+        if total <= 0:
+            continue
+        for district, share in raw.items():
+            inserts.append(
+                {
+                    "county": county_u,
+                    "district": str(district).strip(),
+                    "share": float(share) / total,
+                }
+            )
+    if inserts:
+        out = pd.concat([out, pd.DataFrame(inserts)], ignore_index=True)
+    return out
 
 
 def apply_unmatched_county_fallback(
@@ -356,11 +447,24 @@ def main() -> None:
     parser.add_argument("--house-file", type=Path, default=Path("data/tmp/block_assign_extract/SL 2022-4.csv"))
     parser.add_argument("--senate-file", type=Path, default=Path("data/tmp/block_assign_extract/SL 2022-2.csv"))
     parser.add_argument("--cd-file", type=Path, default=Path("data/census/block files/NC_CD118.txt"))
+    parser.add_argument("--allocation-weights-json", type=Path, default=Path("data/mappings/allocation_weights.json"))
+    parser.add_argument(
+        "--min-county-share",
+        type=float,
+        default=0.01,
+        help="Drop override shares below this threshold and renormalize (e.g., 0.01 => 1%% sliver fallback).",
+    )
     parser.add_argument("--year", type=int, default=2024)
+    parser.add_argument(
+        "--office-source",
+        choices=["summary", "auto"],
+        default="summary",
+        help="Use batch summary office->key mapping, or infer from results CSV using KNOWN_OFFICE_KEYS.",
+    )
     args = parser.parse_args()
 
-    batch_summary = pd.read_csv(args.batch_dir / "summary.csv", dtype=str).fillna("")
     src = pd.read_csv(args.results_csv, dtype=str, low_memory=False)
+    allocation_weights = load_allocation_weights(args.allocation_weights_json)
     crosswalk_df = load_crosswalk(args.crosswalk_csv, "precinct_id", "block_geoid20")
     vap_df = load_vap(args.vap_csv, "block_geoid20", "vap_count")
     matched_precincts = set(crosswalk_df["precinct_id"].astype(str).str.strip().str.upper().unique())
@@ -368,17 +472,49 @@ def main() -> None:
     house_map = load_district_map(args.house_file, "Block", "District")
     senate_map = load_district_map(args.senate_file, "Block", "District")
     cd_map = load_district_map(args.cd_file, "GEOID", "CDFP")
-    house_shares = build_county_shares(crosswalk_df, vap_df, house_map)
-    senate_shares = build_county_shares(crosswalk_df, vap_df, senate_map)
-    cd_shares = build_county_shares(crosswalk_df, vap_df, cd_map)
+    house_shares = apply_county_share_overrides(
+        build_county_shares(crosswalk_df, vap_df, house_map),
+        year=args.year,
+        scope="state_house",
+        allocation_weights=allocation_weights,
+        min_county_share=args.min_county_share,
+    )
+    senate_shares = apply_county_share_overrides(
+        build_county_shares(crosswalk_df, vap_df, senate_map),
+        year=args.year,
+        scope="state_senate",
+        allocation_weights=allocation_weights,
+        min_county_share=args.min_county_share,
+    )
+    cd_shares = apply_county_share_overrides(
+        build_county_shares(crosswalk_df, vap_df, cd_map),
+        year=args.year,
+        scope="congressional",
+        allocation_weights=allocation_weights,
+        min_county_share=args.min_county_share,
+    )
 
     out_dir = args.district_contests_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
     written = 0
-    for _, row in batch_summary.iterrows():
-        office = str(row["office"]).strip()
-        contest_type = str(row["office_key"]).strip()
+    offices_to_run: list[tuple[str, str]] = []
+    if args.office_source == "summary":
+        batch_summary = pd.read_csv(args.batch_dir / "summary.csv", dtype=str).fillna("")
+        for _, row in batch_summary.iterrows():
+            office = str(row["office"]).strip()
+            contest_type = str(row["office_key"]).strip()
+            if office and contest_type:
+                offices_to_run.append((office, contest_type))
+    else:
+        seen = set()
+        for office in sorted(src["office"].dropna().astype(str).unique()):
+            key = infer_office_key(office)
+            if key and key not in seen:
+                offices_to_run.append((office.strip(), key))
+                seen.add(key)
+
+    for office, contest_type in offices_to_run:
         if not office or not contest_type:
             continue
         print(f"Processing {office} -> {contest_type}")

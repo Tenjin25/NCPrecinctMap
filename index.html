@@ -925,6 +925,7 @@ body {
 
 .vote-label.dem { color: #3b82f6; }
 .vote-label.rep { color: #ef4444; }
+.vote-label.other { color: #6b7280; }
 
 .vote-count {
   font-size: 24px;
@@ -1183,6 +1184,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="vote-count rep" id="rep-count">0</div>
         <div class="vote-percent" id="rep-percent">0%</div>
       </div>
+      <div class="vote-item">
+        <div class="vote-label other">OTHER</div>
+        <div class="vote-count" id="other-count">0</div>
+        <div class="vote-percent" id="other-percent">0%</div>
+      </div>
     </div>
   </div>
 
@@ -1439,8 +1445,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Vote Counter Functions - VoteHub Style
-    function updateVoteCounter(demVotes, repVotes) {
-      const totalVotes = demVotes + repVotes;
+    function updateVoteCounter(demVotes, repVotes, otherVotes = 0) {
+      const totalVotes = demVotes + repVotes + otherVotes;
       if (totalVotes === 0) {
         hideVoteCounter();
         return;
@@ -1448,12 +1454,15 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const demPct = (demVotes / totalVotes) * 100;
       const repPct = (repVotes / totalVotes) * 100;
+      const otherPct = (otherVotes / totalVotes) * 100;
       
       animateCounter('dem-count', demVotes);
       animateCounter('rep-count', repVotes);
+      animateCounter('other-count', otherVotes);
       
       document.getElementById('dem-percent').textContent = demPct.toFixed(2) + '%';
       document.getElementById('rep-percent').textContent = repPct.toFixed(2) + '%';
+      document.getElementById('other-percent').textContent = otherPct.toFixed(2) + '%';
       
       showVoteCounter();
     }
@@ -2224,6 +2233,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${demName} + ${marginPct.toFixed(2)}`;
       }
       return `Tied ${marginPct.toFixed(2)}%`;
+    }
+
+    function parseContestValue(contestValue) {
+      const raw = String(contestValue || '');
+      const idx = raw.lastIndexOf('_');
+      if (idx <= 0) return [raw, ''];
+      return [raw.substring(0, idx), raw.substring(idx + 1)];
     }
 
     function renderCountyHoverAtPoint(e) {
@@ -3449,7 +3465,7 @@ document.addEventListener('DOMContentLoaded', function() {
       let electionInfo = '';
       
       if (contestValue && congressionalData) {
-        const [contestType, year] = contestValue.split('_');
+        const [contestType, year] = parseContestValue(contestValue);
         if (contestType === 'us_house') {
           const result = congressionalData.find(row => 
             row.year == year && row.district == districtNum
@@ -3565,7 +3581,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const expectedType = chamber === 'house' ? 'state_house' : 'state_senate';
       
       if (contestValue && electionData) {
-        const [contestType, year] = contestValue.split('_');
+        const [contestType, year] = parseContestValue(contestValue);
         if (contestType === expectedType) {
           // For state legislative districts, we need to aggregate county data by district
           // This is complex without a county-to-district mapping, so show general message
@@ -3923,14 +3939,17 @@ document.addEventListener('DOMContentLoaded', function() {
       // Calculate statewide totals
       let statewidedemVotes = 0;
       let statewidrepVotes = 0;
+      let statewidotherVotes = 0;
       let statewidTotalVotes = 0;
       
       contestData.forEach(row => {
         const demVotes = row[`${contestType}_dem`] || 0;
         const repVotes = row[`${contestType}_rep`] || 0;
+        const otherVotes = row[`${contestType}_other`] || 0;
         const totalVotes = row[`${contestType}_total`] || 0;
         statewidedemVotes += demVotes;
         statewidrepVotes += repVotes;
+        statewidotherVotes += otherVotes;
         statewidTotalVotes += totalVotes; // Use total which includes other parties
       });
       
@@ -3938,7 +3957,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updateStatewideResults(contestType, year, statewidedemVotes, statewidrepVotes, statewidTotalVotes);
       
       // Update vote counter - VoteHub Style
-      updateVoteCounter(statewidedemVotes, statewidrepVotes);
+      updateVoteCounter(statewidedemVotes, statewidrepVotes, statewidotherVotes);
 
       // Build county expression (base map)
       const expr = ['case'];
@@ -4141,11 +4160,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
           const demPct = totalVotes ? (totalDem / totalVotes) * 100 : 0;
           const repPct = totalVotes ? (totalRep / totalVotes) * 100 : 0;
+          const otherPct = totalVotes ? ((totalVotes - totalDem - totalRep) / totalVotes) * 100 : 0;
           const coverageText = (coveragePct !== undefined && coveragePct !== null)
             ? ` | match coverage ${Number(coveragePct).toFixed(2)}%`
             : '';
           document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`;
-          setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R)${coverageText}`);
+          setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)${coverageText}`);
           return;
         }
       }
@@ -4181,6 +4201,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const demPct = (totalDem / totalVotes) * 100;
       const repPct = (totalRep / totalVotes) * 100;
+      const otherPct = ((totalVotes - totalDem - totalRep) / totalVotes) * 100;
       const winner = repPct > demPct ? 'R' : 'D';
       const marginPct = Math.abs(repPct - demPct);
       const color = categoryColorForMargin(marginPct, winner);
@@ -4196,7 +4217,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
   document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Statewide Result`;
-      setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R)`);
+      setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)`);
     }
 
     window.onload = init;
