@@ -18,6 +18,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
+import geopandas as gpd
 
 from shatter_precinct_votes_vap import aggregate_to_districts, load_crosswalk, load_vap, shatter_votes
 
@@ -124,6 +125,35 @@ PRECINCT_ALIASES: dict[str, dict[str, str]] = {
 def _norm(text: str) -> str:
     return str(text).strip().upper()
 
+def _norm_spaces(text: str) -> str:
+    return re.sub(r"\s+", " ", _norm(text))
+
+
+def load_sbe_precinct_code_map(shp_path: Path) -> dict[tuple[str, str], str]:
+    """
+    Load NCSBE precinct shapefile attributes and return:
+      (COUNTY_NAM, ENR_DESC) -> PREC_ID
+
+    This is used as a high-confidence alias source for older years where the
+    precinct exports use ENR_DESC-like labels.
+    """
+    if not shp_path.exists():
+        return {}
+    g = gpd.read_file(shp_path)[["PREC_ID", "ENR_DESC", "COUNTY_NAM"]].copy()
+    g["PREC_ID"] = g["PREC_ID"].astype(str).map(_norm)
+    g["ENR_DESC"] = g["ENR_DESC"].astype(str).map(_norm_spaces)
+    g["COUNTY_NAM"] = g["COUNTY_NAM"].astype(str).map(_norm)
+    g = g[(g["PREC_ID"] != "") & (g["ENR_DESC"] != "") & (g["COUNTY_NAM"] != "")].copy()
+
+    out: dict[tuple[str, str], str] = {}
+    for _, r in g.iterrows():
+        key = (r["COUNTY_NAM"], r["ENR_DESC"])
+        out[key] = r["PREC_ID"]
+        # Common variants: underscores vs spaces.
+        out[(r["COUNTY_NAM"], _norm_spaces(r["ENR_DESC"].replace("_", " ")))] = r["PREC_ID"]
+        out[(r["COUNTY_NAM"], _norm_spaces(r["ENR_DESC"].replace(" ", "_")))] = r["PREC_ID"]
+    return out
+
 
 def clean_precinct_name(precinct: str, county: str) -> str:
     """
@@ -134,6 +164,14 @@ def clean_precinct_name(precinct: str, county: str) -> str:
     """
     county_u = _norm(county)
     p = _norm(precinct)
+
+    # 0) If we have an official SBE ENR_DESC->PREC_ID map loaded for this year,
+    # use it first (most reliable).
+    sbe_map = getattr(clean_precinct_name, "_sbe_map", None)
+    if isinstance(sbe_map, dict):
+        hit = sbe_map.get((county_u, _norm_spaces(p)))
+        if hit:
+            return _norm(hit)
 
     # 1) Hard-coded aliases (county-specific).
     ali = PRECINCT_ALIASES.get(county_u)
@@ -157,11 +195,14 @@ def clean_precinct_name(precinct: str, county: str) -> str:
     if m:
         a = m.group(1)
         b = m.group(2)
-        # Many counties use 2-digit code groups in the crosswalk (e.g., 01-14).
-        if len(a) <= 2:
-            a = str(int(a)).zfill(2)
-        if len(b) <= 2:
-            b = str(int(b)).zfill(2)
+        # Many counties use 2-digit code groups in the crosswalk (e.g., 01-14),
+        # but exports may include leading zeros (e.g., 020-10A).
+        if a.isdigit():
+            ai = int(a)
+            a = str(ai).zfill(2) if ai < 100 else str(ai)
+        if b.isdigit():
+            bi = int(b)
+            b = str(bi).zfill(2) if bi < 100 else str(bi)
         return f"{a}-{b}"
 
     # 4) Pure numeric code (Robeson uses 2-digit codes).
@@ -169,6 +210,11 @@ def clean_precinct_name(precinct: str, county: str) -> str:
         if county_u == "ROBESON":
             return str(int(p)).zfill(2)
         return str(int(p))
+
+    # 5) If the first token contains digits, it's probably a code like "06N" or "03C".
+    tok = p.split()[0].strip() if p else ""
+    if tok and any(ch.isdigit() for ch in tok) and re.fullmatch(r"[0-9A-Z-]+", tok):
+        return tok
 
     return p
 
@@ -410,6 +456,16 @@ def build_auto_precinct_overrides(precinct_ids: pd.Series, matched_precincts: se
         county, p = raw.split(" - ", 1)
         county = county.strip()
         p = p.strip()
+
+        # Use SBE ENR_DESC->PREC_ID if available (strongest signal).
+        sbe_map = getattr(build_auto_precinct_overrides, "_sbe_map", None)
+        if isinstance(sbe_map, dict):
+            hit = sbe_map.get((_norm(county), _norm_spaces(p)))
+            if hit:
+                cand = f"{county} - {_norm(hit)}"
+                if cand in matched_precincts:
+                    out[raw] = cand
+                    continue
 
         # County-specific aliases (named precincts -> coded keys).
         ali = PRECINCT_ALIASES.get(county)
@@ -970,12 +1026,34 @@ def main() -> None:
     )
     parser.add_argument("--year", type=int, default=2024)
     parser.add_argument(
+        "--sbe-precincts-2012-shp",
+        type=Path,
+        default=Path("data/census/SBE_PRECINCTS_20120901/SBE_PRECINCTS_09012012.shp"),
+        help="Optional NCSBE precinct shapefile path (2012-era) for ENR_DESC->PREC_ID aliases.",
+    )
+    parser.add_argument(
+        "--sbe-precincts-2014-shp",
+        type=Path,
+        default=Path("data/census/SBE_PRECINCTS_20141016/PRECINCTS.shp"),
+        help="Optional NCSBE precinct shapefile path (2014-era) for ENR_DESC->PREC_ID aliases.",
+    )
+    parser.add_argument(
         "--office-source",
         choices=["summary", "auto"],
         default="summary",
         help="Use batch summary office->key mapping, or infer from results CSV using KNOWN_OFFICE_KEYS.",
     )
     args = parser.parse_args()
+
+    # Load the closest-available SBE precinct name->code alias map and attach it
+    # to the cleaning/override helpers.
+    sbe_map: dict[tuple[str, str], str] = {}
+    if int(args.year) <= 2012:
+        sbe_map = load_sbe_precinct_code_map(Path(args.sbe_precincts_2012_shp))
+    else:
+        sbe_map = load_sbe_precinct_code_map(Path(args.sbe_precincts_2014_shp))
+    clean_precinct_name._sbe_map = sbe_map  # type: ignore[attr-defined]
+    build_auto_precinct_overrides._sbe_map = sbe_map  # type: ignore[attr-defined]
 
     src = pd.read_csv(args.results_csv, dtype=str, low_memory=False)
     alloc_year = int(args.allocation_year) if args.allocation_year is not None else int(args.year)
