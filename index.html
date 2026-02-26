@@ -896,6 +896,58 @@ body {
   min-width: 400px;
 }
 
+.vote-counter-context {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.vote-counter-context .context-left {
+  min-width: 0;
+}
+
+.vote-counter-context .context-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #111827;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vote-counter-context .context-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vote-counter-context .context-clear {
+  display: none;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(17,24,39,0.04);
+  color: #111827;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.vote-counter-context .context-clear:hover {
+  background: rgba(17,24,39,0.08);
+}
+
 @media (max-width: 768px) {
   .vote-counter {
     top: auto;
@@ -1280,6 +1332,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Vote Counter Display - VoteHub Style -->
   <div class="vote-counter" id="vote-counter">
+    <div class="vote-counter-context" id="vote-counter-context">
+      <div class="context-left">
+        <div class="context-title" id="vote-context-title">Statewide</div>
+        <div class="context-sub" id="vote-context-sub">Hover a county or district</div>
+      </div>
+      <button class="context-clear" id="vote-context-clear" title="Clear selection">Clear</button>
+    </div>
     <div class="vote-counter-row">
       <div class="vote-item">
         <div class="vote-label dem">DEMOCRATIC</div>
@@ -1587,6 +1646,64 @@ document.addEventListener('DOMContentLoaded', function() {
       showVoteCounter();
     }
 
+    // Vote counter context (statewide vs hover vs selected)
+    let voteCounterBaseline = null; // {title, sub, dem, rep, other}
+    let voteCounterPinned = null;   // {title, sub, dem, rep, other}
+    let voteCounterHoverActive = false;
+
+    function setVoteCounterContext(title, sub, {showClear = false} = {}) {
+      const t = document.getElementById('vote-context-title');
+      const s = document.getElementById('vote-context-sub');
+      const c = document.getElementById('vote-context-clear');
+      if (t) t.textContent = title || '';
+      if (s) s.textContent = sub || '';
+      if (c) c.style.display = showClear ? 'inline-flex' : 'none';
+    }
+
+    function setVoteCounterBaselineState(title, sub, demVotes, repVotes, otherVotes) {
+      voteCounterBaseline = { title, sub, demVotes, repVotes, otherVotes };
+      if (!voteCounterPinned) {
+        setVoteCounterContext(title, sub, { showClear: false });
+        updateVoteCounter(demVotes, repVotes, otherVotes);
+      }
+    }
+
+    function pinVoteCounterState(title, sub, demVotes, repVotes, otherVotes) {
+      voteCounterPinned = { title, sub, demVotes, repVotes, otherVotes };
+      voteCounterHoverActive = false;
+      setVoteCounterContext(title, sub, { showClear: true });
+      updateVoteCounter(demVotes, repVotes, otherVotes);
+    }
+
+    function clearPinnedVoteCounterState() {
+      voteCounterPinned = null;
+      voteCounterHoverActive = false;
+      if (voteCounterBaseline) {
+        setVoteCounterContext(voteCounterBaseline.title, voteCounterBaseline.sub, { showClear: false });
+        updateVoteCounter(voteCounterBaseline.demVotes, voteCounterBaseline.repVotes, voteCounterBaseline.otherVotes);
+      } else {
+        setVoteCounterContext('Statewide', 'Hover a county or district', { showClear: false });
+        hideVoteCounter();
+      }
+    }
+
+    function setVoteCounterHoverState(title, sub, demVotes, repVotes, otherVotes) {
+      if (voteCounterPinned) return; // don't override a pinned selection
+      voteCounterHoverActive = true;
+      setVoteCounterContext(title, sub, { showClear: false });
+      updateVoteCounter(demVotes, repVotes, otherVotes);
+    }
+
+    function clearVoteCounterHoverState() {
+      if (voteCounterPinned) return;
+      if (!voteCounterHoverActive) return;
+      voteCounterHoverActive = false;
+      if (voteCounterBaseline) {
+        setVoteCounterContext(voteCounterBaseline.title, voteCounterBaseline.sub, { showClear: false });
+        updateVoteCounter(voteCounterBaseline.demVotes, voteCounterBaseline.repVotes, voteCounterBaseline.otherVotes);
+      }
+    }
+
     function animateCounter(id, targetValue) {
       const element = document.getElementById(id);
       if (!element) return;
@@ -1624,6 +1741,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const counter = document.getElementById('vote-counter');
       if (counter) counter.style.display = 'none';
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const clearBtn = document.getElementById('vote-context-clear');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearPinnedVoteCounterState();
+        });
+      }
+    });
 
     async function loadJSON(path) {
       const r = await fetch(path);
@@ -1996,7 +2124,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const optgroup = document.createElement('optgroup');
         optgroup.label = officeGroups[contestType] || formatContestName(contestType, '');
         years.forEach(year => {
-          if (contestType === 'governor' && year == 2020) return;
           const opt = document.createElement('option');
           opt.value = `${contestType}_${year}`;
           opt.textContent = `${formatContestName(contestType, year)} (${year})`;
@@ -2065,7 +2192,6 @@ document.addEventListener('DOMContentLoaded', function() {
         optgroup.label = officeGroups[contestType] || formatContestName(contestType, '');
         
         years.forEach(year => {
-          if (contestType === 'governor' && year == 2020) return;
           const opt = document.createElement('option');
           opt.value = `${contestType}_${year}`;
           opt.textContent = `${formatContestName(contestType, year)} (${year})`;
@@ -2335,11 +2461,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function shortCandidateLabel(name, fallback) {
       const raw = (name || '').toString().trim();
       if (!raw) return fallback;
-      const cleaned = raw.replace(/\([^)]*\)/g, ' ').replace(/[^A-Za-z .'-]/g, ' ').replace(/\s+/g, ' ').trim();
+      const ticketLead = stripRunningMateName(raw);
+      const cleaned = ticketLead.replace(/\([^)]*\)/g, ' ').replace(/[^A-Za-z .'-]/g, ' ').replace(/\s+/g, ' ').trim();
       if (!cleaned) return fallback;
       const parts = cleaned.split(' ').filter(Boolean);
       if (!parts.length) return fallback;
       return parts[parts.length - 1];
+    }
+
+    function stripRunningMateName(name) {
+      const raw = (name || '').toString().trim();
+      if (!raw) return '';
+      // Common presidential ticket separators.
+      const seps = [' / ', '/', ' & ', '&', ' + ', '+', ' - ', ' – ', ' — '];
+      for (const sep of seps) {
+        if (raw.includes(sep)) {
+          const left = raw.split(sep, 1)[0].trim();
+          return left || raw;
+        }
+      }
+      // Legacy "GORE-LIEBERMAN" style.
+      if (raw.includes('-')) {
+        const [left, right] = raw.split('-', 2).map(s => (s || '').trim());
+        if (left && right && (right.includes('.') || right.includes(' '))) return left;
+      }
+      return raw;
     }
 
     function winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
@@ -2400,7 +2546,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const otherPct = ((otherVotes / totalVotes) * 100).toFixed(2);
       const demCandidate = row[`${contestType}_dem_candidate`] || getCandidateName(year, formatContestName(contestType, year), 'Democrat');
       const repCandidate = row[`${contestType}_rep_candidate`] || getCandidateName(year, formatContestName(contestType, year), 'Republican');
-      const marginLabel = winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidate, demCandidate);
+      const demCandidateDisp = stripRunningMateName(demCandidate);
+      const repCandidateDisp = stripRunningMateName(repCandidate);
+      const marginLabel = winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidateDisp, demCandidateDisp);
+      setVoteCounterHoverState(`Hover: ${countyName} County`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
       const content = `
         <div class="tooltip-title"><strong>${countyName}</strong></div>
         <div style="margin-top: 8px; font-size: 12px;">
@@ -2508,7 +2657,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const otherPct = ((otherVotes / totalVotes) * 100).toFixed(2);
       const demCandidate = row.dem_candidate || getCandidateName(year, formatContestName(contestType, year), 'Democrat');
       const repCandidate = row.rep_candidate || getCandidateName(year, formatContestName(contestType, year), 'Republican');
-      const marginLabel = winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidate, demCandidate);
+      const demCandidateDisp = stripRunningMateName(demCandidate);
+      const repCandidateDisp = stripRunningMateName(repCandidate);
+      const marginLabel = winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidateDisp, demCandidateDisp);
+      setVoteCounterHoverState(`Hover: ${districtLabel} ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
       const content = `
         <div class="tooltip-title"><strong>${districtLabel} ${districtNum}</strong></div>
         <div style="margin-top: 8px; font-size: 12px;">
@@ -2700,6 +2852,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Candidate names
   let demCandidate = getCandidateName(year, formatContestName(contestType, year), 'Democrat');
   let repCandidate = getCandidateName(year, formatContestName(contestType, year), 'Republican');
+  demCandidate = stripRunningMateName(demCandidate);
+  repCandidate = stripRunningMateName(repCandidate);
       // Margin
       const margin = demVotes - repVotes;
       const marginPct = (Math.abs(margin) / totalVotes * 100).toFixed(2);
@@ -2933,6 +3087,7 @@ document.addEventListener('DOMContentLoaded', function() {
         map.on('mouseleave', 'county-fill', () => {
           map.getCanvas().style.cursor = '';
           hideHoverTooltip();
+          clearVoteCounterHoverState();
         });
       }
       updatePrecinctVisibility();
@@ -3050,6 +3205,22 @@ document.addEventListener('DOMContentLoaded', function() {
               // Also show detailed sidebar
               showDistrictDetails(districtNum);
               lastSelectedCounty = `District ${districtNum}`;
+
+              // Pin vote counter to this district for current contest (if any).
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              if (contestValue) {
+                const i = contestValue.lastIndexOf('_');
+                const contestType = contestValue.substring(0, i);
+                const year = contestValue.substring(i + 1);
+                loadDistrictSlice('congressional', contestType, year).then(node => {
+                  const row = node?.general?.results?.[String(districtNum)] || node?.general?.results?.[String(Number(districtNum))] || null;
+                  if (!row) return;
+                  const demVotes = Number(row.dem_votes || 0);
+                  const repVotes = Number(row.rep_votes || 0);
+                  const otherVotes = Number(row.other_votes || 0);
+                  pinVoteCounterState(`Selected: Congressional District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                }).catch(() => {});
+              }
             }
           }
         });
@@ -3072,6 +3243,7 @@ document.addEventListener('DOMContentLoaded', function() {
           districtHoverRequestId++;
           map.getCanvas().style.cursor = '';
           hideHoverTooltip();
+          clearVoteCounterHoverState();
         });
       }
     }
@@ -3106,6 +3278,21 @@ document.addEventListener('DOMContentLoaded', function() {
               // Also show detailed sidebar
               showStateDistrictDetails(districtNum, 'house');
               lastSelectedCounty = `State House District ${districtNum}`;
+
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              if (contestValue) {
+                const i = contestValue.lastIndexOf('_');
+                const contestType = contestValue.substring(0, i);
+                const year = contestValue.substring(i + 1);
+                loadDistrictSlice('state_house', contestType, year).then(node => {
+                  const row = node?.general?.results?.[String(districtNum)] || node?.general?.results?.[String(Number(districtNum))] || null;
+                  if (!row) return;
+                  const demVotes = Number(row.dem_votes || 0);
+                  const repVotes = Number(row.rep_votes || 0);
+                  const otherVotes = Number(row.other_votes || 0);
+                  pinVoteCounterState(`Selected: State House District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                }).catch(() => {});
+              }
             }
           }
         });
@@ -3128,6 +3315,7 @@ document.addEventListener('DOMContentLoaded', function() {
           districtHoverRequestId++;
           map.getCanvas().style.cursor = '';
           hideHoverTooltip();
+          clearVoteCounterHoverState();
         });
       }
     }
@@ -3162,6 +3350,21 @@ document.addEventListener('DOMContentLoaded', function() {
               // Also show detailed sidebar
               showStateDistrictDetails(districtNum, 'senate');
               lastSelectedCounty = `State Senate District ${districtNum}`;
+
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              if (contestValue) {
+                const i = contestValue.lastIndexOf('_');
+                const contestType = contestValue.substring(0, i);
+                const year = contestValue.substring(i + 1);
+                loadDistrictSlice('state_senate', contestType, year).then(node => {
+                  const row = node?.general?.results?.[String(districtNum)] || node?.general?.results?.[String(Number(districtNum))] || null;
+                  if (!row) return;
+                  const demVotes = Number(row.dem_votes || 0);
+                  const repVotes = Number(row.rep_votes || 0);
+                  const otherVotes = Number(row.other_votes || 0);
+                  pinVoteCounterState(`Selected: State Senate District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                }).catch(() => {});
+              }
             }
           }
         });
@@ -3184,6 +3387,7 @@ document.addEventListener('DOMContentLoaded', function() {
           districtHoverRequestId++;
           map.getCanvas().style.cursor = '';
           hideHoverTooltip();
+          clearVoteCounterHoverState();
         });
       }
     }
@@ -3351,7 +3555,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function getHistoricalTrends(countyName, isDistrict = false, districtNum = null) {
       const presidentialYears = [2024, 2020, 2016, 2012, 2008];
       const stateHouseYears = [2024, 2022, 2020, 2018, 2016]; // Recent state house elections
-      const governorYears = [2022, 2018, 2014, 2010]; // Add this line for governor years
+      // NC governor elections align with presidential years (e.g., 2016, 2020, 2024).
+      const governorYears = [2024, 2020, 2016, 2012, 2008];
       const trends = [];
       
       if (isDistrict && districtNum) {
@@ -4084,8 +4289,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update statewide results display
       updateStatewideResults(contestType, year, statewidedemVotes, statewidrepVotes, statewidTotalVotes);
       
-      // Update vote counter - VoteHub Style
-      updateVoteCounter(statewidedemVotes, statewidrepVotes, statewidotherVotes);
+      // Baseline vote counter (statewide) for this contest/view.
+      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, statewidedemVotes, statewidrepVotes, statewidotherVotes);
 
       // Build county expression (base map)
       const expr = ['case'];
@@ -4295,7 +4500,7 @@ document.addEventListener('DOMContentLoaded', function() {
             : '';
           document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`;
           setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)${coverageText}`);
-          updateVoteCounter(totalDem, totalRep, totalOther);
+          setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year} (2022 lines)`, totalDem, totalRep, totalOther);
           return;
         }
       }
@@ -4349,7 +4554,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Statewide Result`;
       setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)`);
-      updateVoteCounter(totalDem, totalRep, totalOther);
+      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totalDem, totalRep, totalOther);
     }
 
     window.onload = init;

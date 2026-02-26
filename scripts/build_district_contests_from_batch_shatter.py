@@ -73,6 +73,35 @@ KNOWN_OFFICE_KEYS = {
     "NC SUPREME COURT ASSOCIATE JUSTICE SEAT 06": "nc_supreme_court_associate_justice_seat_06",
 }
 
+PRESIDENT_OFFICE_KEY = "president"
+
+
+def normalize_presidential_candidate_name(name: str) -> str:
+    """
+    Strip running mate / ticket formatting from presidential candidate strings.
+    Examples:
+      "DONALD J. TRUMP / J.D. VANCE" -> "DONALD J. TRUMP"
+      "A. Gore-J. Lieberman" -> "A. Gore"
+    """
+    raw = str(name or "").strip()
+    if not raw:
+        return ""
+
+    for sep in [" / ", "/", " & ", "&", " + ", "+", " - ", " – ", " — "]:
+        if sep in raw:
+            left = raw.split(sep, 1)[0].strip()
+            return left if left else raw
+
+    # Hyphen tickets in older datasets, but try not to mangle compound surnames.
+    if "-" in raw:
+        left, right = raw.split("-", 1)
+        left = left.strip()
+        right = right.strip()
+        if left and right and (("." in right) or (" " in right) or (right.isupper() and len(right) <= 20)):
+            return left
+
+    return raw
+
 
 def infer_office_key(office: str) -> str | None:
     o_full = str(office).strip().upper()
@@ -540,6 +569,9 @@ def build_precinct_party_votes(
     )
     dem_candidate = str(dem_c["candidate"].iloc[0]) if not dem_c.empty else ""
     rep_candidate = str(rep_c["candidate"].iloc[0]) if not rep_c.empty else ""
+    if infer_office_key(office) == PRESIDENT_OFFICE_KEY:
+        dem_candidate = normalize_presidential_candidate_name(dem_candidate)
+        rep_candidate = normalize_presidential_candidate_name(rep_candidate)
 
     # Normalize precinct IDs before allocation/matching.
     df["county"] = df["county"].astype(str).str.strip().str.upper()
@@ -595,6 +627,9 @@ def build_precinct_party_votes_county_weight_mode(
     )
     dem_candidate = str(dem_c["candidate"].iloc[0]) if not dem_c.empty else ""
     rep_candidate = str(rep_c["candidate"].iloc[0]) if not rep_c.empty else ""
+    if infer_office_key(office) == PRESIDENT_OFFICE_KEY:
+        dem_candidate = normalize_presidential_candidate_name(dem_candidate)
+        rep_candidate = normalize_presidential_candidate_name(rep_candidate)
 
     geo = df[~df["non_geo"]].copy()
     non_geo = df[df["non_geo"]].copy()

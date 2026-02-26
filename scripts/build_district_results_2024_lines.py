@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -405,6 +406,13 @@ def resolve_precinct_key(
     precinct = _norm(precinct)
     if _is_non_geographic_precinct(precinct):
         return None, "non_geographic"
+
+    # Wake often embeds codes like "01-14" in strings like "PRECINCT 01-14A".
+    # Normalize to the base code to match BAF/VTD crosswalk keys.
+    if county == "WAKE":
+        m = re.search(r"\b(\d{2}-\d{2})\b", precinct)
+        if m:
+            precinct = m.group(1)
 
     county_aliases = alias_index.get(county)
     if not county_aliases:

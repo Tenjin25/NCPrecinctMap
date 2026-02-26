@@ -136,11 +136,29 @@ def build_vtd_overlay_shares(vtd_glob: str, district_shp: Path, district_col: st
 
 
 def extract_vtd_code(precinct: str) -> str:
+    """
+    Extract a stable precinct/VTD token from NCSBE-style precinct strings.
+
+    Wake (and some other counties) often embed a code like "01-14" in strings like
+    "PRECINCT 01-14A". For those, we normalize to "01-14" to match BAF/VTD keys.
+    """
     p = str(precinct).strip().upper()
     if not p:
         return ""
-    first = p.split()[0].strip()
-    return first
+
+    # Wake/Cabarrus-style codes embedded anywhere in the string.
+    # Also strips suffix letters: "01-14A" -> "01-14".
+    m = re.search(r"\b(\d{2}-\d{2})[A-Z]?\b", p)
+    if m:
+        return m.group(1)
+
+    # Drop boilerplate word that can appear as the first token.
+    p2 = p.replace("PRECINCT", " ").strip()
+    if not p2:
+        return ""
+
+    # If no code is present, fall back to the full normalized label (some VTD layers use names).
+    return p2
 
 
 def build_vtd_party_totals(src: pd.DataFrame, office: str, county_name_to_fips: dict[str, str]) -> tuple[pd.DataFrame, pd.DataFrame]:
