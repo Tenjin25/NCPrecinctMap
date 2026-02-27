@@ -2452,7 +2452,7 @@ document.addEventListener('DOMContentLoaded', function() {
       debugLog(`Analysis mode set to: ${mode}`);
     }
 
-    function updateStatewideResults(contestType, year, demVotes, repVotes, totalVotes) {
+    function updateStatewideResults(contestType, year, demVotes, repVotes, totalVotes, opts = {}) {
       const statewideContent = document.getElementById('statewide-content');
       const tempBar = document.getElementById('statewide-temperature-bar');
       if (!statewideContent) return;
@@ -2463,7 +2463,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Calculate other votes
-      const otherVotes = Math.max(0, totalVotes - demVotes - repVotes);
+      const otherVotes = Number.isFinite(opts?.otherVotes) ? Math.max(0, Number(opts.otherVotes)) : Math.max(0, totalVotes - demVotes - repVotes);
       
       const demPct = (demVotes / totalVotes) * 100;
       const repPct = (repVotes / totalVotes) * 100;
@@ -2474,8 +2474,11 @@ document.addEventListener('DOMContentLoaded', function() {
       let officeName = formatContestName(contestType, year);
       let demKey = `${year}|${officeName}|Democrat`;
       let repKey = `${year}|${officeName}|Republican`;
-      let demCandidate = getCandidateName(year, officeName, 'Democrat');
-      let repCandidate = getCandidateName(year, officeName, 'Republican');
+      let demCandidate = (opts?.demCandidate || '').toString().trim() || getCandidateName(year, officeName, 'Democrat');
+      let repCandidate = (opts?.repCandidate || '').toString().trim() || getCandidateName(year, officeName, 'Republican');
+      // If the contest JSON includes presidential tickets, show the top of the ticket.
+      demCandidate = stripRunningMateName(demCandidate);
+      repCandidate = stripRunningMateName(repCandidate);
       if ((year == 2008 && officeName === 'President of the United States') || (year == 2010 && officeName === 'Governor')) {
         debugLog('DEBUG Candidate Lookup:', { demKey, demCandidate, repKey, repCandidate });
       }
@@ -5151,20 +5154,30 @@ document.addEventListener('DOMContentLoaded', function() {
       let statewidrepVotes = 0;
       let statewidotherVotes = 0;
       let statewidTotalVotes = 0;
+      let statewideDemCandidate = '';
+      let statewideRepCandidate = '';
       
       contestData.forEach(row => {
         const demVotes = row[`${contestType}_dem`] || 0;
         const repVotes = row[`${contestType}_rep`] || 0;
         const otherVotes = row[`${contestType}_other`] || 0;
         const totalVotes = row[`${contestType}_total`] || 0;
+        const demCand = row[`${contestType}_dem_candidate`] || '';
+        const repCand = row[`${contestType}_rep_candidate`] || '';
         statewidedemVotes += demVotes;
         statewidrepVotes += repVotes;
         statewidotherVotes += otherVotes;
         statewidTotalVotes += totalVotes; // Use total which includes other parties
+        if (!statewideDemCandidate && demCand) statewideDemCandidate = demCand;
+        if (!statewideRepCandidate && repCand) statewideRepCandidate = repCand;
       });
       
       // Update statewide results display
-      updateStatewideResults(contestType, year, statewidedemVotes, statewidrepVotes, statewidTotalVotes);
+      updateStatewideResults(contestType, year, statewidedemVotes, statewidrepVotes, statewidTotalVotes, {
+        otherVotes: statewidotherVotes,
+        demCandidate: statewideDemCandidate,
+        repCandidate: statewideRepCandidate
+      });
       
       // Baseline vote counter (statewide) for this contest/view.
       setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, statewidedemVotes, statewidrepVotes, statewidotherVotes);
