@@ -1394,26 +1394,22 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if (colorblind) {
         // Map original color to colorblind-friendly color
-        // Remap the legend swatches to an accessibility palette (orange vs blue).
         var cbMap = {
-          // REP shades
-          '#7f1d1d': '#cc5500',
-          '#b91c1c': '#ff6600',
-          '#dc2626': '#ff8833',
-          '#ef4444': '#ffaa55',
-          '#f87171': '#ffcc77',
-          '#fecaca': '#ffdd99',
-          '#fff1f2': '#ffeecc',
-          // Tossup
-          '#f8fafc': '#cccccc',
-          // DEM shades
-          '#1e3a8a': '#004d99',
-          '#1d4ed8': '#0066cc',
-          '#2563eb': '#0080ff',
-          '#3b82f6': '#3399ff',
-          '#60a5fa': '#66b3ff',
-          '#93c5fd': '#99ccff',
-          '#dbeafe': '#b3d9ff'
+          '#67000d': '#ff9900',
+          '#a50f15': '#ffb84d',
+          '#cb181d': '#ffd699',
+          '#ef3b2c': '#ffe5cc',
+          '#fb6a4a': '#fff2e6',
+          '#fcae91': '#ffe5cc',
+          '#fee8c8': '#fff2e6',
+          '#f7f7f7': '#cccccc',
+          '#e1f5fe': '#3399ff',
+          '#c6dbef': '#66b3ff',
+          '#9ecae1': '#99ccff',
+          '#6baed6': '#b3d1ff',
+          '#3182bd': '#3366cc',
+          '#08519c': '#003399',
+          '#08306b': '#001f4d'
         };
         var match = orig.match(/#([0-9a-fA-F]{6})/);
         if (match && cbMap[match[0]]) {
@@ -1599,21 +1595,21 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn">−</button>
         </div>
         <div class="legend-content" id="legend-content">
-            <div class="legend-item"><div class="legend-color" style="background: #7f1d1d;"></div>Annihilation Republican (40%+)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #b91c1c;"></div>Dominant Republican (30.00-39.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #dc2626;"></div>Stronghold Republican (20.00-29.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #ef4444;"></div>Safe Republican (10.00-19.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #f87171;"></div>Likely Republican (5.50-9.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #fecaca;"></div>Lean Republican (1.00-5.49%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #fff1f2;"></div>Tilt Republican (0.50-0.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #f8fafc; border: 1px solid rgba(15,23,42,0.35);"></div>Tossup (<0.50%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #dbeafe;"></div>Tilt Democratic (0.50-0.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #93c5fd;"></div>Lean Democratic (1.00-5.49%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #60a5fa;"></div>Likely Democratic (5.50-9.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #3b82f6;"></div>Safe Democratic (10.00-19.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #2563eb;"></div>Stronghold Democratic (20.00-29.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #1d4ed8;"></div>Dominant Democratic (30.00-39.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #1e3a8a;"></div>Annihilation Democratic (40%+)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #67000d;"></div>Annihilation Republican (40%+)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #a50f15;"></div>Dominant Republican (30.00-39.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #cb181d;"></div>Stronghold Republican (20.00-29.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #ef3b2c;"></div>Safe Republican (10.00-19.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #fb6a4a;"></div>Likely Republican (5.50-9.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #fcae91;"></div>Lean Republican (1.00-5.49%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #fee8c8;"></div>Tilt Republican (0.50-0.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #f7f7f7; border: 1px solid rgba(15,23,42,0.35);"></div>Tossup (<0.50%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #e1f5fe;"></div>Tilt Democratic (0.50-0.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #c6dbef;"></div>Lean Democratic (1.00-5.49%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #9ecae1;"></div>Likely Democratic (5.50-9.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #6baed6;"></div>Safe Democratic (10.00-19.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #3182bd;"></div>Stronghold Democratic (20.00-29.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #08519c;"></div>Dominant Democratic (30.00-39.99%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #08306b;"></div>Annihilation Democratic (40%+)</div>
         </div>
     </div>
 
@@ -4810,24 +4806,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function categoryColorForMargin(marginPct, winner) {
-      // A softer, more modern ramp (still categorical).
-      // REP: reds; DEM: blues; Tossup: near-white.
       if (marginPct >= 40) {
-        return winner === 'R' ? '#7f1d1d' : '#1e3a8a';
+        return winner === 'R' ? '#67000d' : '#08306b';
       } else if (marginPct >= 30) {
-        return winner === 'R' ? '#b91c1c' : '#1d4ed8';
+        return winner === 'R' ? '#a50f15' : '#08519c';
       } else if (marginPct >= 20) {
-        return winner === 'R' ? '#dc2626' : '#2563eb';
+        return winner === 'R' ? '#cb181d' : '#3182bd';
       } else if (marginPct >= 10) {
-        return winner === 'R' ? '#ef4444' : '#3b82f6';
+        return winner === 'R' ? '#ef3b2c' : '#6baed6';
       } else if (marginPct >= 5.5) {
-        return winner === 'R' ? '#f87171' : '#60a5fa';
+        return winner === 'R' ? '#fb6a4a' : '#9ecae1';
       } else if (marginPct >= 1.0) {
-        return winner === 'R' ? '#fecaca' : '#93c5fd';
+        return winner === 'R' ? '#fcae91' : '#c6dbef';
       } else if (marginPct >= 0.5) {
-        return winner === 'R' ? '#fff1f2' : '#dbeafe';
+        return winner === 'R' ? '#fee8c8' : '#e1f5fe';
       } else {
-        return '#f8fafc';
+        return '#f7f7f7';
       }
     }
 
