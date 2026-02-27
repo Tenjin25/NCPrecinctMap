@@ -2689,8 +2689,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
       const marginPct = totalVotes > 0 ? Math.abs((repVotes - demVotes) / totalVotes * 100) : 0;
-      const repName = shortCandidateLabel(repCandidate, 'Republican');
-      const demName = shortCandidateLabel(demCandidate, 'Democratic');
+      const repName = shortCandidateLabel(repCandidate, 'R');
+      const demName = shortCandidateLabel(demCandidate, 'D');
       if (repVotes > demVotes) {
         return `${repName} + ${marginPct.toFixed(2)}`;
       }
@@ -2710,8 +2710,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function winnerMarginLabelShort(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
       const margin = (repVotes || 0) - (demVotes || 0);
       const pct = totalVotes ? Math.abs(margin) / totalVotes * 100.0 : 0.0;
-      const repLabel = shortCandidateLabel(repCandidate, 'REP');
-      const demLabel = shortCandidateLabel(demCandidate, 'DEM');
+      const repLabel = shortCandidateLabel(repCandidate, 'R');
+      const demLabel = shortCandidateLabel(demCandidate, 'D');
       const winnerLabel = margin > 0 ? repLabel : (margin < 0 ? demLabel : 'TIE');
       return `${winnerLabel} + ${pct.toFixed(2)}`;
     }
@@ -3265,8 +3265,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const demPct = (demVotes / totalVotes * 100);
       const repPct = (repVotes / totalVotes * 100);
       // Candidate names
-  let demCandidate = getCandidateName(year, formatContestName(contestType, year), 'Democrat');
-  let repCandidate = getCandidateName(year, formatContestName(contestType, year), 'Republican');
+  let demCandidate = (countyData[`${contestType}_dem_candidate`] || '').toString().trim() || getCandidateName(year, formatContestName(contestType, year), 'Democrat');
+  let repCandidate = (countyData[`${contestType}_rep_candidate`] || '').toString().trim() || getCandidateName(year, formatContestName(contestType, year), 'Republican');
   demCandidate = stripRunningMateName(demCandidate);
   repCandidate = stripRunningMateName(repCandidate);
       // Margin
@@ -4971,6 +4971,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const repVotes = Number(row[`${contestType}_rep`] || 0);
         const otherVotes = Number(row[`${contestType}_other`] || 0);
         const totalVotes = Number(row[`${contestType}_total`] || 0);
+        const demCand = (row[`${contestType}_dem_candidate`] || '').toString();
+        const repCand = (row[`${contestType}_rep_candidate`] || '').toString();
 
         const norms = precinctNormVariants(rowName);
         norms.forEach(n => {
@@ -4983,9 +4985,14 @@ document.addEventListener('DOMContentLoaded', function() {
             [`${contestType}_dem`]: 0,
             [`${contestType}_rep`]: 0,
             [`${contestType}_other`]: 0,
-            [`${contestType}_total`]: 0
+            [`${contestType}_total`]: 0,
+            [`${contestType}_dem_candidate`]: demCand,
+            [`${contestType}_rep_candidate`]: repCand
           };
         }
+        // Keep candidate labels at county level for sidebar/hover margin readability.
+        if (!countyAgg[countyNorm][`${contestType}_dem_candidate`] && demCand) countyAgg[countyNorm][`${contestType}_dem_candidate`] = demCand;
+        if (!countyAgg[countyNorm][`${contestType}_rep_candidate`] && repCand) countyAgg[countyNorm][`${contestType}_rep_candidate`] = repCand;
         countyAgg[countyNorm][`${contestType}_dem`] += demVotes;
         countyAgg[countyNorm][`${contestType}_rep`] += repVotes;
         countyAgg[countyNorm][`${contestType}_other`] += otherVotes;
