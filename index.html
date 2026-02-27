@@ -125,11 +125,11 @@
           contentEl.innerHTML = '<p>Select a contest or county to see results.</p>';
         }
         if (minimizeBtn) {
-          minimizeBtn.textContent = '−';
+          minimizeBtn.textContent = '-';
           minimizeBtn.title = 'Minimize sidebar';
         }
         if (floatBtn) {
-          floatBtn.textContent = '−';
+          floatBtn.textContent = '-';
           floatBtn.title = 'Minimize sidebar';
         }
       } else if (sidebar) {
@@ -184,7 +184,7 @@
         };
         // Set initial float button text based on sidebar state
         if (sidebar && !sidebar.classList.contains('minimized')) {
-          floatBtn.textContent = '−';
+          floatBtn.textContent = '-';
           floatBtn.title = 'Minimize sidebar';
         } else {
           floatBtn.textContent = '+';
@@ -1219,7 +1219,7 @@ body {
   }
 
   .sidebar-panel[open] summary::after {
-    content: '−';
+    content: '-';
   }
 
   #county-search {
@@ -1484,12 +1484,12 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div class="vote-counter-row">
       <div class="vote-item">
-        <div class="vote-label dem">DEMOCRATIC</div>
+        <div class="vote-label dem">Dem</div>
         <div class="vote-count dem" id="dem-count">0</div>
         <div class="vote-percent" id="dem-percent">0%</div>
       </div>
       <div class="vote-item">
-        <div class="vote-label rep">REPUBLICAN</div>
+        <div class="vote-label rep">Rep</div>
         <div class="vote-count rep" id="rep-count">0</div>
         <div class="vote-percent" id="rep-percent">0%</div>
       </div>
@@ -1521,8 +1521,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <details class="sidebar-panel" id="panel-search">
           <summary>Search</summary>
           <div style="margin-top: 10px;">
-            <label for="county-search" style="font-weight:600;">County</label>
-            <input type="text" id="county-search" placeholder="Type county name..." autocomplete="off" spellcheck="false" />
+            <label for="county-search" style="font-weight:600;">Find</label>
+            <input type="text" id="county-search" placeholder="Wake, CD 13, HD 73, SD 18, Wake 01-14" autocomplete="off" spellcheck="false" />
+            <div style="margin-top:6px;font-size:12px;color:#64748b;">
+              Tips: use <span style="font-weight:700;">CD</span> for Congress, <span style="font-weight:700;">HD</span> for House, <span style="font-weight:700;">SD</span> for Senate.
+            </div>
           </div>
         </details>
 
@@ -1557,7 +1560,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="controls-header" style="display:flex;align-items:center;justify-content:space-between;">
             <h3>North Carolina Election Contests</h3>
             <div style="display:flex;align-items:center;gap:8px;">
-              <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn">−</button>
+              <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn">-</button>
             </div>
         </div>
         <div class="controls-content" id="controls-content">
@@ -1592,7 +1595,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="legend" id="legend">
         <div class="legend-header">
             <h4>Political Categories</h4>
-            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn">−</button>
+            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn">-</button>
         </div>
         <div class="legend-content" id="legend-content">
             <div class="legend-item"><div class="legend-color" style="background: #67000d;"></div>Annihilation Republican (40%+)</div>
@@ -3153,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Expand legend
         legend.classList.remove('minimized');
         legendContent.style.display = 'block';
-        minimizeBtn.textContent = '−';
+        minimizeBtn.textContent = '-';
         minimizeBtn.title = 'Minimize legend';
       } else {
         // Minimize legend
@@ -3174,7 +3177,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Expand controls
         controls.classList.remove('minimized');
         controlsContent.style.display = 'block';
-        minimizeBtn.textContent = '−';
+        minimizeBtn.textContent = '-';
         minimizeBtn.title = 'Minimize controls';
       } else {
         // Minimize controls
@@ -3200,12 +3203,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sidebarContentEl) sidebarContentEl.style.display = 'block';
         const floatBtn = document.getElementById('sidebar-float-toggle');
         if (floatBtn) {
-          floatBtn.textContent = '−';
+          floatBtn.textContent = '-';
           floatBtn.title = 'Minimize sidebar';
         }
         const btn = document.getElementById('sidebar-minimize-btn');
         if (btn) {
-          btn.textContent = '−';
+          btn.textContent = '-';
           btn.title = 'Minimize sidebar';
         }
       }
@@ -3541,7 +3544,7 @@ document.addEventListener('DOMContentLoaded', function() {
               if (sidebar && sidebar.classList.contains('minimized')) {
                 sidebar.classList.remove('minimized');
                 const btn = document.getElementById('sidebar-minimize-btn');
-                if (btn) btn.textContent = '−';
+                if (btn) btn.textContent = '-';
               }
             }
           }
@@ -4121,7 +4124,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const val = this.value.trim();
             if (val) {
               dropdown.style.display = 'none';
-              handleCountySelection(val);
+              handleSearchSelection(val);
             }
           }
         });
@@ -4136,8 +4139,151 @@ document.addEventListener('DOMContentLoaded', function() {
       if (searchInput) {
         searchInput.value = countyName;
         if (dropdown) dropdown.style.display = 'none';
-        handleCountySelection(countyName);
+        handleSearchSelection(countyName);
       }
+    }
+
+    function parseSearchQuery(query) {
+      const raw = (query || '').toString().trim();
+      const q = raw.toUpperCase().replace(/\s+/g, ' ').trim();
+
+      const cd = q.match(/^(CD|CONG(?:RESS)?|US HOUSE)\s*[-#:]?\s*(\d{1,2})$/i);
+      if (cd) return { kind: 'cd', num: Number(cd[2]), raw };
+      const hd = q.match(/^(HD|HOUSE)\s*[-#:]?\s*(\d{1,3})$/i);
+      if (hd) return { kind: 'hd', num: Number(hd[2]), raw };
+      const sd = q.match(/^(SD|SENATE)\s*[-#:]?\s*(\d{1,3})$/i);
+      if (sd) return { kind: 'sd', num: Number(sd[2]), raw };
+
+      // Precinct: "WAKE 01-14" or "WAKE - 01-14".
+      const p1 = q.match(/^([A-Z .'-]+)\s*-\s*([0-9A-Z .'-]+)$/);
+      if (p1) return { kind: 'precinct', county: p1[1].trim(), code: p1[2].trim(), raw };
+      const p2 = q.match(/^([A-Z .'-]+)\s+(\d{1,3}-\d{1,3}[A-Z]?)$/);
+      if (p2) return { kind: 'precinct', county: p2[1].trim(), code: p2[2].trim(), raw };
+
+      return { kind: 'county', raw };
+    }
+
+    async function handleSearchSelection(query) {
+      const parsed = parseSearchQuery(query);
+      if (parsed.kind === 'cd') {
+        setMapView('districts');
+        await handleDistrictSelection(parsed.num, 'districts', 'congressional', 'Congressional District');
+        return;
+      }
+      if (parsed.kind === 'hd') {
+        setMapView('state_house');
+        await handleDistrictSelection(parsed.num, 'state-house', 'house', 'State House District');
+        return;
+      }
+      if (parsed.kind === 'sd') {
+        setMapView('state_senate');
+        await handleDistrictSelection(parsed.num, 'state-senate', 'senate', 'State Senate District');
+        return;
+      }
+      if (parsed.kind === 'precinct') {
+        await handlePrecinctSelection(parsed.county, parsed.code);
+        return;
+      }
+      handleCountySelection(query);
+    }
+
+    async function ensureSearchGeoJSON(sourceId, fallbackPath) {
+      const src = map.getSource(sourceId);
+      if (src && src.type === 'geojson' && (src._data || src.data)) {
+        return src._data || src.data;
+      }
+      const key = `${sourceId}__search_geojson`;
+      if (window[key]) return window[key];
+      try {
+        const gj = await loadJSON(fallbackPath);
+        window[key] = gj;
+        return gj;
+      } catch (err) {
+        console.warn('Search GeoJSON load failed for', sourceId, err?.message || err);
+        return null;
+      }
+    }
+
+    function getDistrictNumberFromProps(props) {
+      const p = props || {};
+      const raw = p.DISTRICT || p.SLDLST || p.SLDUST || p.district_id || p.district || p.DIST || p.CD118FP || p.CD || p.cd || null;
+      const n = Number(String(raw || '').replace(/[^0-9]/g, ''));
+      return Number.isFinite(n) ? n : null;
+    }
+
+    async function handleDistrictSelection(districtNum, sourceId, chamber, label) {
+      const searchInput = document.getElementById('county-search');
+      if (searchInput) {
+        searchInput.style.borderColor = '#10b981';
+        setTimeout(() => { searchInput.style.borderColor = '#d1d5db'; }, 1000);
+      }
+
+      const path = sourceId === 'districts' ? CONFIG.paths.districts
+        : (sourceId === 'state-house' ? CONFIG.paths.state_house : CONFIG.paths.state_senate);
+      const gj = await ensureSearchGeoJSON(sourceId, path);
+      if (!gj || !gj.features) return;
+
+      const match = gj.features.find(f => getDistrictNumberFromProps(f.properties) === Number(districtNum));
+      if (!match) {
+        console.warn('District not found for search:', label, districtNum);
+        return;
+      }
+
+      const bbox = turf.bbox(match);
+      map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: 40, duration: 900 });
+
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('minimized')) toggleSidebar();
+
+      if (sourceId === 'districts') {
+        lastSelectedCounty = `${label} ${districtNum}`;
+        showDistrictDetails(districtNum);
+      } else {
+        lastSelectedCounty = `${label} ${districtNum}`;
+        showStateDistrictDetails(districtNum, chamber);
+      }
+    }
+
+    async function handlePrecinctSelection(countyNameRaw, precinctCodeRaw) {
+      const searchInput = document.getElementById('county-search');
+      if (searchInput) {
+        searchInput.style.borderColor = '#10b981';
+        setTimeout(() => { searchInput.style.borderColor = '#d1d5db'; }, 1000);
+      }
+
+      await ensurePrecinctCentroidsLoaded();
+      const src = map.getSource('precinct-centroids');
+      const gj = src ? (src._data || src.data) : null;
+      if (!gj || !gj.features) return;
+
+      const county = (countyNameRaw || '').toString().trim().toUpperCase();
+      const code = (precinctCodeRaw || '').toString().trim().toUpperCase();
+      const target = `${county} - ${code}`.replace(/\s+/g, ' ').trim();
+
+      const hit = gj.features.find(f => ((f.properties || {}).precinct_norm || '').toString().trim().toUpperCase() === target);
+      if (!hit) {
+        console.warn('Precinct not found for search:', target);
+        return;
+      }
+
+      const coords = hit.geometry && hit.geometry.type === 'Point' ? hit.geometry.coordinates : null;
+      if (coords && coords.length >= 2) {
+        map.flyTo({ center: coords, zoom: Math.max(CONFIG.precincts?.minZoom || 8.5, 10.0), speed: 0.9 });
+      }
+
+      // Pin vote counter if we have precinct-level results keyed by precinct_norm.
+      const contestValue = document.getElementById('contestSelect')?.value || '';
+      const [contestType, year] = parseContestValue(contestValue);
+      const row = currentPrecinctResults ? currentPrecinctResults.get(target) : null;
+      if (row && contestType) {
+        const demVotes = Number(row[`${contestType}_dem`] || 0);
+        const repVotes = Number(row[`${contestType}_rep`] || 0);
+        const otherVotes = Number(row[`${contestType}_other`] || 0);
+        pinVoteCounterState(`Selected: ${target}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+      }
+
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('minimized')) toggleSidebar();
     }
 
     function handleCountySelection(countyName) {
