@@ -1566,6 +1566,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let previousElectionData = null; // For shift mode
     let precinctsEnabled = false;
     let precinctSourceLoaded = false;
+    let precinctLoadInFlight = false;
+    let lastPrecinctFillExpr = null; // Cached fill-color expression for precinct overlay.
     let districtHoverRequestId = 0;
     let lastPointerPoint = null;
     let hoverRefreshRaf = null;
@@ -2411,8 +2413,9 @@ document.addEventListener('DOMContentLoaded', function() {
       };
       sidebarTitle.textContent = titles[view];
       
-      // Clear all map layers
-      const layerTypes = ['county', 'precinct', 'district', 'state-house', 'state-senate', 'vtds-2000'];
+      // Clear all map layers for the active view.
+      // Precincts are an overlay; don't destroy precinct layers when switching views.
+      const layerTypes = ['county', 'district', 'state-house', 'state-senate', 'vtds-2000'];
       layerTypes.forEach(type => {
         if (map.getLayer(`${type}-fill`)) {
           map.removeLayer(`${type}-fill`);
@@ -2439,7 +2442,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Repopulate contest selector
-      populateContestSelectFromElectionJSON(electionData);
+      if ((contestManifest && contestManifest.length) || (districtManifest && districtManifest.length)) {
+        populateContestSelectFromManifest([...(contestManifest || []), ...(districtManifest || [])]);
+      } else {
+        populateContestSelectFromElectionJSON(electionData);
+      }
       
       // Clear current selection
       document.getElementById('contestSelect').value = '';
@@ -2506,6 +2513,109 @@ document.addEventListener('DOMContentLoaded', function() {
       const idx = raw.lastIndexOf('_');
       if (idx <= 0) return [raw, ''];
       return [raw.substring(0, idx), raw.substring(idx + 1)];
+    }
+
+    function winnerMarginLabelShort(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
+      const margin = (repVotes || 0) - (demVotes || 0);
+      const pct = totalVotes ? Math.abs(margin) / totalVotes * 100.0 : 0.0;
+      const repLabel = shortCandidateLabel(repCandidate, 'REP');
+      const demLabel = shortCandidateLabel(demCandidate, 'DEM');
+      const winnerLabel = margin > 0 ? repLabel : (margin < 0 ? demLabel : 'TIE');
+      return `${winnerLabel} + ${pct.toFixed(2)}`;
+    }
+
+    async function getDistrictTrendSeries(scope, contestType, districtNum) {
+      const entries = (districtManifest || [])
+        .filter(f => f && f.scope === scope && f.contest_type === contestType && Number.isFinite(Number(f.year)))
+        .slice()
+        .sort((a, b) => Number(a.year) - Number(b.year));
+
+      const out = [];
+      for (const e of entries) {
+        const year = Number(e.year);
+        const payload = await loadDistrictSlice(scope, contestType, year);
+        const r = payload?.general?.results?.[String(districtNum)] || null;
+        if (!r) continue;
+        out.push({
+          year,
+          dem_votes: Number(r.dem_votes) || 0,
+          rep_votes: Number(r.rep_votes) || 0,
+          other_votes: Number(r.other_votes) || 0,
+          total_votes: Number(r.total_votes) || 0,
+          dem_candidate: r.dem_candidate || '',
+          rep_candidate: r.rep_candidate || '',
+          winner: r.winner || '',
+          margin_pct: Number(r.margin_pct) || 0,
+          coverage_pct: payload?.meta?.match_coverage_pct
+        });
+      }
+      return out;
+    }
+
+    async function getCountyTrendSeries(contestType, countyName) {
+      const entries = (contestManifest || [])
+        .filter(f => f && f.contest_type === contestType && Number.isFinite(Number(f.year)))
+        .slice()
+        .sort((a, b) => Number(a.year) - Number(b.year));
+
+      const target = (countyName || '').toString().trim().toUpperCase();
+      const out = [];
+      for (const e of entries) {
+        const year = Number(e.year);
+        const rows = await loadContestSlice(contestType, year);
+        // Rows are precinct-level: "COUNTY - PREC". Aggregate to county.
+        let dem = 0, rep = 0, oth = 0, tot = 0;
+        let demCand = '', repCand = '';
+        rows.forEach(r => {
+          const rowName = (r.county || '').toString().trim().toUpperCase();
+          const countyOnly = rowName.includes(' - ') ? rowName.split(' - ')[0].trim().toUpperCase() : rowName;
+          if (countyOnly !== target) return;
+          dem += Number(r[`${contestType}_dem`]) || 0;
+          rep += Number(r[`${contestType}_rep`]) || 0;
+          oth += Number(r[`${contestType}_other`]) || 0;
+          tot += Number(r[`${contestType}_total`]) || 0;
+          if (!demCand) demCand = r[`${contestType}_dem_candidate`] || '';
+          if (!repCand) repCand = r[`${contestType}_rep_candidate`] || '';
+        });
+        if (tot <= 0) continue;
+        const margin = rep - dem;
+        const marginPct = tot ? (margin / tot * 100.0) : 0.0;
+        out.push({
+          year,
+          dem_votes: dem,
+          rep_votes: rep,
+          other_votes: oth,
+          total_votes: tot,
+          dem_candidate: demCand,
+          rep_candidate: repCand,
+          winner: margin > 0 ? 'REP' : (margin < 0 ? 'DEM' : 'TIE'),
+          margin_pct: Number(marginPct.toFixed(2))
+        });
+      }
+      return out;
+    }
+
+    function formatTrendSeries(title, series) {
+      if (!series || series.length === 0) {
+        return `
+          <div class="tooltip-title">${title}</div>
+          <div class="tooltip-trends"><div style="color:#999;">No historical data</div></div>
+        `;
+      }
+      const lines = series
+        .slice()
+        .sort((a, b) => a.year - b.year)
+        .map(s => {
+          const win = (s.winner || '').toString().toUpperCase();
+          const color = win === 'REP' ? '#ef4444' : (win === 'DEM' ? '#3b82f6' : '#a3a3a3');
+          const label = winnerMarginLabelShort(s.rep_votes, s.dem_votes, s.total_votes, s.rep_candidate, s.dem_candidate);
+          return `<div style="display:flex;justify-content:space-between;gap:10px;"><span style="color:#cbd5e1;">${s.year}</span><span style="color:${color};font-weight:700;">${label}</span></div>`;
+        })
+        .join('');
+      return `
+        <div class="tooltip-title">${title}</div>
+        <div class="tooltip-trends">${lines}</div>
+      `;
     }
 
     function renderCountyHoverAtPoint(e) {
@@ -3009,7 +3119,38 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   sidebarContent += `</div>`;
   sidebarContent += `</div>`;
+  // Historical trend (year-by-year margins) for the currently selected contest.
+  sidebarContent += `<div class="competitiveness-section">`;
+  sidebarContent += '<h5>📈 Historical Trends</h5>';
+  sidebarContent += `<div id="county-trends" style="margin-top:6px;color:#94a3b8;">Loading…</div>`;
+  sidebarContent += `</div>`;
   contentEl.innerHTML = sidebarContent;
+  // Populate trends asynchronously from manifest slices (does not block UI).
+  (async () => {
+    try {
+      const series = await getCountyTrendSeries(contestType, countyName);
+      const el = document.getElementById('county-trends');
+      if (!el) return;
+      if (!series.length) {
+        el.innerHTML = '<div style="color:#999;">No historical data</div>';
+        return;
+      }
+      el.innerHTML = series
+        .slice()
+        .sort((a, b) => a.year - b.year)
+        .map(s => {
+          const win = (s.winner || '').toString().toUpperCase();
+          const color = win === 'REP' ? '#ef4444' : (win === 'DEM' ? '#3b82f6' : '#a3a3a3');
+          const label = winnerMarginLabelShort(s.rep_votes, s.dem_votes, s.total_votes, s.rep_candidate, s.dem_candidate);
+          return `<div style="display:flex;justify-content:space-between;gap:10px;"><span style="color:#64748b;">${s.year}</span><span style="color:${color};font-weight:700;">${label}</span></div>`;
+        })
+        .join('');
+    } catch (err) {
+      const el = document.getElementById('county-trends');
+      if (el) el.innerHTML = '<div style="color:#999;">Failed to load trends</div>';
+      console.warn('Failed to load county trends:', err?.message || err);
+    }
+  })();
   detailsDiv.style.display = 'block';
   detailsDiv.style.display = 'block';
 }
@@ -3056,12 +3197,23 @@ document.addEventListener('DOMContentLoaded', function() {
           map.getCanvas().style.cursor = '';
         });
         // Add county click event handler
-        map.on('click', 'county-fill', (e) => {
+        map.on('click', 'county-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const countyName = e.features[0].properties.precinct_name || e.features[0].properties.county_nam || e.features[0].properties.COUNTYNAME || e.features[0].properties.County || e.features[0].properties.NAME || e.features[0].properties.name;
             if (countyName) {
               showCountyDetails(countyName);
               lastSelectedCounty = countyName;
+              // Show historical trends popup based on current contest selection.
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              const [contestType] = parseContestValue(contestValue);
+              const trendType = contestType || 'president';
+              try {
+                const series = await getCountyTrendSeries(trendType, countyName);
+                const content = formatTrendSeries(`${countyName} County - ${formatContestName(trendType, '')} Trends`, series);
+                showHoverTooltip(e.point.x, e.point.y, content);
+              } catch (err) {
+                console.warn('Failed to load county trends:', err?.message || err);
+              }
               // Optionally, expand sidebar if minimized
               const sidebar = document.getElementById('sidebar');
               if (sidebar && sidebar.classList.contains('minimized')) {
@@ -3098,6 +3250,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function ensurePrecinctSourceLoaded() {
       if (precinctSourceLoaded || map.getSource('precincts')) return true;
+      if (precinctLoadInFlight) return false;
+      precinctLoadInFlight = true;
       setStatus('Loading precinct geometry...');
       const precincts = await loadJSON(CONFIG.paths.precincts);
       precincts.features = (precincts.features || []).map(feature => {
@@ -3117,10 +3271,20 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return feature;
       });
-      window.countiesData = precincts;
+      // Do not overwrite window.countiesData (used for county search/zoom).
+      window.precinctsData = precincts;
       map.addSource('precincts', { type: 'geojson', data: precincts });
       precinctSourceLoaded = true;
+      precinctLoadInFlight = false;
       addPrecinctLayers();
+      // If a contest is already applied, paint precincts immediately.
+      try {
+        if (lastPrecinctFillExpr && map.getLayer('precinct-fill')) {
+          map.setPaintProperty('precinct-fill', 'fill-color', lastPrecinctFillExpr);
+        }
+      } catch (err) {
+        console.warn('Failed to apply cached precinct colors:', err?.message || err);
+      }
       setStatus('Precinct geometry ready');
       return true;
     }
@@ -3161,6 +3325,10 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.style.background = precinctsEnabled ? '#1d4ed8' : '#065f46';
       }
       const visible = precinctsEnabled && map.getZoom() >= (CONFIG.precincts?.minZoom || 8.5);
+      // Auto-load precinct geometry once the overlay would become visible.
+      if (visible && !precinctSourceLoaded && !precinctLoadInFlight) {
+        ensurePrecinctSourceLoaded().catch(err => console.warn('Precinct load failed:', err?.message || err));
+      }
       ['precinct-fill', 'precinct-stroke'].forEach(id => {
         if (map.getLayer(id)) {
           map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
@@ -3195,22 +3363,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Add click handler for districts with full trends popup
-        map.on('click', 'district-fill', (e) => {
+        map.on('click', 'district-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
             const districtNum = props.DISTRICT || props.CD118FP || props.district_id || props.district;
             if (districtNum) {
-              // Show full historical trends popup on click
-              const trends = getHistoricalTrends(null, true, districtNum);
-              const content = formatTooltipContent(`Congressional District ${districtNum} - Historical Trends`, trends);
-              showHoverTooltip(e.point.x, e.point.y, content);
+              // Show full historical trends popup on click (manifest-based).
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              const [contestType] = parseContestValue(contestValue);
+              const trendType = contestType || 'president';
+              try {
+                const series = await getDistrictTrendSeries('congressional', trendType, districtNum);
+                const content = formatTrendSeries(`Congressional District ${districtNum} - ${formatContestName(trendType, '')} Trends`, series);
+                showHoverTooltip(e.point.x, e.point.y, content);
+              } catch (err) {
+                console.warn('Failed to load district trends:', err?.message || err);
+              }
               
               // Also show detailed sidebar
               showDistrictDetails(districtNum);
               lastSelectedCounty = `District ${districtNum}`;
 
               // Pin vote counter to this district for current contest (if any).
-              const contestValue = document.getElementById('contestSelect')?.value || '';
               if (contestValue) {
                 const i = contestValue.lastIndexOf('_');
                 const contestType = contestValue.substring(0, i);
@@ -3268,21 +3442,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Add click handler for state house districts with full trends popup
-        map.on('click', 'state-house-fill', (e) => {
+        map.on('click', 'state-house-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
             const districtNum = props.DISTRICT || props.SLDLST || props.district_id || props.district;
             if (districtNum) {
-              // Show full historical trends popup on click
-              const trends = getStateDistrictTrends(districtNum, 'house');
-              const content = formatTooltipContent(`State House District ${districtNum} - Historical Trends`, trends);
-              showHoverTooltip(e.point.x, e.point.y, content);
+              // Show full historical trends popup on click (manifest-based).
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              const [contestType] = parseContestValue(contestValue);
+              const trendType = contestType || 'president';
+              try {
+                const series = await getDistrictTrendSeries('state_house', trendType, districtNum);
+                const content = formatTrendSeries(`State House District ${districtNum} - ${formatContestName(trendType, '')} Trends`, series);
+                showHoverTooltip(e.point.x, e.point.y, content);
+              } catch (err) {
+                console.warn('Failed to load state house trends:', err?.message || err);
+              }
               
               // Also show detailed sidebar
               showStateDistrictDetails(districtNum, 'house');
               lastSelectedCounty = `State House District ${districtNum}`;
 
-              const contestValue = document.getElementById('contestSelect')?.value || '';
               if (contestValue) {
                 const i = contestValue.lastIndexOf('_');
                 const contestType = contestValue.substring(0, i);
@@ -3340,21 +3520,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Add click handler for state senate districts with full trends popup
-        map.on('click', 'state-senate-fill', (e) => {
+        map.on('click', 'state-senate-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
             const districtNum = props.DISTRICT || props.SLDUST || props.district_id || props.district;
             if (districtNum) {
-              // Show full historical trends popup on click
-              const trends = getStateDistrictTrends(districtNum, 'senate');
-              const content = formatTooltipContent(`State Senate District ${districtNum} - Historical Trends`, trends);
-              showHoverTooltip(e.point.x, e.point.y, content);
+              // Show full historical trends popup on click (manifest-based).
+              const contestValue = document.getElementById('contestSelect')?.value || '';
+              const [contestType] = parseContestValue(contestValue);
+              const trendType = contestType || 'president';
+              try {
+                const series = await getDistrictTrendSeries('state_senate', trendType, districtNum);
+                const content = formatTrendSeries(`State Senate District ${districtNum} - ${formatContestName(trendType, '')} Trends`, series);
+                showHoverTooltip(e.point.x, e.point.y, content);
+              } catch (err) {
+                console.warn('Failed to load state senate trends:', err?.message || err);
+              }
               
               // Also show detailed sidebar
               showStateDistrictDetails(districtNum, 'senate');
               lastSelectedCounty = `State Senate District ${districtNum}`;
 
-              const contestValue = document.getElementById('contestSelect')?.value || '';
               if (contestValue) {
                 const i = contestValue.lastIndexOf('_');
                 const contestType = contestValue.substring(0, i);
@@ -4371,7 +4557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // apply it to the map paint.
       // map.setPaintProperty('county-fill', 'fill-color', expr);
       // Optional precinct expression (detail overlay)
-      if (map.getLayer('precinct-fill')) {
+      {
         const exprPrecinct = ['case'];
         contestData.forEach(row => {
           const precinctName = normalizeCountyName(row.county);
@@ -4391,7 +4577,11 @@ document.addEventListener('DOMContentLoaded', function() {
           exprPrecinct.push(color);
         });
         exprPrecinct.push('#d1d5db');
-        map.setPaintProperty('precinct-fill', 'fill-color', exprPrecinct);
+        // Cache for later, in case precinct overlay loads after the contest is applied.
+        lastPrecinctFillExpr = exprPrecinct;
+        if (map.getLayer('precinct-fill')) {
+          map.setPaintProperty('precinct-fill', 'fill-color', exprPrecinct);
+        }
       }
   document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year})`;
       setStatus(`Applied contest: ${formatContestName(contestType, year)} ${year}`);
