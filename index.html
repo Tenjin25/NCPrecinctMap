@@ -1664,6 +1664,7 @@ document.addEventListener('DOMContentLoaded', function() {
         districts: withBase('./data/tileset/nc_cd118_tileset.geojson'),
         state_house: withBase('./data/tileset/nc_state_house_2022_lines_tileset.geojson'),
         state_senate: withBase('./data/tileset/nc_state_senate_2022_lines_tileset.geojson'),
+        county_demographics: withBase('./data/county_demographics_2020_dp1.json'),
         election: withBase('./data/nc_elections_aggregated.json'),
         district_election: withBase('./data/nc_district_results_2022_lines.json'),
         district_contests_dir: withBase('./data/district_contests'),
@@ -1714,6 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let districtsInfo = null;
     let stateHouseInfo = null;
     let stateSenateInfo = null;
+    let countyDemographics = null; // County-level VAP (18+) + total-pop race/ethnicity from DP1
     let countyNameMap = {};
     let currentView = 'counties'; // 'counties', 'districts', 'state_house', 'state_senate'
     let currentElectionResults = null; // Current contest results for county details
@@ -2638,6 +2640,34 @@ document.addEventListener('DOMContentLoaded', function() {
       return parts[parts.length - 1];
     }
 
+    function toTitleCaseName(raw) {
+      const s = (raw || '').toString().trim();
+      if (!s) return '';
+      // If it's already mixed-case, keep it.
+      const hasLower = /[a-z]/.test(s);
+      const hasUpper = /[A-Z]/.test(s);
+      if (hasLower && hasUpper) return s;
+
+      const lower = s.toLowerCase();
+      const parts = lower.split(/(\s+|-)/); // keep separators
+      const titled = parts.map(p => {
+        if (p === ' ' || p === '-' || /^\s+$/.test(p)) return p;
+        if (p === "of" || p === "and" || p === "the") return p;
+        if (p.startsWith("mc") && p.length > 2) return "Mc" + p[2].toUpperCase() + p.slice(3);
+        if (p.startsWith("o'") && p.length > 2) return "O'" + p[2].toUpperCase() + p.slice(3);
+        return p.charAt(0).toUpperCase() + p.slice(1);
+      }).join('');
+      return titled;
+    }
+
+    function displayCountyName(raw) {
+      const s = (raw || '').toString().trim();
+      if (!s) return 'Unknown County';
+      // Remove any trailing "COUNTY" if present; UI will add "County".
+      const cleaned = s.replace(/\s+COUNTY$/i, '').trim();
+      return toTitleCaseName(cleaned);
+    }
+
     function stripRunningMateName(name) {
       const raw = (name || '').toString().trim();
       if (!raw) return '';
@@ -2837,6 +2867,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!(e.features && e.features[0])) return;
       const props = e.features[0].properties || {};
       const countyName = props.NAME20 || props.CountyName || props.COUNTYNAME || props.county_nam || props.NAME || props.name || 'Unknown County';
+      const countyDisplay = displayCountyName(countyName);
       const norm = (countyName || '').toString().replace(/[^a-z0-9 .\-]/gi, '').replace(/\s+/g, ' ').trim().toUpperCase();
       let row = currentElectionResults ? currentElectionResults[norm] : null;
       if (!row && currentElectionResults) {
@@ -2851,7 +2882,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const contestValue = document.getElementById('contestSelect')?.value || '';
 
       if (!contestValue || !row) {
-        showHoverTooltip(e.point.x, e.point.y, `<div class="tooltip-title"><strong>${countyName}</strong></div><div style="margin-top: 8px; color: #999;">Select a contest to see results</div>`);
+        showHoverTooltip(e.point.x, e.point.y, `<div class="tooltip-title"><strong>${countyDisplay}</strong></div><div style="margin-top: 8px; color: #999;">Select a contest to see results</div>`);
         return;
       }
 
@@ -2863,7 +2894,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const otherVotes = Number(row[`${contestType}_other`] || 0);
       const totalVotes = Number(row[`${contestType}_total`] || 0);
       if (totalVotes <= 0) {
-        showHoverTooltip(e.point.x, e.point.y, `<div class="tooltip-title"><strong>${countyName}</strong></div><div style="margin-top: 8px; color: #999;">No data available</div>`);
+        showHoverTooltip(e.point.x, e.point.y, `<div class="tooltip-title"><strong>${countyDisplay}</strong></div><div style="margin-top: 8px; color: #999;">No data available</div>`);
         return;
       }
       const demPct = ((demVotes / totalVotes) * 100).toFixed(2);
@@ -2874,9 +2905,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const demCandidateDisp = stripRunningMateName(demCandidate);
       const repCandidateDisp = stripRunningMateName(repCandidate);
       const marginLabel = winnerMarginLabel(repVotes, demVotes, totalVotes, repCandidateDisp, demCandidateDisp);
-      setVoteCounterHoverState(`Hover: ${countyName} County`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+      setVoteCounterHoverState(`Hover: ${countyDisplay} County`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+
+      let demoLine = '';
+      try {
+        const demo = countyDemographics?.counties?.[norm] || null;
+        if (demo) {
+          demoLine = `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #444; color:#64748b;"><strong>VAP (18+):</strong> ${Number(demo.vap_18plus || 0).toLocaleString()}</div>`;
+        }
+      } catch (_) {}
       const content = `
-        <div class="tooltip-title"><strong>${countyName}</strong></div>
+        <div class="tooltip-title"><strong>${countyDisplay}</strong></div>
         <div style="margin-top: 8px; font-size: 12px;">
           <div style="color: #3b82f6; margin: 4px 0;"><strong>D:</strong> ${demVotes.toLocaleString()} (${demPct}%)</div>
           <div style="color: #ef4444; margin: 4px 0;"><strong>R:</strong> ${repVotes.toLocaleString()} (${repPct}%)</div>
@@ -2884,6 +2923,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #444;">
             <strong>Margin:</strong> ${marginLabel} | <strong>Total:</strong> ${totalVotes.toLocaleString()}
           </div>
+          ${demoLine}
         </div>`;
       showHoverTooltip(e.point.x, e.point.y, content);
     }
@@ -3170,7 +3210,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       const countyNameElement = document.getElementById('county-name');
-      if (countyNameElement) countyNameElement.textContent = countyName + ' County';
+      const countyDisplay = displayCountyName(countyName);
+      if (countyNameElement) countyNameElement.textContent = countyDisplay + ' County';
       // sidebarContent already declared above
       // Guard: election results must exist
       if (!currentElectionResults) {
@@ -3217,7 +3258,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const repVotes = countyData[`${contestType}_rep`] || 0;
       const totalVotes = countyData[`${contestType}_total`] || 0;
       if (totalVotes === 0) {
-        contentEl.innerHTML = `<p>No ${formatContestName(contestType, year)} data available for ${countyName} County in ${year}.</p>`;
+        contentEl.innerHTML = `<p>No ${formatContestName(contestType, year)} data available for ${countyDisplay} County in ${year}.</p>`;
         detailsDiv.style.display = 'block';
         return;
       }
@@ -3332,6 +3373,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   sidebarContent += `</div>`;
+
+  // County demographics (DP1-derived: VAP 18+ + total-pop race/ethnicity shares).
+  try {
+    const demo = countyDemographics?.counties?.[norm] || null;
+    if (demo) {
+      sidebarContent += `<div class="demographics-section">`;
+      sidebarContent += `<h3 class="sidebar-section-title">Demographics</h3>`;
+      sidebarContent += `<p class="sidebar-breakdown"><b>VAP (18+):</b> ${Number(demo.vap_18plus || 0).toLocaleString()}</p>`;
+      sidebarContent += `<p class="sidebar-margin-details" style="margin-top:6px;">Race/ethnicity shown is total population (DP1), not VAP-by-race.</p>`;
+      sidebarContent += `<p class="sidebar-breakdown"><b>White:</b> ${Number(demo.white_pop_pct || 0).toFixed(2)}%</p>`;
+      sidebarContent += `<p class="sidebar-breakdown"><b>Black:</b> ${Number(demo.black_pop_pct || 0).toFixed(2)}%</p>`;
+      sidebarContent += `<p class="sidebar-breakdown"><b>Hispanic:</b> ${Number(demo.hispanic_pop_pct || 0).toFixed(2)}%</p>`;
+      sidebarContent += `</div>`;
+    }
+  } catch (_) {}
+
   // Competitiveness
   let competitiveness;
   const actualMarginPct = parseFloat(marginPct);
@@ -4731,6 +4788,14 @@ document.addEventListener('DOMContentLoaded', function() {
           setStatus('Congressional data loaded');
         } catch (err) {
           console.warn('District CSV not loaded:', err.message);
+        }
+
+        // Optional county demographics (DP1-derived) for sidebar/tooltips.
+        try {
+          countyDemographics = await loadJSON(CONFIG.paths.county_demographics);
+        } catch (err) {
+          countyDemographics = null;
+          console.warn('County demographics not loaded:', err?.message || err);
         }
 
         try {
