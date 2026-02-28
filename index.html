@@ -519,6 +519,18 @@ body {
     padding: 16px !important;
     margin: 0 !important;
     z-index: 10004 !important;
+    max-height: 56vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Keep header + minimize button accessible while scrolling */
+  #main-controls .controls-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.96);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
   }
   .main-controls.minimized {
     min-width: 60px !important;
@@ -533,18 +545,34 @@ body {
     font-size: 16px !important;
     padding-right: 50px;
   }
+  #help-btn,
+  #accessibility-toggle,
+  #label-toggle {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+  }
+  #precinct-toggle {
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
   .control-group label {
     font-size: 14px !important;
   }
   .control-group select {
     padding: 12px !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
   }
-  #accessibility-toggle {
-    min-width: 40px !important;
-    min-height: 40px !important;
-    width: 40px !important;
-    height: 40px !important;
+  #main-controls .view-toggle-btn {
+    flex: 1 1 calc(50% - 6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 .main-controls.minimized {
@@ -1120,6 +1148,15 @@ body {
   border: 1px solid #e5e7eb;
   z-index: 1000;
   max-width: 300px;
+}
+@media (max-width: 768px) {
+  #status-panel {
+    top: auto !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(50vh + 16px) !important;
+    max-width: none !important;
+  }
 }
     .sidebar.minimized .sidebar-footer {
       display: none !important;
@@ -1841,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
             <div class="control-group">
-                <div style="display:flex;align-items:center;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <label>Contest:</label>
                   <button id="accessibility-toggle" title="Accessibility: Color Blind Mode" style="background:#1f2937;color:#fff;border-radius:50%;width:32px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;">&#9855;</button>
                   <button id="label-toggle" title="Toggle County Labels" style="background:#1f2937;color:#fff;border-radius:50%;width:32px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;">Aa</button>
@@ -2797,6 +2834,46 @@ document.addEventListener('DOMContentLoaded', function() {
 	      };
 	    }
 
+    function updateContestSelectForCurrentView() {
+      // In manifest mode, district views must use district slices; otherwise selections can appear but won't load.
+      const inManifestMode =
+        (Array.isArray(contestManifest) && contestManifest.length > 0) ||
+        (Array.isArray(districtManifest) && districtManifest.length > 0);
+      let entries = null;
+
+      if (currentView === 'counties' || currentView === 'vtds_2000' || !currentView) {
+        entries = contestManifest || [];
+      } else {
+        const scope = currentView === 'districts'
+          ? 'congressional'
+          : (currentView === 'state_house' ? 'state_house' : (currentView === 'state_senate' ? 'state_senate' : null));
+        if (scope && Array.isArray(districtManifest) && districtManifest.length) {
+          entries = districtManifest.filter(e => e && e.scope === scope);
+        } else {
+          entries = [];
+        }
+      }
+
+      if (Array.isArray(entries) && entries.length > 0) {
+        populateContestSelectFromManifest(entries);
+        return;
+      }
+
+      // If we have manifests but no matches for this view, don't fall back to county contests (they won't load here).
+      if (inManifestMode && currentView !== 'counties' && currentView !== 'vtds_2000') {
+        const sel = document.getElementById('contestSelect');
+        if (sel) {
+          sel.innerHTML = '<option value="">No contests available for this view</option>';
+          sel.dataset.populated = 'true';
+          sel.onchange = () => { applyContest(sel.value); };
+        }
+        return;
+      }
+
+      // Fallback (legacy JSON/CSV mode)
+      populateContestSelectFromElectionJSON(electionData);
+    }
+
     function populateContestSelectFromCSV(csvData) {
 	      if (!Array.isArray(csvData) || csvData.length === 0) return;
 	      const sel = document.getElementById('contestSelect');
@@ -3140,11 +3217,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       // Repopulate contest selector
-      if ((contestManifest && contestManifest.length) || (districtManifest && districtManifest.length)) {
-        populateContestSelectFromManifest([...(contestManifest || []), ...(districtManifest || [])]);
-      } else {
-        populateContestSelectFromElectionJSON(electionData);
-      }
+      updateContestSelectForCurrentView();
       
       // Clear current selection
       document.getElementById('contestSelect').value = '';
@@ -5771,7 +5844,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	            if (!exists) contestManifest.push({ year: y, contest_type: 'president', file: `open_elections_csv_${y}.csv`, rows: 1 });
 	          });
 	          electionData = [];
-	          populateContestSelectFromManifest(contestManifest);
+	          updateContestSelectForCurrentView();
 	          setStatus('Election index loaded');
 	        } catch (manifestErr) {
           setStatus('Loading election data...');
@@ -5796,7 +5869,7 @@ document.addEventListener('DOMContentLoaded', function() {
           districtElectionDataJSON = null;
           districtSliceCache = new Map();
           if (contestManifest.length > 0 || districtManifest.length > 0) {
-            populateContestSelectFromManifest([...(contestManifest || []), ...(districtManifest || [])]);
+            updateContestSelectForCurrentView();
           }
           setStatus('District index loaded');
         } catch (manifestErr) {
