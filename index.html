@@ -2026,7 +2026,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const DEBUG = false;
     const debugLog = (...args) => { if (DEBUG) console.log(...args); };
 
-    let electionDataJSON = null; // New JSON structure from fl_elections_aggregated.json
+    let electionDataJSON = null; // New JSON structure from nc_elections_aggregated.json
     let districtElectionDataJSON = null; // District results reallocated to 2024 lines
     let electionData = null; // Flattened array for compatibility
     let contestManifest = [];
@@ -2496,15 +2496,14 @@ document.addEventListener('DOMContentLoaded', function() {
         Object.keys(yearData).forEach(officeType => {
           const contests = yearData[officeType];
           
-          // Map office type to match what the UI expects
-          const officeTypeMap = {
-            'presidential': 'president',
-            'governor': 'governor',
-            'us_senate': 'us_senate',
-            'attorney_general': 'attorney_general',
-            'cfo': 'cfo',
-            'agriculture_commissioner': 'agriculture_commissioner'
-          };
+	          // Map office type to match what the UI expects
+	          const officeTypeMap = {
+	            'presidential': 'president',
+	            'governor': 'governor',
+	            'us_senate': 'us_senate',
+	            'attorney_general': 'attorney_general',
+	            'agriculture_commissioner': 'agriculture_commissioner'
+	          };
           const mappedOfficeType = officeTypeMap[officeType] || officeType;
           
           Object.keys(contests).forEach(contestKey => {
@@ -2565,12 +2564,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'Governor': 'governor',
         'United States Senator': 'us_senate',
         'Attorney General': 'attorney_general',
-        'Chief Financial Officer': 'cfo',
         'Commissioner of Agriculture': 'agriculture_commissioner',
         'Secretary of State': 'secretary_of_state',
-        'Treasurer': 'treasurer',
-        'Commissioner of Education': 'education_commissioner',
-        'Comptroller': 'comptroller'
+        'Treasurer': 'treasurer'
       };
       
       const officeType = officeMap[office] || office.toLowerCase().replace(/ /g, '_');
@@ -2639,45 +2635,24 @@ document.addEventListener('DOMContentLoaded', function() {
       return map;
     }
 
-    function formatContestName(contestType, year) {
-      const nameMap = {
-        'president': 'President of the United States',
-        'governor': 'Governor', 
-        'us_senate': 'United States Senator',
-        'lieutenant_governor': 'Lieutenant Governor',
-        'attorney_general': 'Attorney General',
-        'auditor': 'State Auditor',
-        'labor_commissioner': 'Commissioner of Labor',
-        'insurance_commissioner': 'Commissioner of Insurance',
-        'superintendent': 'Superintendent of Public Instruction',
-        'cfo': 'Chief Financial Officer',
-        'agriculture_commissioner': 'Commissioner of Agriculture',
-        // Historical Florida Cabinet positions (pre-2003)
-        'secretary_of_state': 'Secretary of State',
-        'treasurer': 'Treasurer',
-        'education_commissioner': 'Commissioner of Education',
-        'comptroller': 'Comptroller',
-        'us_house': 'US House',
-        'state_senate': 'State Senate',
-        'state_house': 'State House',
-        'gov': 'Governor',
-        'pre': 'President of the United States', 
-        'uss': 'United States Senator',
-        'usr': 'US Representative',
-        'agr': 'Commissioner of Agriculture',
-        'atg': 'Attorney General',
-        'cfo': 'Chief Financial Officer',
-        'str': 'State Representative',
-        'sts': 'State Senator',
-        'ctj': 'Circuit Judge',
-        'sta': 'State Attorney',
-        'pub': 'Public Defender',
-        'sc1': 'Supreme Court Justice',
-        'sc2': 'Supreme Court Justice',
-        'sc3': 'Supreme Court Justice',
-        'sc4': 'Supreme Court Justice',
-        'sc5': 'Supreme Court Justice'
-      };
+	    function formatContestName(contestType, year) {
+	      const nameMap = {
+	        'president': 'President of the United States',
+	        'governor': 'Governor', 
+	        'us_senate': 'United States Senator',
+	        'lieutenant_governor': 'Lieutenant Governor',
+	        'attorney_general': 'Attorney General',
+	        'auditor': 'State Auditor',
+	        'labor_commissioner': 'Commissioner of Labor',
+	        'insurance_commissioner': 'Commissioner of Insurance',
+	        'superintendent': 'Superintendent of Public Instruction',
+	        'agriculture_commissioner': 'Commissioner of Agriculture',
+	        'secretary_of_state': 'Secretary of State',
+	        'treasurer': 'Treasurer',
+	        'us_house': 'US House',
+	        'state_senate': 'State Senate',
+	        'state_house': 'State House',
+	      };
       
       if (contestType.startsWith('a') && contestType.length <= 3) {
         return `Amendment ${contestType.substring(1).toUpperCase()}`;
@@ -2711,28 +2686,25 @@ document.addEventListener('DOMContentLoaded', function() {
       populateContestSelectFromCSV(electionData);
     }
 
-    function populateContestSelectFromManifest(manifestEntries) {
+	    function populateContestSelectFromManifest(manifestEntries) {
       const sel = document.getElementById('contestSelect');
       sel.innerHTML = '<option value="">Select a contest...</option>';
 
       const contestYearPairs = {};
-      const preferredOrder = [
-        'president',
-        'us_senate',
-        'governor',
-        'lieutenant_governor',
-        'attorney_general',
-        'auditor',
-        'agriculture_commissioner',
-        'labor_commissioner',
-        'insurance_commissioner',
-        'secretary_of_state',
-        'treasurer',
-        'superintendent',
-        'cfo',
-        'education_commissioner',
-        'comptroller'
-      ];
+	      const preferredOrder = [
+	        'president',
+	        'us_senate',
+	        'governor',
+	        'lieutenant_governor',
+	        'attorney_general',
+	        'auditor',
+	        'agriculture_commissioner',
+	        'labor_commissioner',
+	        'insurance_commissioner',
+	        'secretary_of_state',
+	        'treasurer',
+	        'superintendent'
+	      ];
 
       (manifestEntries || []).forEach(entry => {
         const contestType = entry.contest_type;
@@ -2753,27 +2725,24 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       const fragment = document.createDocumentFragment();
-      const officeGroups = {
-        'president': 'Presidential Elections',
-        'governor': 'Gubernatorial Elections',
-        'us_senate': 'U.S. Senate Elections',
-        'lieutenant_governor': 'Lieutenant Governor Elections',
-        'attorney_general': 'Attorney General Elections',
-        'auditor': 'State Auditor Elections',
-        'cfo': 'Chief Financial Officer Elections',
-        'agriculture_commissioner': 'Agriculture Commissioner Elections',
-        'labor_commissioner': 'Labor Commissioner Elections',
-        'insurance_commissioner': 'Insurance Commissioner Elections',
-        'secretary_of_state': 'Secretary of State Elections (Historic: 1978-2002)',
-        'treasurer': 'Treasurer Elections (Historic: 1978-2002)',
-        'superintendent': 'Superintendent of Public Instruction Elections',
-        'education_commissioner': 'Commissioner of Education Elections (Historic: 1978-1998)',
-        'comptroller': 'Comptroller Elections (Historic: 1978-2002)',
-        'nc_court_of_appeals_judge_seat_12': 'Statewide Judicial Elections',
-        'nc_court_of_appeals_judge_seat_14': 'Statewide Judicial Elections',
-        'nc_court_of_appeals_judge_seat_15': 'Statewide Judicial Elections',
-        'nc_supreme_court_associate_justice_seat_06': 'Statewide Judicial Elections'
-      };
+	      const officeGroups = {
+	        'president': 'Presidential Elections',
+	        'governor': 'Gubernatorial Elections',
+	        'us_senate': 'U.S. Senate Elections',
+	        'lieutenant_governor': 'Lieutenant Governor Elections',
+	        'attorney_general': 'Attorney General Elections',
+	        'auditor': 'State Auditor Elections',
+	        'agriculture_commissioner': 'Agriculture Commissioner Elections',
+	        'labor_commissioner': 'Labor Commissioner Elections',
+	        'insurance_commissioner': 'Insurance Commissioner Elections',
+	        'secretary_of_state': 'Secretary of State Elections',
+	        'treasurer': 'Treasurer Elections',
+	        'superintendent': 'Superintendent of Public Instruction Elections',
+	        'nc_court_of_appeals_judge_seat_12': 'Statewide Judicial Elections',
+	        'nc_court_of_appeals_judge_seat_14': 'Statewide Judicial Elections',
+	        'nc_court_of_appeals_judge_seat_15': 'Statewide Judicial Elections',
+	        'nc_supreme_court_associate_justice_seat_06': 'Statewide Judicial Elections'
+	      };
 
       contestTypes.forEach(contestType => {
         if (!contestYearPairs[contestType]) return;
@@ -2799,7 +2768,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
 
-    function populateContestSelectFromCSV(csvData) {
+	    function populateContestSelectFromCSV(csvData) {
       if (!Array.isArray(csvData) || csvData.length === 0) return;
       const sel = document.getElementById('contestSelect');
       if (sel.dataset.populated === 'true') return; // Only populate once per data load
@@ -2814,7 +2783,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.innerHTML = '<svg width="18" height="18" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 31.4" transform="rotate(-90 25 25)"/></svg>';
         sel.parentNode.insertBefore(spinner, sel.nextSibling);
       }
-      const contestTypes = ['president', 'us_senate', 'governor', 'attorney_general', 'cfo', 'agriculture_commissioner', 'secretary_of_state', 'treasurer', 'education_commissioner', 'comptroller'];
+	      const contestTypes = ['president', 'us_senate', 'governor', 'attorney_general', 'agriculture_commissioner', 'secretary_of_state', 'treasurer'];
       // Precompute contest/year pairs in a single pass
       const contestYearPairs = {};
       csvData.forEach(row => {
@@ -2827,18 +2796,15 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       // Build options with optgroups
       const fragment = document.createDocumentFragment();
-      const officeGroups = {
-        'president': 'Presidential Elections',
-        'governor': 'Gubernatorial Elections',
-        'us_senate': 'U.S. Senate Elections',
-        'attorney_general': 'Attorney General Elections',
-        'cfo': 'Chief Financial Officer Elections',
-        'agriculture_commissioner': 'Agriculture Commissioner Elections',
-        'secretary_of_state': 'Secretary of State Elections (Historic: 1978-2002)',
-        'treasurer': 'Treasurer Elections (Historic: 1978-2002)',
-        'education_commissioner': 'Commissioner of Education Elections (Historic: 1978-1998)',
-        'comptroller': 'Comptroller Elections (Historic: 1978-2002)'
-      };
+	      const officeGroups = {
+	        'president': 'Presidential Elections',
+	        'governor': 'Gubernatorial Elections',
+	        'us_senate': 'U.S. Senate Elections',
+	        'attorney_general': 'Attorney General Elections',
+	        'agriculture_commissioner': 'Agriculture Commissioner Elections',
+	        'secretary_of_state': 'Secretary of State Elections',
+	        'treasurer': 'Treasurer Elections'
+	      };
       
       contestTypes.forEach(contestType => {
         if (!contestYearPairs[contestType]) return;
