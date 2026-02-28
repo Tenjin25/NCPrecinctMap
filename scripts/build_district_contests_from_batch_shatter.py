@@ -344,6 +344,13 @@ def infer_office_key(office: str) -> str | None:
 
 def is_non_geographic_precinct(name: str) -> bool:
     t = str(name).strip().upper()
+    # NC precinct-sort exports often abbreviate one-stop/early vote as "OS <SITE>"
+    # (e.g., "OS MAXTON"). Treat these as non-geographic buckets.
+    if t == "OS" or t.startswith("OS ") or t.startswith("OS-") or t.startswith("OS_"):
+        return True
+    # Some counties use a compact "ONESTOP" label.
+    if t == "ONESTOP" or t.startswith("ONESTOP "):
+        return True
     if re.match(r"^EV[A-Z0-9]+$", t):
         return True
     return any(flag in t for flag in NON_GEO_FLAGS)
