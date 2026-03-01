@@ -640,7 +640,10 @@ body { height: var(--app-height); }
   }
   .controls-header h3 {
     font-size: 16px !important;
-    padding-right: 50px;
+    padding-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   #help-btn,
   #accessibility-toggle,
@@ -680,6 +683,16 @@ body { height: var(--app-height); }
 .main-controls.minimized .controls-content {
   display: none;
 }
+.main-controls.minimized .controls-header {
+  margin-bottom: 0;
+  justify-content: flex-end;
+}
+.main-controls.minimized .controls-header h3 {
+  display: none;
+}
+.main-controls.minimized #help-btn {
+  display: none !important;
+}
 .controls-header {
   display: flex;
   justify-content: space-between;
@@ -687,6 +700,8 @@ body { height: var(--app-height); }
   margin-bottom: 15px;
 }
 .controls-header h3 {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   color: #1f2937;
   font-weight: 600;
