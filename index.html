@@ -2109,6 +2109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const vizDistrictShiftCache = new Map(); // key: `${scope}_${contestType}_${year}` -> { prevYear, prevNode }
     let vizPrevCache = null; // { contestType, year, prevYear, prevPrecinctMarginByNorm: Map, prevCountyTotals: Object }
     const vizPrevDistrictCache = new Map(); // key: `${scope}_${contestType}_${year}` -> { prevYear, prevNode }
+    let lastContestSliceMeta = null; // { contestType, year:number, rows:Array } for sidebar helpers
 
     function getVectorSourceLayer(sourceId) {
       if (!CONFIG.tilesets?.enabled) return null;
@@ -2134,6 +2135,21 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!panel || !msg) return;
       // Only log status messages to the console; do not show the floating status panel
       debugLog(text);
+    }
+
+    function isNonGeographicPrecinctToken(code) {
+      const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
+      if (!c) return true;
+      // Compact bucket codes used by some exports.
+      if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
+      if (c === 'EV') return true;
+      if (c.startsWith('EV') || c.startsWith('EV-') || c.startsWith('EV_')) return true;
+      if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
+      if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER') || c.includes('EARLY VOT')) return true;
+      if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
+      // Wake (and others) sometimes use compact one-stop bucket codes like "OSAB 1-40" or "OSNB81-91".
+      if (/^OS[A-Z0-9]/.test(c)) return true;
+      return false;
     }
 
     // Visualization Mode Functions - VoteHub Style
@@ -4155,6 +4171,43 @@ document.addEventListener('DOMContentLoaded', function() {
   
   sidebarContent += `</div>`;
 
+  // Non-geographic buckets (Early Vote / Absentee / Provisional / Transfer).
+  // These votes are included in county totals but intentionally do not map to precinct polygons.
+  try {
+    const meta = lastContestSliceMeta;
+    if (meta && meta.contestType === contestType && Number(meta.year) === Number(year) && Array.isArray(meta.rows)) {
+      const buckets = new Map(); // token -> {dem, rep, other, total}
+      meta.rows.forEach(r => {
+        const rowName = (r?.county || '').toString();
+        if (!rowName.includes(' - ')) return;
+        const [cRaw, pRaw] = rowName.split(' - ', 2);
+        const cNorm = normalizeCountyName(cRaw);
+        if (cNorm !== norm) return;
+        const token = (pRaw || '').toString().trim().toUpperCase();
+        if (!token) return;
+        if (!isNonGeographicPrecinctToken(token)) return;
+        if (!buckets.has(token)) buckets.set(token, { dem: 0, rep: 0, other: 0, total: 0 });
+        const node = buckets.get(token);
+        node.dem += Number(r[`${contestType}_dem`] || 0);
+        node.rep += Number(r[`${contestType}_rep`] || 0);
+        node.other += Number(r[`${contestType}_other`] || 0);
+        node.total += Number(r[`${contestType}_total`] || 0);
+      });
+      if (buckets.size) {
+        sidebarContent += `<div class="margin-section">`;
+        sidebarContent += '<h3 class="sidebar-section-title">Non-geographic votes</h3>';
+        sidebarContent += `<p class="sidebar-margin-details" style="margin-top:0;">Included in totals; not shown as precincts (e.g., Early Vote “EV”).</p>`;
+        Array.from(buckets.entries())
+          .sort((a, b) => (b[1].total || 0) - (a[1].total || 0))
+          .slice(0, 10)
+          .forEach(([token, v]) => {
+            sidebarContent += `<p class="sidebar-breakdown"><b>${token}</b>: ${Number(v.total || 0).toLocaleString()}</p>`;
+          });
+        sidebarContent += `</div>`;
+      }
+    }
+  } catch (_) {}
+
   // County demographics (DP1-derived: VAP 18+ + total-pop race/ethnicity shares).
   try {
     const demo = countyDemographics?.counties?.[norm] || null;
@@ -5117,13 +5170,19 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => { searchInput.style.borderColor = '#d1d5db'; }, 1000);
       }
 
+      const county = (countyNameRaw || '').toString().trim().toUpperCase();
+      const code = (precinctCodeRaw || '').toString().trim().toUpperCase();
+      if (isNonGeographicPrecinctToken(code)) {
+        setStatus(`${county} - ${code} is a non-geographic vote bucket (e.g., Early Vote/Absentee) and isn't mapped to a precinct shape.`);
+        try { showCountyDetails(county); } catch (_) {}
+        return;
+      }
+
       await ensurePrecinctCentroidsLoaded();
       const src = map.getSource('precinct-centroids');
       const gj = src ? (src._data || src.data) : null;
       if (!gj || !gj.features) return;
 
-      const county = (countyNameRaw || '').toString().trim().toUpperCase();
-      const code = (precinctCodeRaw || '').toString().trim().toUpperCase();
       const target = `${county} - ${code}`.replace(/\s+/g, ' ').trim();
 
       const hit = gj.features.find(f => ((f.properties || {}).precinct_norm || '').toString().trim().toUpperCase() === target);
@@ -6324,16 +6383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	      let precinctIdx = null;
 	      try { precinctIdx = await ensurePrecinctCodeIndex(); } catch (_) { precinctIdx = null; }
 	      function isNonGeographicPrecinctCode(code) {
-	        const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
-	        if (!c) return true;
-	        if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
-	        if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
-	        if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER')) return true;
-	        if (c.startsWith('EV') || c.startsWith('EV-') || c.startsWith('EV_')) return true;
-	        if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
-	        // Wake (and others) sometimes use compact one-stop bucket codes like "OSAB 1-40" or "OSNB81-91".
-	        if (/^OS[A-Z0-9]/.test(c)) return true;
-	        return false;
+	        return isNonGeographicPrecinctToken(code);
 	      }
 	      function precinctNormVariantsLite(rowName) {
 	        const raw = (rowName || '').toString();
@@ -6455,6 +6505,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (contestData.length === 0) {
         return setStatus('No data found for this contest');
       }
+      lastContestSliceMeta = { contestType, year: Number(year), rows: contestData };
 
 	      function normalizeCountyName(name) {
 	        return (name || '')
@@ -6471,14 +6522,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	      try { precinctIdx = await ensurePrecinctCodeIndex(); } catch (_) { precinctIdx = null; }
 
 	      function isNonGeographicPrecinctCode(code) {
-	        const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
-	        if (!c) return true;
-	        if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
-	        if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
-	        if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER')) return true;
-	        if (c.startsWith('EV') || c.startsWith('EV-') || c.startsWith('EV_')) return true;
-	        if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
-	        return false;
+	        return isNonGeographicPrecinctToken(code);
 	      }
 
 	      function precinctNormVariants(rowName) {
