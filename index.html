@@ -6652,6 +6652,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	          const altFull = normalize(`${countyOnly} - ${t}`);
 	          if (altFull) out.add(altFull);
 	        };
+
+	        // Try to extract a compact base token for later split/alias expansion.
+	        let baseToken = '';
+	        try {
+	          const firstToken = precRaw.split(/\s+/, 1)[0].trim();
+	          const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim().toUpperCase();
+	          baseToken = (token0 || '').toString().replace(/[^A-Z0-9.\-]/g, '').trim();
+	        } catch (_) { baseToken = ''; }
+	        if (baseToken) addKey(baseToken);
+
 	        const m = precRaw.match(/^(\d{1,3})(?:-(\d+))?$/);
 	        if (m) {
 	          const baseInt = String(parseInt(m[1], 10));
@@ -6663,15 +6673,29 @@ document.addEventListener('DOMContentLoaded', function() {
 	        }
 	        try {
 	          const codes = precinctIdx && countyNorm ? precinctIdx.get(countyNorm) : null;
-	          const baseCompact = precRaw.replace(/\s+/g, '');
-	          if (codes && baseCompact && /[^0-9]/.test(baseCompact)) {
+	          const baseCompact = (baseToken || precRaw).replace(/\s+/g, '');
+	          if (codes && baseCompact) {
+	            const baseNum = baseCompact.match(/^0*([0-9]+)$/);
 	            codes.forEach(code => {
 	              const c = (code || '').toString().trim().toUpperCase();
 	              const cCompact = c.replace(/\s+/g, '');
 	              if (!cCompact || cCompact === baseCompact) return;
+
+	              // Numeric-only bases should only match the exact numeric portion + a short alpha suffix (e.g. "10" -> "10A").
+	              if (baseNum) {
+	                const cm = cCompact.match(/^0*([0-9]+)([A-Z]{1,2})$/);
+	                if (!cm) return;
+	                if (parseInt(cm[1], 10) !== parseInt(baseNum[1], 10)) return;
+	                const altFull = normalize(`${countyOnly} - ${c}`);
+	                if (altFull) out.add(altFull);
+	                return;
+	              }
+
 	              if (!cCompact.startsWith(baseCompact)) return;
 	              const suffix = cCompact.slice(baseCompact.length);
+	              if (!suffix || suffix.length > 2) return;
 	              if (!/^[A-Z0-9]{1,2}$/.test(suffix)) return;
+	              if (!/[A-Z]/.test(suffix)) return;
 	              const altFull = normalize(`${countyOnly} - ${c}`);
 	              if (altFull) out.add(altFull);
 	            });
@@ -6681,18 +6705,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	        // If a precinct token begins with a code (e.g., "08.1 ASHEVILLE 8" or "0020B MONROE"),
 	        // include the bare code as a matching variant.
 	        try {
-	          const firstToken = precRaw.split(/\s+/, 1)[0].trim();
-	          const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim().toUpperCase();
-	          if (token0) {
+	          if (baseToken) {
 	            // Decimal codes like Buncombe "08.1".
-	            const md = token0.match(/^0*([0-9]{1,3})\.([0-9]{1,3})$/);
+	            const md = baseToken.match(/^0*([0-9]{1,3})\.([0-9]{1,3})$/);
 	            if (md) {
 	              const a = String(parseInt(md[1], 10)).padStart(2, '0');
 	              const b = String(parseInt(md[2], 10));
 	              addKey(`${a}.${b}`);
 	            } else {
 	              // Alphanumeric codes with leading zeros like UNION "0020B" or "0044".
-	              const ma = token0.match(/^0*([0-9]{1,4})([A-Z]{0,2})$/);
+	              const ma = baseToken.match(/^0*([0-9]{1,4})([A-Z]{0,2})$/);
 	              if (ma) {
 	                const n = parseInt(ma[1], 10);
 	                const suf = (ma[2] || '').toUpperCase();
@@ -6823,13 +6845,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	        if (!countyOnly || !precRaw) return Array.from(out);
 	        if (isNonGeographicPrecinctCode(precRaw)) return [];
 
+	        // Extract a compact code token (if present) so we can handle split precinct IDs
+	        // like "03S" -> "03SE"/"03SM" and "10" -> "10A"/"10B" using the centroid index.
+	        let baseToken = '';
+	        try {
+	          const firstToken = precRaw.split(/\s+/, 1)[0].trim();
+	          const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim();
+	          baseToken = (token0 || '').toString().trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '').trim();
+	        } catch (_) { baseToken = ''; }
+
           // Many older exports use "CODE NAME" or "CODE_NAME ..." where the geometry key
           // is just the code token (e.g., "HARNETT - PR01 ANDERSON CREEK" => "HARNETT - PR01",
           // "RICHMOND - 06_WOLF PIT #3" => "RICHMOND - 06"). Add those variants.
           try {
-            const firstToken = precRaw.split(/\s+/, 1)[0].trim();
-            const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim();
-            const tokenRaw = (token0 || '').toString().trim().toUpperCase();
+            const tokenRaw = (baseToken || '').toString().trim().toUpperCase();
             const token = tokenRaw.replace(/[^A-Z0-9.\-]/g, '').trim();
             const tokenOk = token && (
               /^[A-Z]{0,3}\d{1,4}(?:-\d{1,4})?[A-Z]{0,2}$/.test(token) ||
@@ -6902,15 +6931,29 @@ document.addEventListener('DOMContentLoaded', function() {
 	        // base to any known precinct IDs that extend it by a short suffix.
 	        try {
 	          const codes = precinctIdx && countyNorm ? precinctIdx.get(countyNorm) : null;
-	          const baseCompact = precRaw.replace(/\s+/g, '');
-	          if (codes && baseCompact && /[^0-9]/.test(baseCompact)) {
+	          const baseCompact = (baseToken || precRaw).replace(/\s+/g, '');
+	          if (codes && baseCompact) {
+	            const baseNum = baseCompact.match(/^0*([0-9]+)$/);
 	            codes.forEach(code => {
 	              const c = (code || '').toString().trim().toUpperCase();
 	              const cCompact = c.replace(/\s+/g, '');
 	              if (!cCompact || cCompact === baseCompact) return;
+
+	              // Numeric-only bases should only match the exact numeric portion + a short alpha suffix (e.g. "10" -> "10A").
+	              if (baseNum) {
+	                const cm = cCompact.match(/^0*([0-9]+)([A-Z]{1,2})$/);
+	                if (!cm) return;
+	                if (parseInt(cm[1], 10) !== parseInt(baseNum[1], 10)) return;
+	                const altFull = normalizeCountyName(`${countyOnly} - ${c}`);
+	                if (altFull) out.add(altFull);
+	                return;
+	              }
+
 	              if (!cCompact.startsWith(baseCompact)) return;
 	              const suffix = cCompact.slice(baseCompact.length);
+	              if (!suffix || suffix.length > 2) return;
 	              if (!/^[A-Z0-9]{1,2}$/.test(suffix)) return;
+	              if (!/[A-Z]/.test(suffix)) return;
 	              const altFull = normalizeCountyName(`${countyOnly} - ${c}`);
 	              if (altFull) out.add(altFull);
 	            });
