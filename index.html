@@ -505,6 +505,23 @@ body {
   max-width: 420px;
   transition: all 0.3s ease;
 }
+.main-controls input[type="search"],
+.main-controls input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.98);
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+.main-controls input[type="search"]:focus,
+.main-controls input[type="text"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
 /* Mobile: Full-width controls at top */
 @media (max-width: 768px) {
   .main-controls {
@@ -1695,6 +1712,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (contestKey) {
         applyContest(contestKey);
       }
+      try { saveUIState(); } catch (_) {}
     };
   }
 
@@ -1746,6 +1764,7 @@ document.addEventListener('DOMContentLoaded', function() {
         );
         labelBtn.style.opacity = visibility === 'visible' ? '0.5' : '1';
       }
+      try { saveUIState(); } catch (_) {}
     };
   }
   const precinctBtn = document.getElementById('precinct-toggle');
@@ -1755,6 +1774,28 @@ document.addEventListener('DOMContentLoaded', function() {
         togglePrecinctOverlay();
       }
     };
+  }
+
+  // Contest search (filters dropdown without changing the dataset).
+  const contestSearch = document.getElementById('contestSearch');
+  if (contestSearch && !contestSearch.dataset.wired) {
+    contestSearch.dataset.wired = 'true';
+    let raf = null;
+    contestSearch.addEventListener('input', function() {
+      contestSearchQuery = (contestSearch.value || '').toString();
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const sel = document.getElementById('contestSelect');
+        const keep = sel ? sel.value : '';
+        try { updateContestSelectForCurrentView(); } catch (_) {}
+        const sel2 = document.getElementById('contestSelect');
+        if (sel2 && keep) {
+          const exists = Array.from(sel2.options || []).some(o => o && o.value === keep);
+          if (exists) sel2.value = keep;
+        }
+        try { saveUIState(); } catch (_) {}
+      });
+    });
   }
   updateLegendColors(); // Ensure correct colors on load
 });
@@ -1884,6 +1925,9 @@ document.addEventListener('DOMContentLoaded', function() {
                   <button id="label-toggle" title="Toggle County Labels" style="background:#1f2937;color:#fff;border-radius:50%;width:32px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;">Aa</button>
                   <button id="precinct-toggle" title="Enable Precinct Overlay (Zoom 8.5+)" style="background:#065f46;color:#fff;border-radius:8px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;padding:0 10px;">Precincts Off</button>
                 </div>
+                <div style="margin-top:8px;">
+                  <input id="contestSearch" type="search" placeholder="Search contests (e.g., President, Senate, 2008)..." autocomplete="off" spellcheck="false" />
+                </div>
                 <select id="contestSelect">
                     <option value="">Select a Contest...</option>
                 </select>
@@ -1991,6 +2035,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Only prefix an explicit GitHub Pages base when detected.
       const cleaned = path.replace(/^\.\//, '').replace(/^\/+/, '');
       return base ? `${base}/${cleaned}` : cleaned;
+    }
+
+    function toAbsoluteUrl(path) {
+      const p = (path || '').toString().trim();
+      if (!p) return p;
+      try { return new URL(p, window.location.href).toString(); } catch (_) { return p; }
     }
 
     const CONFIG = {
@@ -2110,6 +2160,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let vizPrevCache = null; // { contestType, year, prevYear, prevPrecinctMarginByNorm: Map, prevCountyTotals: Object }
     const vizPrevDistrictCache = new Map(); // key: `${scope}_${contestType}_${year}` -> { prevYear, prevNode }
     let lastContestSliceMeta = null; // { contestType, year:number, rows:Array } for sidebar helpers
+    const UI_STATE_KEY = 'ncprecinctmap_ui_state_v1';
+    let restoringUIState = false;
+    let contestSearchQuery = '';
 
     function getVectorSourceLayer(sourceId) {
       if (!CONFIG.tilesets?.enabled) return null;
@@ -2135,6 +2188,95 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!panel || !msg) return;
       // Only log status messages to the console; do not show the floating status panel
       debugLog(text);
+    }
+
+    function saveUIState() {
+      if (restoringUIState) return;
+      try {
+        const sel = document.getElementById('contestSelect');
+        const search = document.getElementById('contestSearch');
+        const state = {
+          view: currentView || 'counties',
+          contest: (sel && sel.value) ? sel.value : '',
+          vizMode: currentVizMode || 'margins',
+          precinctsEnabled: !!precinctsEnabled,
+          colorblind: document.body.classList.contains('colorblind-mode'),
+          labelsOn: (typeof labelsVisible !== 'undefined') ? !!labelsVisible : undefined,
+          controlsMinimized: document.getElementById('main-controls')?.classList.contains('minimized') || false,
+          contestSearch: (search && search.value) ? search.value : '',
+        };
+        localStorage.setItem(UI_STATE_KEY, JSON.stringify(state));
+      } catch (_) {}
+    }
+
+    async function restoreUIState() {
+      let state = null;
+      try { state = JSON.parse(localStorage.getItem(UI_STATE_KEY) || 'null'); } catch (_) { state = null; }
+      if (!state || typeof state !== 'object') return;
+
+      restoringUIState = true;
+      try {
+        const view = (state.view || '').toString();
+        if (view && view !== currentView) {
+          try { setMapView(view); } catch (_) {}
+        } else {
+          try { updateContestSelectForCurrentView(); } catch (_) {}
+        }
+
+        const search = document.getElementById('contestSearch');
+        if (search) {
+          search.value = (state.contestSearch || '').toString();
+          contestSearchQuery = search.value;
+          try { updateContestSelectForCurrentView(); } catch (_) {}
+        }
+
+        const mode = (state.vizMode || '').toString();
+        if (mode) {
+          currentVizMode = mode;
+          setVizModeUI(mode);
+          renderLegendForVizMode(mode);
+        }
+
+        if (state.colorblind === true) document.body.classList.add('colorblind-mode');
+        if (state.colorblind === false) document.body.classList.remove('colorblind-mode');
+        try { updateAccessibilityUI(); } catch (_) {}
+
+        if (typeof labelsVisible !== 'undefined') {
+          if (state.labelsOn === true) labelsVisible = true;
+          if (state.labelsOn === false) labelsVisible = false;
+          try { updateLabelUI(); } catch (_) {}
+          try { if (map && map.getLayer('county-label')) map.setLayoutProperty('county-label', 'visibility', labelsVisible ? 'visible' : 'none'); } catch (_) {}
+        }
+
+        try {
+          const mc = document.getElementById('main-controls');
+          if (mc && state.controlsMinimized === true) mc.classList.add('minimized');
+          if (mc && state.controlsMinimized === false) mc.classList.remove('minimized');
+          const content = document.getElementById('controls-content');
+          if (content) content.style.display = mc?.classList.contains('minimized') ? 'none' : 'block';
+          const btn = document.getElementById('controls-minimize-btn');
+          if (btn) btn.textContent = mc?.classList.contains('minimized') ? '+' : '-';
+        } catch (_) {}
+
+        const sel = document.getElementById('contestSelect');
+        const contestValue = (state.contest || '').toString();
+        if (sel && contestValue) {
+          const exists = Array.from(sel.options || []).some(o => o && o.value === contestValue);
+          if (exists) {
+            sel.value = contestValue;
+            try { await applyContest(contestValue); } catch (_) {}
+          }
+        }
+
+        if (state.precinctsEnabled === true && !precinctsEnabled) {
+          try { await togglePrecinctOverlay(); } catch (_) {}
+        }
+        if (state.precinctsEnabled === false && precinctsEnabled) {
+          try { await togglePrecinctOverlay(); } catch (_) {}
+        }
+      } finally {
+        restoringUIState = false;
+      }
     }
 
     function isNonGeographicPrecinctToken(code) {
@@ -2183,6 +2325,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (contestSelect && contestSelect.value) {
         applyContest(contestSelect.value);
       }
+      saveUIState();
     }
 
     function renderLegendForVizMode(mode, meta = {}) {
@@ -2383,6 +2526,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	      const y = Number(year);
 	      const path = PRESIDENT_OPEN_ELECTIONS_CSV[y];
 	      if (!path) throw new Error(`No OpenElections CSV configured for president ${year}`);
+	      const downloadUrl = toAbsoluteUrl(path);
 
 	      function extractPrecinctCode(precinctRaw) {
 	        const p = (precinctRaw || '').toString().trim();
@@ -2404,7 +2548,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	      // Stream-parse in a worker to avoid freezing the UI on large files (notably 2008/2012).
 	      if (typeof Papa !== 'undefined' && Papa && typeof Papa.parse === 'function') {
 	        await new Promise((resolve, reject) => {
-	          Papa.parse(path, {
+	          Papa.parse(downloadUrl, {
 	            download: true,
 	            header: true,
 	            dynamicTyping: true,
@@ -2789,6 +2933,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateContestSelectFromManifest(manifestEntries) {
+	      const q = (contestSearchQuery || '').toString().trim().toUpperCase();
 	      const sel = document.getElementById('contestSelect');
 	      sel.innerHTML = '<option value="">Select a contest...</option>';
 
@@ -2889,9 +3034,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	          } else {
 	            opt.textContent = `${label} (${item.year})`;
 	          }
+	          if (q) {
+	            const hay = `${label} ${item.year} ${item.contestType} ${formatContestName(item.contestType, item.year)}`.toUpperCase();
+	            if (!hay.includes(q)) return;
+	          }
 	          og.appendChild(opt);
 	        });
 
+	        if (!og.children.length) return;
 	        fragment.appendChild(og);
 	      });
 
@@ -2902,6 +3052,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        if (typeof lastSelectedCounty !== 'undefined' && lastSelectedCounty) {
 	          showCountyDetails(lastSelectedCounty);
 	        }
+	        saveUIState();
 	      };
 	    }
 
@@ -3293,6 +3444,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Clear current selection
       document.getElementById('contestSelect').value = '';
       clearCountyDetails();
+      saveUIState();
     }
 
     function getDistrictNumberFromProps(props, candidates) {
@@ -3980,6 +4132,7 @@ document.addEventListener('DOMContentLoaded', function() {
         minimizeBtn.textContent = '+';
         minimizeBtn.title = 'Expand controls';
       }
+      saveUIState();
     }
 
     function showCountyDetails(countyName) {
@@ -4758,6 +4911,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updatePrecinctVisibility();
       const contestKey = document.getElementById('contestSelect')?.value;
       if (contestKey) await applyContest(contestKey);
+      saveUIState();
     }
 
     function addDistrictLayers() {
@@ -6226,6 +6380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup visualization mode switcher
         setupVizModes();
         appReady = true;
+        try { await restoreUIState(); } catch (_) {}
 
       } catch (e) {
         appReady = false;
