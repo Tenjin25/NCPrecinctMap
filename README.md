@@ -8,16 +8,20 @@
 
 ## Screenshots
 
-<!-- Replace the paths below with your actual screenshot files (e.g. docs/screenshots/counties.png) -->
+**Counties view — 2024 Presidential**
+![Counties view](Screenshots/2024PresCounty.png)
 
-**Counties view — 2020 Presidential**
-![Counties view](docs/screenshots/counties.png)
-
-**Congressional Districts — 2022 US Senate**
-![Congressional Districts view](docs/screenshots/congressional.png)
+**Congressional Districts — 2020 Presidential**
+![Congressional Districts view](Screenshots/2020PresCongress.png)
 
 **Precinct view — Wake County zoomed in**
-![Precinct view](docs/screenshots/precincts.png)
+![Precinct view](Screenshots/WakeZoom.png)
+
+**State House — 2024 Presidential** 
+![State House Districts view](Screenshots/2024PresStateHouse.png)
+
+**State Senate - 2022 US Senate**
+![State Senate Districts view](Screenshots/2022USSenStateSen.png)
 
 ---
 
