@@ -6398,6 +6398,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	        const precRaw = (precRaw0 || '').trim().toUpperCase();
 	        if (!countyOnly || !precRaw) return Array.from(out);
 	        if (isNonGeographicPrecinctCode(precRaw)) return [];
+	        const addKey = (t) => {
+	          const altFull = normalize(`${countyOnly} - ${t}`);
+	          if (altFull) out.add(altFull);
+	        };
 	        const m = precRaw.match(/^(\d{1,3})(?:-(\d+))?$/);
 	        if (m) {
 	          const baseInt = String(parseInt(m[1], 10));
@@ -6421,6 +6425,35 @@ document.addEventListener('DOMContentLoaded', function() {
 	              const altFull = normalize(`${countyOnly} - ${c}`);
 	              if (altFull) out.add(altFull);
 	            });
+	          }
+	        } catch (_) {}
+
+	        // If a precinct token begins with a code (e.g., "08.1 ASHEVILLE 8" or "0020B MONROE"),
+	        // include the bare code as a matching variant.
+	        try {
+	          const firstToken = precRaw.split(/\s+/, 1)[0].trim();
+	          const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim().toUpperCase();
+	          if (token0) {
+	            // Decimal codes like Buncombe "08.1".
+	            const md = token0.match(/^0*([0-9]{1,3})\.([0-9]{1,3})$/);
+	            if (md) {
+	              const a = String(parseInt(md[1], 10)).padStart(2, '0');
+	              const b = String(parseInt(md[2], 10));
+	              addKey(`${a}.${b}`);
+	            } else {
+	              // Alphanumeric codes with leading zeros like UNION "0020B" or "0044".
+	              const ma = token0.match(/^0*([0-9]{1,4})([A-Z]{0,2})$/);
+	              if (ma) {
+	                const n = parseInt(ma[1], 10);
+	                const suf = (ma[2] || '').toUpperCase();
+	                if (!isNaN(n)) {
+	                  addKey(`${n}${suf}`);
+	                  addKey(`${String(n).padStart(2, '0')}${suf}`);
+	                  addKey(`${String(n).padStart(3, '0')}${suf}`);
+	                  addKey(`${String(n).padStart(4, '0')}${suf}`);
+	                }
+	              }
+	            }
 	          }
 	        } catch (_) {}
 	        return Array.from(out);
@@ -6546,8 +6579,12 @@ document.addEventListener('DOMContentLoaded', function() {
           try {
             const firstToken = precRaw.split(/\s+/, 1)[0].trim();
             const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim();
-            const token = token0.replace(/[^A-Z0-9-]/g, '').trim();
-            const tokenOk = token && /^[A-Z]{0,3}\d{1,3}(?:-\d{1,3})?[A-Z]?$/.test(token);
+            const tokenRaw = (token0 || '').toString().trim().toUpperCase();
+            const token = tokenRaw.replace(/[^A-Z0-9.\-]/g, '').trim();
+            const tokenOk = token && (
+              /^[A-Z]{0,3}\d{1,4}(?:-\d{1,4})?[A-Z]{0,2}$/.test(token) ||
+              /^0*\d{1,3}\.\d{1,3}$/.test(token)
+            );
             if (tokenOk && token !== precRaw) {
               const addKey = (t) => {
                 const altFull = normalizeCountyName(`${countyOnly} - ${t}`);
@@ -6556,12 +6593,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
               addKey(token);
               // Numeric codes: include both trimmed and zero-padded forms.
-              if (/^\d{1,3}$/.test(token)) {
+              if (/^\d{1,5}$/.test(token)) {
                 const n = parseInt(token, 10);
                 if (!isNaN(n)) {
                   addKey(String(n));
                   addKey(String(n).padStart(2, '0'));
+                  addKey(String(n).padStart(3, '0'));
+                  addKey(String(n).padStart(4, '0'));
                 }
+              }
+              // Alphanumeric codes with leading zeros like UNION "0020B" or "0044".
+              const mu = token.match(/^0*([0-9]{1,4})([A-Z]{1,2})$/);
+              if (mu) {
+                const n = parseInt(mu[1], 10);
+                const suf = (mu[2] || '').toUpperCase();
+                if (!isNaN(n)) {
+                  addKey(`${n}${suf}`);
+                  addKey(`${String(n).padStart(2, '0')}${suf}`);
+                  addKey(`${String(n).padStart(3, '0')}${suf}`);
+                  addKey(`${String(n).padStart(4, '0')}${suf}`);
+                }
+              }
+              // Decimal codes like Buncombe "08.1".
+              const md = token.match(/^0*([0-9]{1,3})\.([0-9]{1,3})$/);
+              if (md) {
+                const a = String(parseInt(md[1], 10)).padStart(2, '0');
+                const b = String(parseInt(md[2], 10));
+                addKey(`${a}.${b}`);
               }
               // PRxx codes (Harnett): include both padded/unpadded variants.
               const mpr = token.match(/^PR(\d{1,3})$/);
