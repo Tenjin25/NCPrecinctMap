@@ -6,6 +6,21 @@
 
 ---
 
+## Screenshots
+
+<!-- Replace the paths below with your actual screenshot files (e.g. docs/screenshots/counties.png) -->
+
+**Counties view — 2020 Presidential**
+![Counties view](docs/screenshots/counties.png)
+
+**Congressional Districts — 2022 US Senate**
+![Congressional Districts view](docs/screenshots/congressional.png)
+
+**Precinct view — Wake County zoomed in**
+![Precinct view](docs/screenshots/precincts.png)
+
+---
+
 ## Project Overview
 
 North Carolina's election data is complex: precinct boundaries and IDs change frequently, and non-geographic voting buckets (like early voting or absentee) do not map cleanly to physical locations. This project focuses on two hard problems:
