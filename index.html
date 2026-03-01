@@ -1892,26 +1892,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-
-  // Optional "remember session" toggle (local to this browser/device).
-  try {
-    const remember = document.getElementById('remember-session');
-    const forget = document.getElementById('forget-session');
-    if (remember) {
-      remember.checked = isUIStateEnabled();
-      remember.addEventListener('change', function() {
-        const enabled = !!remember.checked;
-        setUIStateEnabled(enabled);
-        if (!enabled) clearUIState();
-        try { if (enabled) saveUIState(); } catch (_) {}
-      });
-    }
-    if (forget) {
-      forget.addEventListener('click', function() {
-        clearUIState();
-      });
-    }
-  } catch (_) {}
   updateLegendColors(); // Ensure correct colors on load
 });
 </script>
@@ -2048,15 +2028,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
                 <div style="margin-top:8px;font-size:12px;color:#64748b;line-height:1.3;">
                   Tips: click a county or district for trends. Shortcuts: `P` precincts, `L` labels.
-                </div>
-                <div class="ui-state-row" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;user-select:none;">
-                    <input type="checkbox" id="remember-session" checked />
-                    Remember this session
-                  </label>
-                  <button type="button" id="forget-session" title="Clear saved session" style="border:1px solid rgba(15,23,42,0.14);background:rgba(15,23,42,0.04);color:#0f172a;border-radius:10px;padding:6px 10px;font-weight:800;font-size:12px;cursor:pointer;">
-                    Forget
-                  </button>
                 </div>
             </div>
         </div>
@@ -2284,28 +2255,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let vizPrevCache = null; // { contestType, year, prevYear, prevPrecinctMarginByNorm: Map, prevCountyTotals: Object }
     const vizPrevDistrictCache = new Map(); // key: `${scope}_${contestType}_${year}` -> { prevYear, prevNode }
     let lastContestSliceMeta = null; // { contestType, year:number, rows:Array } for sidebar helpers
-    const UI_STATE_KEY = 'ncprecinctmap_ui_state_v1';
-    const UI_STATE_ENABLED_KEY = 'ncprecinctmap_ui_state_enabled_v1';
-    let restoringUIState = false;
+    // Session persistence was removed to avoid surprises on shared/low-memory machines.
     let contestSearchQuery = '';
 
-    function isUIStateEnabled() {
-      try {
-        const v = localStorage.getItem(UI_STATE_ENABLED_KEY);
-        if (v === null) return true; // default on
-        return v === '1';
-      } catch (_) {
-        return false;
-      }
-    }
-
-    function setUIStateEnabled(enabled) {
-      try { localStorage.setItem(UI_STATE_ENABLED_KEY, enabled ? '1' : '0'); } catch (_) {}
-    }
-
-    function clearUIState() {
-      try { localStorage.removeItem(UI_STATE_KEY); } catch (_) {}
-    }
+    function saveUIState() {}
+    async function restoreUIState() {}
 
     function getVectorSourceLayer(sourceId) {
       if (!CONFIG.tilesets?.enabled) return null;
@@ -2333,96 +2287,7 @@ document.addEventListener('DOMContentLoaded', function() {
       debugLog(text);
     }
 
-    function saveUIState() {
-      if (!isUIStateEnabled()) return;
-      if (restoringUIState) return;
-      try {
-        const sel = document.getElementById('contestSelect');
-        const search = document.getElementById('contestSearch');
-        const state = {
-          view: currentView || 'counties',
-          contest: (sel && sel.value) ? sel.value : '',
-          vizMode: currentVizMode || 'margins',
-          precinctsEnabled: !!precinctsEnabled,
-          colorblind: document.body.classList.contains('colorblind-mode'),
-          labelsOn: (typeof labelsVisible !== 'undefined') ? !!labelsVisible : undefined,
-          controlsMinimized: document.getElementById('main-controls')?.classList.contains('minimized') || false,
-          contestSearch: (search && search.value) ? search.value : '',
-        };
-        localStorage.setItem(UI_STATE_KEY, JSON.stringify(state));
-      } catch (_) {}
-    }
-
-    async function restoreUIState() {
-      if (!isUIStateEnabled()) return;
-      let state = null;
-      try { state = JSON.parse(localStorage.getItem(UI_STATE_KEY) || 'null'); } catch (_) { state = null; }
-      if (!state || typeof state !== 'object') return;
-
-      restoringUIState = true;
-      try {
-        const view = (state.view || '').toString();
-        if (view && view !== currentView) {
-          try { setMapView(view); } catch (_) {}
-        } else {
-          try { updateContestSelectForCurrentView(); } catch (_) {}
-        }
-
-        const search = document.getElementById('contestSearch');
-        if (search) {
-          search.value = (state.contestSearch || '').toString();
-          contestSearchQuery = search.value;
-          try { updateContestSelectForCurrentView(); } catch (_) {}
-        }
-
-        const mode = (state.vizMode || '').toString();
-        if (mode) {
-          currentVizMode = mode;
-          setVizModeUI(mode);
-          renderLegendForVizMode(mode);
-        }
-
-        if (state.colorblind === true) document.body.classList.add('colorblind-mode');
-        if (state.colorblind === false) document.body.classList.remove('colorblind-mode');
-        try { updateAccessibilityUI(); } catch (_) {}
-
-        if (typeof labelsVisible !== 'undefined') {
-          if (state.labelsOn === true) labelsVisible = true;
-          if (state.labelsOn === false) labelsVisible = false;
-          try { updateLabelUI(); } catch (_) {}
-          try { if (map && map.getLayer('county-label')) map.setLayoutProperty('county-label', 'visibility', labelsVisible ? 'visible' : 'none'); } catch (_) {}
-        }
-
-        try {
-          const mc = document.getElementById('main-controls');
-          if (mc && state.controlsMinimized === true) mc.classList.add('minimized');
-          if (mc && state.controlsMinimized === false) mc.classList.remove('minimized');
-          const content = document.getElementById('controls-content');
-          if (content) content.style.display = mc?.classList.contains('minimized') ? 'none' : 'block';
-          const btn = document.getElementById('controls-minimize-btn');
-          if (btn) btn.textContent = mc?.classList.contains('minimized') ? '+' : '-';
-        } catch (_) {}
-
-        const sel = document.getElementById('contestSelect');
-        const contestValue = (state.contest || '').toString();
-        if (sel && contestValue) {
-          const exists = Array.from(sel.options || []).some(o => o && o.value === contestValue);
-          if (exists) {
-            sel.value = contestValue;
-            try { await applyContest(contestValue); } catch (_) {}
-          }
-        }
-
-        if (state.precinctsEnabled === true && !precinctsEnabled) {
-          try { await togglePrecinctOverlay(); } catch (_) {}
-        }
-        if (state.precinctsEnabled === false && precinctsEnabled) {
-          try { await togglePrecinctOverlay(); } catch (_) {}
-        }
-      } finally {
-        restoringUIState = false;
-      }
-    }
+    // (saveUIState/restoreUIState defined above as no-ops)
 
     function isNonGeographicPrecinctToken(code) {
       const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
