@@ -2030,6 +2030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         districts_info: withBase('./data/nc_congressional_districts.csv'),
         state_house_info: withBase('./data/nc_state_house_districts.csv'),
         state_senate_info: withBase('./data/nc_state_senate_districts.csv'),
+        district_descriptions: withBase('./data/district_descriptions.json'),
         contests_dir: withBase('./data/contests')
       },
       center: [-79.0, 35.5],
@@ -2078,6 +2079,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let districtsInfo = null;
     let stateHouseInfo = null;
     let stateSenateInfo = null;
+    let districtDescriptions = null; // Optional labels like "Sampson & Bladen Counties" or "Concord–Harrisburg"
     let countyDemographics = null; // County-level VAP (18+) + total-pop race/ethnicity from DP1
     let countyNameMap = {};
     let currentView = 'counties'; // 'counties', 'districts', 'state_house', 'state_senate'
@@ -3848,8 +3850,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (flipChip) chips.unshift(flipChip);
       }
 
+      const desc = getDistrictDescription(scope, districtNum);
       const inner = `
         <div class="hover-meta">${chips.join('')}</div>
+        ${desc ? `<div class="meta-subtle" style="margin-top:6px;"><strong>Area:</strong> ${desc}</div>` : ''}
         ${buildResultCardHTML('', subtitle, demVotes, repVotes, otherVotes, demCandidate, repCandidate)}
       `;
       showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`, inner));
@@ -5682,9 +5686,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const districtInfo = (districtsInfo || []).find(d => d.district == districtNum);
       let demographicInfo = '';
+      const desc = getDistrictDescription('congressional', districtNum);
       if (districtInfo) {
         demographicInfo = `
           <div style="margin-bottom: 12px;">
+            ${desc ? `<div style="margin:0 0 10px 0;color:#475569;font-weight:800;">${desc}</div>` : ''}
             <h5 style="margin:0 0 6px 0;">Demographics (VAP)</h5>
             <div style="font-size:14px;"><strong>Total Population:</strong> ${Number(districtInfo.total_population || 0).toLocaleString()}</div>
             <div style="font-size:14px;"><strong>White:</strong> ${districtInfo.white_vap_pct}%</div>
@@ -5692,6 +5698,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="font-size:14px;"><strong>Hispanic:</strong> ${districtInfo.hispanic_vap_pct}%</div>
           </div>
         `;
+      } else if (desc) {
+        demographicInfo = `<div style="margin:0 0 12px 0;color:#475569;font-weight:800;">${desc}</div>`;
       }
 
       const contestValue = document.getElementById('contestSelect')?.value || '';
@@ -5762,9 +5770,11 @@ document.addEventListener('DOMContentLoaded', function() {
         : stateSenateInfo?.find(d => d.district == districtNum);
 
       let demographicInfo = '';
+      const desc = getDistrictDescription(scope, districtNum);
       if (infoRow) {
         demographicInfo = `
           <div style="margin-bottom: 12px;">
+            ${desc ? `<div style="margin:0 0 10px 0;color:#475569;font-weight:800;">${desc}</div>` : ''}
             <h5 style="margin:0 0 6px 0;">Demographics (VAP)</h5>
             <div style="font-size:14px;"><strong>Total Population:</strong> ${Number(infoRow.total_population || 0).toLocaleString()}</div>
             <div style="font-size:14px;"><strong>White:</strong> ${infoRow.white_vap_pct}%</div>
@@ -5772,6 +5782,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="font-size:14px;"><strong>Hispanic:</strong> ${infoRow.hispanic_vap_pct}%</div>
           </div>
         `;
+      } else if (desc) {
+        demographicInfo = `<div style="margin:0 0 12px 0;color:#475569;font-weight:800;">${desc}</div>`;
       }
 
       const contestValue = document.getElementById('contestSelect')?.value || '';
@@ -5853,9 +5865,38 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>`;
     }
 
+    function getDistrictDescription(scope, districtNum) {
+      try {
+        if (!districtDescriptions || !scope || districtNum === null || districtNum === undefined) return '';
+        const s = String(scope).toLowerCase();
+        const rawKey = String(districtNum).toString().trim();
+        const keys = [];
+        if (rawKey) keys.push(rawKey);
+        const numKey = String(Number(rawKey));
+        if (numKey && numKey !== 'NaN') keys.push(numKey);
+        const stripKey = rawKey.replace(/^0+/, '');
+        if (stripKey && stripKey !== rawKey) keys.push(stripKey);
+        if (/^\d+$/.test(stripKey || rawKey)) {
+          const base = stripKey || rawKey;
+          if (base.length <= 2) keys.push(base.padStart(2, '0'));
+          if (base.length <= 3) keys.push(base.padStart(3, '0'));
+        }
+
+        for (const k of keys) {
+          const hit = districtDescriptions?.[s]?.[k];
+          if (hit && String(hit).trim()) return String(hit).trim();
+        }
+        return '';
+      } catch (_) {
+        return '';
+      }
+    }
+
     function getQuickDistrictInfo(districtNum, type) {
       let displayName = '';
       let recent = null;
+      const scope = type === 'congressional' ? 'congressional' : (type === 'house' ? 'state_house' : 'state_senate');
+      const desc = getDistrictDescription(scope, districtNum);
       
       if (type === 'congressional') {
         displayName = `Congressional District ${districtNum}`;
@@ -5872,6 +5913,7 @@ document.addEventListener('DOMContentLoaded', function() {
           
           return `<div class="quick-tooltip">
             <strong>${displayName}</strong><br>
+            ${desc ? `<span style="color:#64748b;font-weight:700;">${desc}</span><br>` : ''}
             ${recent.year}: ${winner}+${marginAbs.toFixed(2)}%<br>
             <em>Click for full trends</em>
           </div>`;
@@ -5884,6 +5926,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       return `<div class="quick-tooltip">
         <strong>${displayName}</strong><br>
+        ${desc ? `<span style="color:#64748b;font-weight:700;">${desc}</span><br>` : ''}
         <em>Click for details</em>
       </div>`;
     }
@@ -5968,6 +6011,13 @@ document.addEventListener('DOMContentLoaded', function() {
           setStatus('Congressional data loaded');
         } catch (err) {
           console.warn('District CSV not loaded:', err.message);
+        }
+
+        // Optional descriptive district labels (manual overrides).
+        try {
+          districtDescriptions = await loadJSON(CONFIG.paths.district_descriptions);
+        } catch (_) {
+          districtDescriptions = null;
         }
 
         // Optional county demographics (DP1-derived) for sidebar/tooltips.

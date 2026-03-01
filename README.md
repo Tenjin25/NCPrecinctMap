@@ -133,8 +133,23 @@ py scripts/build_district_contests_from_batch_shatter.py `
   - District views → `data/district_contests/manifest.json`
 - **Wake/Meck district accuracy looks off in older years**: check unmatched precinct reports and add overrides; rebuild slices.
 
+## District descriptions (optional)
+
+If you want labels like “Sampson & Bladen Counties” or “Concord–Harrisburg” to appear in district hovers/sidebars, add them to:
+
+- `data/district_descriptions.json`
+
+Format:
+
+```json
+{
+  "congressional": { "13": "Wake County (Raleigh) + Johnston (partial)" },
+  "state_house": { "037": "Cary + Apex (West Wake)" },
+  "state_senate": { "019": "Sampson & Bladen Counties" }
+}
+```
+
 ## Notes / disclaimer
 
 - This is a personal/data engineering project. Treat results as **best-effort** until validated against official canvass totals.
 - Precinct and district boundary vintages vary by year; reallocation is an approximation that depends on crosswalk coverage.
-
