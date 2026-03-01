@@ -984,7 +984,35 @@ body { height: var(--app-height); }
   gap: 6px;
 }
 
+/* Inline viz controls (used on mobile to avoid stacked floating UI). */
+.viz-inline-group { display: none; }
+.viz-modes-inline { display: none; }
+
 @media (max-width: 768px) {
+  /* Avoid stacking floating mode bar; keep modes inside main controls. */
+  .viz-modes { display: none !important; }
+  .viz-inline-group { display: block; }
+  .viz-modes-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+  }
+  .viz-modes-inline .viz-mode-btn {
+    min-width: auto !important;
+    padding: 9px 12px !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .viz-modes-inline::-webkit-scrollbar { display: none; }
+
   .viz-modes {
     position: fixed;
     top: auto;
@@ -2022,6 +2050,15 @@ document.addEventListener('DOMContentLoaded', function() {
                   <button id="state-house-view" class="view-toggle-btn" onclick="setMapView('state_house')">State House</button>
                   <button id="state-senate-view" class="view-toggle-btn" onclick="setMapView('state_senate')">State Senate</button>
                 </div>
+            </div>
+            <div class="control-group viz-inline-group" style="margin-bottom:10px;">
+              <label style="display:block;font-weight:600;margin-bottom:8px;color:#374151;">Mode:</label>
+              <div class="viz-modes-inline" id="viz-modes-inline">
+                <button class="viz-mode-btn active" data-mode="margins" type="button"><span>Margins</span></button>
+                <button class="viz-mode-btn" data-mode="winners" type="button"><span>Winners</span></button>
+                <button class="viz-mode-btn" data-mode="shift" type="button"><span>Shift</span></button>
+                <button class="viz-mode-btn" data-mode="flips" type="button"><span>Flips</span></button>
+              </div>
             </div>
             <div class="control-group">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -4162,6 +4199,23 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMobileOverlayOffsets();
         window.addEventListener('resize', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
         window.addEventListener('orientationchange', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
+      } catch (_) {}
+    }
+
+    function minimizeLegendOnMobile() {
+      try {
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        if (!isMobile) return;
+        const legend = document.getElementById('legend');
+        const legendContent = document.getElementById('legend-content');
+        const minimizeBtn = document.getElementById('legend-minimize-btn');
+        if (!legend || !legendContent || !minimizeBtn) return;
+        if (legend.classList.contains('minimized')) return;
+        legend.classList.add('minimized');
+        legendContent.style.display = 'none';
+        minimizeBtn.textContent = '+';
+        minimizeBtn.title = 'Expand legend';
+        try { updateMobileOverlayOffsets(); } catch (_) {}
       } catch (_) {}
     }
 
@@ -6433,6 +6487,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup visualization mode switcher
         setupVizModes();
         try { wireMobileOverlayOffsets(); } catch (_) {}
+        try { minimizeLegendOnMobile(); } catch (_) {}
         appReady = true;
         try { await restoreUIState(); } catch (_) {}
 
