@@ -2092,9 +2092,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let precinctLoadInFlight = false;
     let lastPrecinctFillExpr = null; // Cached fill-color expression for precinct overlay.
     let lastPrecinctDotExpr = null; // Cached circle-color expression for precinct dots (statewide zoom).
+    let precinctPolygonNormSet = null; // Set<string precinct_norm> from polygon source (used to show centroid fallback for missing polygons).
+    let precinctCentroidsData = null; // Cached centroids GeoJSON so we can annotate with has_polygon after polygons load.
 	    let precinctCentroidsLoaded = false;
 	    let precinctCentroidsLoadInFlight = false;
 	    let precinctCodeIndexByCounty = null; // Map<string countyNorm, Set<string prec_id>> built from precinct centroids.
+      let precinctDotHoverWired = new Set();
 	    let tooltipPinned = false;
 	    let precinctDotHoverRaf = null;
 	    let lastPrecinctDotHoverEvent = null;
@@ -4371,6 +4374,27 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         return feature;
       });
+      try {
+        const s = new Set();
+        (precincts.features || []).forEach(f => {
+          const n = (f?.properties?.precinct_norm || '').toString().trim().toUpperCase();
+          if (n) s.add(n);
+        });
+        precinctPolygonNormSet = s;
+
+        if (precinctCentroidsData && precinctCentroidsData.features) {
+          precinctCentroidsData.features = (precinctCentroidsData.features || []).map(f => {
+            const p = f.properties || {};
+            const n = (p.precinct_norm || '').toString().trim().toUpperCase();
+            f.properties = { ...p, has_polygon: !!(n && precinctPolygonNormSet && precinctPolygonNormSet.has(n)) };
+            return f;
+          });
+          const src = map.getSource('precinct-centroids');
+          if (src && typeof src.setData === 'function') {
+            try { src.setData(precinctCentroidsData); } catch (_) {}
+          }
+        }
+      } catch (_) {}
       // Do not overwrite window.countiesData (used for county search/zoom).
       window.precinctsData = precincts;
       map.addSource('precincts', { type: 'geojson', data: precincts });
@@ -4424,6 +4448,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	      precinctCentroidsLoadInFlight = true;
 	      try {
 	        const pts = await loadJSON(CONFIG.paths.precinct_centroids);
+          precinctCentroidsData = pts;
+          try {
+            precinctCentroidsData.features = (precinctCentroidsData.features || []).map(f => {
+              const p = f.properties || {};
+              const county = (p.county_nam || p.COUNTYNAME || p.County || p.NAME || '').toString().trim();
+              const prec = (p.prec_id || p.PREC_ID || '').toString().trim();
+              const norm = (p.precinct_norm || (county && prec ? `${county} - ${prec}` : '')).toString()
+                .replace(/[^a-z0-9 .\-]/gi, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toUpperCase();
+              f.properties = {
+                ...p,
+                county_nam: county || p.county_nam || '',
+                prec_id: prec || p.prec_id || '',
+                precinct_norm: norm,
+                has_polygon: !!(norm && precinctPolygonNormSet && precinctPolygonNormSet.has(norm))
+              };
+              return f;
+            });
+          } catch (_) {}
 	        map.addSource('precinct-centroids', { type: 'geojson', data: pts });
 	        precinctCentroidsLoaded = true;
 	        // Build a lightweight county -> precinct code index for key-variant matching.
@@ -4485,96 +4530,129 @@ document.addEventListener('DOMContentLoaded', function() {
 	    }
 
     function addPrecinctCentroidLayers() {
-      if (!map.getSource('precinct-centroids') || map.getLayer('precinct-dot')) return;
-      map.addLayer({
-        id: 'precinct-dot',
-        type: 'circle',
-        source: 'precinct-centroids',
-        // Visible at statewide zoom; polygons take over later.
-        maxzoom: CONFIG.precincts?.minZoom || 8.5,
-        layout: { visibility: 'none' },
-        paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            5, 1.2,
-            6.5, 2.0,
-            7.5, 2.8,
-            8.4, 3.2
-          ],
-          'circle-color': '#94a3b8',
-          'circle-opacity': 0.85,
-          'circle-stroke-color': 'rgba(15,23,42,0.35)',
-          'circle-stroke-width': 0.5
-        }
-      });
+      if (!map.getSource('precinct-centroids')) return;
+      const minZoom = CONFIG.precincts?.minZoom || 8.5;
+
+      if (!map.getLayer('precinct-dot')) {
+        map.addLayer({
+          id: 'precinct-dot',
+          type: 'circle',
+          source: 'precinct-centroids',
+          // Visible at statewide zoom; polygons take over later.
+          maxzoom: minZoom,
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': [
+              'interpolate', ['linear'], ['zoom'],
+              5, 1.2,
+              6.5, 2.0,
+              7.5, 2.8,
+              8.4, 3.2
+            ],
+            'circle-color': '#94a3b8',
+            'circle-opacity': 0.85,
+            'circle-stroke-color': 'rgba(15,23,42,0.35)',
+            'circle-stroke-width': 0.5
+          }
+        });
+      }
+
+      // When polygons are enabled at high zoom, keep showing centroids for precincts missing polygons.
+      if (!map.getLayer('precinct-dot-missing')) {
+        map.addLayer({
+          id: 'precinct-dot-missing',
+          type: 'circle',
+          source: 'precinct-centroids',
+          minzoom: minZoom,
+          filter: ['==', ['get', 'has_polygon'], false],
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': [
+              'interpolate', ['linear'], ['zoom'],
+              minZoom, 3.8,
+              10, 4.6,
+              12, 5.4
+            ],
+            'circle-color': '#94a3b8',
+            'circle-opacity': 0.9,
+            'circle-stroke-color': 'rgba(15,23,42,0.45)',
+            'circle-stroke-width': 0.75
+          }
+        });
+      }
 
       // If a contest was already applied before centroids loaded, apply cached colors.
       if (lastPrecinctDotExpr) {
         try {
           map.setPaintProperty('precinct-dot', 'circle-color', lastPrecinctDotExpr);
+          if (map.getLayer('precinct-dot-missing')) map.setPaintProperty('precinct-dot-missing', 'circle-color', lastPrecinctDotExpr);
         } catch (err) {
           console.warn('Failed to apply precinct dot colors:', err?.message || err);
         }
       }
 
-      // Hover precinct dots to show results.
-      map.on('mouseenter', 'precinct-dot', (e) => {
-        map.getCanvas().style.cursor = 'pointer';
-      });
-      map.on('mousemove', 'precinct-dot', (e) => {
-        lastPrecinctDotHoverEvent = e;
-        if (precinctDotHoverRaf) return;
-        precinctDotHoverRaf = requestAnimationFrame(() => {
-          precinctDotHoverRaf = null;
-          const evt = lastPrecinctDotHoverEvent;
-          if (!evt) return;
-          const props = evt.features?.[0]?.properties || {};
-          const precinctNorm = (props.precinct_norm || '').toString().trim().toUpperCase();
-          const countyName = (props.county_nam || '').toString().trim();
-          const precId = (props.prec_id || '').toString().trim();
-          const title = `${countyName} - ${precId}`;
+      function wirePrecinctDotHover(layerId) {
+        if (!layerId || precinctDotHoverWired.has(layerId)) return;
+        precinctDotHoverWired.add(layerId);
+        map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mousemove', layerId, (e) => {
+          lastPrecinctDotHoverEvent = e;
+          if (precinctDotHoverRaf) return;
+          precinctDotHoverRaf = requestAnimationFrame(() => {
+            precinctDotHoverRaf = null;
+            const evt = lastPrecinctDotHoverEvent;
+            if (!evt) return;
+            const props = evt.features?.[0]?.properties || {};
+            const precinctNorm = (props.precinct_norm || '').toString().trim().toUpperCase();
+            const countyName = (props.county_nam || '').toString().trim();
+            const precId = (props.prec_id || '').toString().trim();
+            const title = `${countyName} - ${precId}`;
 
-          const contestValue = document.getElementById('contestSelect')?.value || '';
-          const [contestType, year] = parseContestValue(contestValue);
-          if (!contestType || !year) {
-            showHoverTooltip(evt.point.x, evt.point.y, buildTooltipShell(title, '<div style="color:#64748b;">Select a contest to see results</div>'));
+            const contestValue = document.getElementById('contestSelect')?.value || '';
+            const [contestType, year] = parseContestValue(contestValue);
+            if (!contestType || !year) {
+              showHoverTooltip(evt.point.x, evt.point.y, buildTooltipShell(title, '<div style="color:#64748b;">Select a contest to see results</div>'));
+              wireTooltipButtons();
+              return;
+            }
+
+            const row = currentPrecinctResults ? currentPrecinctResults.get(precinctNorm) : null;
+            if (!row) {
+              showHoverTooltip(
+                evt.point.x,
+                evt.point.y,
+                buildTooltipShell(title, `<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>`)
+              );
+              wireTooltipButtons();
+              return;
+            }
+
+            const demVotes = Number(row[`${contestType}_dem`] || 0);
+            const repVotes = Number(row[`${contestType}_rep`] || 0);
+            const otherVotes = Number(row[`${contestType}_other`] || 0);
+            const demCandidate = row[`${contestType}_dem_candidate`] || '';
+            const repCandidate = row[`${contestType}_rep_candidate`] || '';
+            const subtitle = `${formatContestName(contestType, year)} ${year}`;
+            const inner = buildResultCardHTML('', subtitle, demVotes, repVotes, otherVotes, demCandidate, repCandidate);
+            showHoverTooltip(evt.point.x, evt.point.y, buildTooltipShell(title, inner));
             wireTooltipButtons();
-            return;
-          }
-
-          const row = currentPrecinctResults ? currentPrecinctResults.get(precinctNorm) : null;
-          if (!row) {
-            showHoverTooltip(
-              evt.point.x,
-              evt.point.y,
-              buildTooltipShell(title, `<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>`)
-            );
-            wireTooltipButtons();
-            return;
-          }
-
-          const demVotes = Number(row[`${contestType}_dem`] || 0);
-          const repVotes = Number(row[`${contestType}_rep`] || 0);
-          const otherVotes = Number(row[`${contestType}_other`] || 0);
-          const demCandidate = row[`${contestType}_dem_candidate`] || '';
-          const repCandidate = row[`${contestType}_rep_candidate`] || '';
-          const subtitle = `${formatContestName(contestType, year)} ${year}`;
-          const inner = buildResultCardHTML('', subtitle, demVotes, repVotes, otherVotes, demCandidate, repCandidate);
-          showHoverTooltip(evt.point.x, evt.point.y, buildTooltipShell(title, inner));
-          wireTooltipButtons();
-          setVoteCounterHoverState(`Hover: ${title}`, subtitle, demVotes, repVotes, otherVotes);
+            setVoteCounterHoverState(`Hover: ${title}`, subtitle, demVotes, repVotes, otherVotes);
+          });
         });
-      });
-      map.on('mouseleave', 'precinct-dot', () => {
-        map.getCanvas().style.cursor = '';
-        lastPrecinctDotHoverEvent = null;
-        if (precinctDotHoverRaf) {
-          cancelAnimationFrame(precinctDotHoverRaf);
-          precinctDotHoverRaf = null;
-        }
-        hideHoverTooltip();
-        clearVoteCounterHoverState();
-      });
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = '';
+          lastPrecinctDotHoverEvent = null;
+          if (precinctDotHoverRaf) {
+            cancelAnimationFrame(precinctDotHoverRaf);
+            precinctDotHoverRaf = null;
+          }
+          hideHoverTooltip();
+          clearVoteCounterHoverState();
+        });
+      }
+
+      wirePrecinctDotHover('precinct-dot');
+      wirePrecinctDotHover('precinct-dot-missing');
     }
 
     function updatePrecinctVisibility() {
@@ -4607,6 +4685,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       if (map.getLayer('precinct-dot')) {
         map.setLayoutProperty('precinct-dot', 'visibility', dotVisible ? 'visible' : 'none');
+      }
+      if (map.getLayer('precinct-dot-missing')) {
+        map.setLayoutProperty('precinct-dot-missing', 'visibility', polyVisible ? 'visible' : 'none');
       }
     }
 
@@ -6245,8 +6326,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	      function isNonGeographicPrecinctCode(code) {
 	        const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
 	        if (!c) return true;
+	        if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
 	        if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
 	        if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER')) return true;
+	        if (c.startsWith('EV') || c.startsWith('EV-') || c.startsWith('EV_')) return true;
 	        if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
 	        // Wake (and others) sometimes use compact one-stop bucket codes like "OSAB 1-40" or "OSNB81-91".
 	        if (/^OS[A-Z0-9]/.test(c)) return true;
@@ -6390,8 +6473,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	      function isNonGeographicPrecinctCode(code) {
 	        const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
 	        if (!c) return true;
+	        if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
 	        if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
 	        if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER')) return true;
+	        if (c.startsWith('EV') || c.startsWith('EV-') || c.startsWith('EV_')) return true;
 	        if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
 	        return false;
 	      }

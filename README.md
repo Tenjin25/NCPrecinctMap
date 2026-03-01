@@ -43,6 +43,17 @@ These files contain **precinct-level rows** keyed like `"COUNTY - PRECINCT"` and
 
 The Counties view aggregates these rows to county totals and also uses them to power precinct hovers (where precinct geometry exists).
 
+### 0) Precinct geometry (used by **Precincts** overlay)
+
+- `data/Voting_Precincts.geojson` (polygons)
+- `data/precinct_centroids.geojson` (points; used for high-zoom fallback + indexing)
+
+These are currently built from the NCSBE precinct shapefile in `data/census/SBE_PRECINCTS_20240723/` and reprojected to `EPSG:4326` for web maps:
+
+```powershell
+py scripts/build_voting_precincts_geojson.py
+```
+
 ### 2) District contest slices (used by **District** views)
 
 - `data/district_contests/<scope>_<contest_type>_<year>.json`
