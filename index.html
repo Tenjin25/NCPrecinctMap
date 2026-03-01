@@ -2488,6 +2488,33 @@ document.addEventListener('DOMContentLoaded', function() {
 	      }
 	    }
 
+      // Candidate labels are sometimes blank in older district contest slices (notably US Senate pre-2008).
+      // Pull the names from the precinct-level contest slice as a lightweight fallback for hovers/sidebars.
+      const contestCandidateCache = new Map(); // key `${contestType}_${year}` -> { dem, rep }
+
+      async function getContestCandidates(contestType, year) {
+        const key = `${contestType}_${year}`;
+        if (contestCandidateCache.has(key)) return contestCandidateCache.get(key);
+        const empty = { dem: '', rep: '' };
+        try {
+          const payload = await loadJSON(`${CONFIG.paths.contests_dir}/${key}.json`);
+          const rows = payload?.rows || [];
+          let dem = '';
+          let rep = '';
+          for (const r of rows) {
+            if (!dem) dem = (r?.dem_candidate || '').toString().trim();
+            if (!rep) rep = (r?.rep_candidate || '').toString().trim();
+            if (dem && rep) break;
+          }
+          const out = { dem, rep };
+          contestCandidateCache.set(key, out);
+          return out;
+        } catch (_) {
+          contestCandidateCache.set(key, empty);
+          return empty;
+        }
+      }
+
     async function loadDistrictSlice(scope, contestType, year) {
       const key = `${scope}_${contestType}_${year}`;
       if (districtSliceCache.has(key)) return districtSliceCache.get(key);
@@ -3435,14 +3462,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const keyB = String(Number(districtNum));
         const r = results[keyA] || results[keyB] || null;
         if (!r) continue;
+
+        // Older statewide district slices may omit candidate labels; recover from contest slice.
+        let demCand = (r.dem_candidate || '').toString().trim();
+        let repCand = (r.rep_candidate || '').toString().trim();
+        if ((!(demCand && repCand)) && contestType !== 'us_house') {
+          try {
+            const cand = await getContestCandidates(contestType, year);
+            if (!demCand) demCand = cand.dem || '';
+            if (!repCand) repCand = cand.rep || '';
+          } catch (_) {}
+        }
         out.push({
           year,
           dem_votes: Number(r.dem_votes) || 0,
           rep_votes: Number(r.rep_votes) || 0,
           other_votes: Number(r.other_votes) || 0,
           total_votes: Number(r.total_votes) || 0,
-          dem_candidate: r.dem_candidate || '',
-          rep_candidate: r.rep_candidate || '',
+          dem_candidate: demCand,
+          rep_candidate: repCand,
           winner: r.winner || '',
           margin_pct: Number(r.margin_pct) || 0,
           coverage_pct: payload?.meta?.match_coverage_pct
@@ -3763,8 +3801,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      const demCandidate = row.dem_candidate || getCandidateName(year, formatContestName(contestType, year), 'Democrat');
-      const repCandidate = row.rep_candidate || getCandidateName(year, formatContestName(contestType, year), 'Republican');
+      let demCandidate = (row.dem_candidate || '').toString().trim();
+      let repCandidate = (row.rep_candidate || '').toString().trim();
+      if ((!(demCandidate && repCandidate)) && contestType !== 'us_house') {
+        try {
+          const cand = await getContestCandidates(contestType, year);
+          if (!demCandidate) demCandidate = cand.dem || '';
+          if (!repCandidate) repCandidate = cand.rep || '';
+        } catch (_) {}
+      }
+      if (!demCandidate) demCandidate = getCandidateName(year, formatContestName(contestType, year), 'Democrat');
+      if (!repCandidate) repCandidate = getCandidateName(year, formatContestName(contestType, year), 'Republican');
       const subtitle = `${formatContestName(contestType, year)} ${year}`;
       setVoteCounterHoverState(`Hover: ${districtLabel} ${districtNum}`, subtitle, demVotes, repVotes, otherVotes);
 
@@ -5537,7 +5584,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return results[keyA] || results[keyB] || null;
     }
 
-    function renderDistrictElectionInfoHTML(contestType, year, row) {
+    function renderDistrictElectionInfoHTML(contestType, year, row, fallbackCandidates) {
       if (!row) return '<div style="color:#999;">No results for this district/contest.</div>';
       const demVotes = Number(row.dem_votes || 0);
       const repVotes = Number(row.rep_votes || 0);
@@ -5547,6 +5594,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
       let demCandidate = stripRunningMateName((row.dem_candidate || '').toString().trim());
       let repCandidate = stripRunningMateName((row.rep_candidate || '').toString().trim());
+      if (!demCandidate) demCandidate = stripRunningMateName((fallbackCandidates?.dem || '').toString().trim());
+      if (!repCandidate) repCandidate = stripRunningMateName((fallbackCandidates?.rep || '').toString().trim());
       if (!demCandidate) demCandidate = 'D';
       if (!repCandidate) repCandidate = 'R';
 
@@ -5666,7 +5715,13 @@ document.addEventListener('DOMContentLoaded', function() {
           const row = pickDistrictSliceRow(payload, districtNum);
           if (reqId !== districtSidebarRequestId) return;
           const el = document.getElementById('district-election');
-          if (el) el.innerHTML = renderDistrictElectionInfoHTML(contestType, year, row);
+          let cand = null;
+          if (row && contestType !== 'us_house') {
+            const demBlank = !((row.dem_candidate || '').toString().trim());
+            const repBlank = !((row.rep_candidate || '').toString().trim());
+            if (demBlank || repBlank) cand = await getContestCandidates(contestType, year);
+          }
+          if (el) el.innerHTML = renderDistrictElectionInfoHTML(contestType, year, row, cand);
         } catch (err) {
           if (reqId !== districtSidebarRequestId) return;
           const el = document.getElementById('district-election');
@@ -5740,7 +5795,13 @@ document.addEventListener('DOMContentLoaded', function() {
           const row = pickDistrictSliceRow(payload, districtNum);
           if (reqId !== districtSidebarRequestId) return;
           const el = document.getElementById('district-election');
-          if (el) el.innerHTML = renderDistrictElectionInfoHTML(contestType, year, row);
+          let cand = null;
+          if (row && contestType !== 'us_house') {
+            const demBlank = !((row.dem_candidate || '').toString().trim());
+            const repBlank = !((row.rep_candidate || '').toString().trim());
+            if (demBlank || repBlank) cand = await getContestCandidates(contestType, year);
+          }
+          if (el) el.innerHTML = renderDistrictElectionInfoHTML(contestType, year, row, cand);
         } catch (err) {
           if (reqId !== districtSidebarRequestId) return;
           const el = document.getElementById('district-election');
