@@ -2779,6 +2779,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	        const year = Number(entry.year);
 	        const rows = Number(entry.rows || entry.districts || 0) || 0;
 	        if (!contestType || rows <= 0) return;
+
+          // Hide older NC judicial contests until we have reliable D/R-alignment (endorsement) data.
+          // NC appellate judicial races are nonpartisan in older cycles; without endorsements they read as "OTHER".
+          const isJudicial = contestType.startsWith('nc_supreme_court_') || contestType.startsWith('nc_court_of_appeals_');
+          if (isJudicial && Number.isFinite(year) && year < 2018) return;
+
 	        if (!contestYearPairs[contestType]) contestYearPairs[contestType] = new Set();
 	        contestYearPairs[contestType].add(year);
 	      });
