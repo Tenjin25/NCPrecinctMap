@@ -2703,9 +2703,23 @@ document.addEventListener('DOMContentLoaded', function() {
 	        const seat = contestType.replace('nc_court_of_appeals_judge_seat_', '').replace(/^0+/, '');
 	        return `NC Court of Appeals Judge Seat ${seat || contestType}`;
 	      }
+	      if (contestType.startsWith('nc_court_of_appeals_judge_') && contestType.endsWith('_seat')) {
+	        const who = contestType.replace('nc_court_of_appeals_judge_', '').replace(/_seat$/i, '').replace(/_/g, ' ').trim();
+	        const label = who ? (typeof toTitleCaseName === 'function' ? toTitleCaseName(who) : who) : contestType;
+	        return `NC Court of Appeals Judge (${label})`;
+	      }
 	      if (contestType.startsWith('nc_supreme_court_associate_justice_seat_')) {
 	        const seat = contestType.replace('nc_supreme_court_associate_justice_seat_', '').replace(/^0+/, '');
 	        return `NC Supreme Court Associate Justice Seat ${seat || contestType}`;
+	      }
+	      if (contestType.startsWith('nc_supreme_court_chief_justice_seat_')) {
+	        const seat = contestType.replace('nc_supreme_court_chief_justice_seat_', '').replace(/^0+/, '');
+	        return `NC Supreme Court Chief Justice Seat ${seat || contestType}`;
+	      }
+	      if (contestType.startsWith('nc_supreme_court_chief_justice_') && contestType.endsWith('_seat')) {
+	        const who = contestType.replace('nc_supreme_court_chief_justice_', '').replace(/_seat$/i, '').replace(/_/g, ' ').trim();
+	        const label = who ? (typeof toTitleCaseName === 'function' ? toTitleCaseName(who) : who) : contestType;
+	        return `NC Supreme Court Chief Justice (${label})`;
 	      }
 
 	      return nameMap[contestType] || contestType.toUpperCase();
@@ -6114,6 +6128,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	        if (/^(ABSENTEE|PROVISIONAL|CURBSIDE)$/i.test(c)) return true;
 	        if (c.includes('ONE STOP') || c.includes('MAIL ABSENTEE') || c.includes('VOTE CENTER') || c.includes('VOTECENTER')) return true;
 	        if (c.startsWith('OS ') || c.startsWith('OS-') || c.startsWith('OS_')) return true;
+	        // Wake (and others) sometimes use compact one-stop bucket codes like "OSAB 1-40" or "OSNB81-91".
+	        if (/^OS[A-Z0-9]/.test(c)) return true;
 	        return false;
 	      }
 	      function precinctNormVariantsLite(rowName) {

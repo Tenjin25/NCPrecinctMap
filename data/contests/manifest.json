@@ -134,6 +134,36 @@
     },
     {
       "year": 2016,
+      "contest_type": "nc_court_of_appeals_judge_dietz_seat",
+      "file": "nc_court_of_appeals_judge_dietz_seat_2016.json",
+      "rows": 2715
+    },
+    {
+      "year": 2016,
+      "contest_type": "nc_court_of_appeals_judge_geer_seat",
+      "file": "nc_court_of_appeals_judge_geer_seat_2016.json",
+      "rows": 2715
+    },
+    {
+      "year": 2016,
+      "contest_type": "nc_court_of_appeals_judge_hunter_seat",
+      "file": "nc_court_of_appeals_judge_hunter_seat_2016.json",
+      "rows": 2715
+    },
+    {
+      "year": 2016,
+      "contest_type": "nc_court_of_appeals_judge_stephens_seat",
+      "file": "nc_court_of_appeals_judge_stephens_seat_2016.json",
+      "rows": 2715
+    },
+    {
+      "year": 2016,
+      "contest_type": "nc_court_of_appeals_judge_zachary_seat",
+      "file": "nc_court_of_appeals_judge_zachary_seat_2016.json",
+      "rows": 2715
+    },
+    {
+      "year": 2016,
       "contest_type": "president",
       "file": "president_2016.json",
       "rows": 3209
@@ -161,6 +191,30 @@
       "contest_type": "us_senate",
       "file": "us_senate_2016.json",
       "rows": 3209
+    },
+    {
+      "year": 2018,
+      "contest_type": "nc_court_of_appeals_judge_seat_01",
+      "file": "nc_court_of_appeals_judge_seat_01_2018.json",
+      "rows": 2718
+    },
+    {
+      "year": 2018,
+      "contest_type": "nc_court_of_appeals_judge_seat_02",
+      "file": "nc_court_of_appeals_judge_seat_02_2018.json",
+      "rows": 2718
+    },
+    {
+      "year": 2018,
+      "contest_type": "nc_court_of_appeals_judge_seat_03",
+      "file": "nc_court_of_appeals_judge_seat_03_2018.json",
+      "rows": 2718
+    },
+    {
+      "year": 2018,
+      "contest_type": "nc_supreme_court_associate_justice_seat_01",
+      "file": "nc_supreme_court_associate_justice_seat_01_2018.json",
+      "rows": 2718
     },
     {
       "year": 2020,
@@ -206,6 +260,54 @@
     },
     {
       "year": 2020,
+      "contest_type": "nc_court_of_appeals_judge_seat_04",
+      "file": "nc_court_of_appeals_judge_seat_04_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_court_of_appeals_judge_seat_05",
+      "file": "nc_court_of_appeals_judge_seat_05_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_court_of_appeals_judge_seat_06",
+      "file": "nc_court_of_appeals_judge_seat_06_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_court_of_appeals_judge_seat_07",
+      "file": "nc_court_of_appeals_judge_seat_07_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_court_of_appeals_judge_seat_13",
+      "file": "nc_court_of_appeals_judge_seat_13_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_supreme_court_associate_justice_seat_02",
+      "file": "nc_supreme_court_associate_justice_seat_02_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_supreme_court_associate_justice_seat_04",
+      "file": "nc_supreme_court_associate_justice_seat_04_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
+      "contest_type": "nc_supreme_court_chief_justice_seat_01",
+      "file": "nc_supreme_court_chief_justice_seat_01_2020.json",
+      "rows": 2718
+    },
+    {
+      "year": 2020,
       "contest_type": "president",
       "file": "president_2020.json",
       "rows": 3065
@@ -233,6 +335,42 @@
       "contest_type": "us_senate",
       "file": "us_senate_2020.json",
       "rows": 3065
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_court_of_appeals_judge_seat_08",
+      "file": "nc_court_of_appeals_judge_seat_08_2022.json",
+      "rows": 2663
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_court_of_appeals_judge_seat_09",
+      "file": "nc_court_of_appeals_judge_seat_09_2022.json",
+      "rows": 2663
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_court_of_appeals_judge_seat_10",
+      "file": "nc_court_of_appeals_judge_seat_10_2022.json",
+      "rows": 2663
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_court_of_appeals_judge_seat_11",
+      "file": "nc_court_of_appeals_judge_seat_11_2022.json",
+      "rows": 2663
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_supreme_court_associate_justice_seat_03",
+      "file": "nc_supreme_court_associate_justice_seat_03_2022.json",
+      "rows": 2663
+    },
+    {
+      "year": 2022,
+      "contest_type": "nc_supreme_court_associate_justice_seat_05",
+      "file": "nc_supreme_court_associate_justice_seat_05_2022.json",
+      "rows": 2663
     },
     {
       "year": 2022,
@@ -281,6 +419,30 @@
       "contest_type": "lieutenant_governor",
       "file": "lieutenant_governor_2024.json",
       "rows": 2908
+    },
+    {
+      "year": 2024,
+      "contest_type": "nc_court_of_appeals_judge_seat_12",
+      "file": "nc_court_of_appeals_judge_seat_12_2024.json",
+      "rows": 2660
+    },
+    {
+      "year": 2024,
+      "contest_type": "nc_court_of_appeals_judge_seat_14",
+      "file": "nc_court_of_appeals_judge_seat_14_2024.json",
+      "rows": 2660
+    },
+    {
+      "year": 2024,
+      "contest_type": "nc_court_of_appeals_judge_seat_15",
+      "file": "nc_court_of_appeals_judge_seat_15_2024.json",
+      "rows": 2660
+    },
+    {
+      "year": 2024,
+      "contest_type": "nc_supreme_court_associate_justice_seat_06",
+      "file": "nc_supreme_court_associate_justice_seat_06_2024.json",
+      "rows": 2660
     },
     {
       "year": 2024,

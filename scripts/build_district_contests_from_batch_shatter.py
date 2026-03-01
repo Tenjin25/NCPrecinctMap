@@ -392,6 +392,107 @@ def load_district_map(path: Path, block_col: str, district_col: str) -> pd.DataF
     out.loc[out["district"] == "", "district"] = "0"
     return out.dropna().drop_duplicates(subset=["block_geoid20"], keep="first")
 
+def _signed_margin_pct(dem_votes: int, rep_votes: int, total_votes: int) -> float:
+    t = float(total_votes or 0)
+    if t <= 0:
+        return 0.0
+    return ((float(rep_votes) - float(dem_votes)) / t) * 100.0
+
+
+def _winner_label(dem_votes: int, rep_votes: int) -> str:
+    if rep_votes > dem_votes:
+        return "REP"
+    if dem_votes > rep_votes:
+        return "DEM"
+    return "TIE"
+
+
+def build_precinct_contest_payload(
+    *,
+    year: int,
+    contest_type: str,
+    office_label: str,
+    nongeo_allocation_mode: str,
+    precinct_party: pd.DataFrame,
+    dem_candidate: str,
+    rep_candidate: str,
+) -> dict:
+    """
+    Build a data/contests/<contest_type>_<year>.json payload.
+
+    Rows are precinct-level and keyed by "county" (matching index.html conventions),
+    where county is a "COUNTY - PRECINCT" precinct_id string.
+    """
+    rows: list[dict] = []
+    if precinct_party is None or precinct_party.empty:
+        return {"rows": []}
+
+    for _, r in precinct_party.iterrows():
+        precinct_id = str(r.get("precinct_id", "")).strip().upper()
+        if not precinct_id:
+            continue
+        dem = int(round(float(r.get("dem_votes", 0) or 0)))
+        rep = int(round(float(r.get("rep_votes", 0) or 0)))
+        oth = int(round(float(r.get("other_votes", 0) or 0)))
+        total = dem + rep + oth
+        if total <= 0:
+            continue
+        m_pct = _signed_margin_pct(dem, rep, total)
+        winner = _winner_label(dem, rep)
+        rows.append(
+            {
+                "year": int(year),
+                "county": precinct_id,
+                "dem_votes": dem,
+                "rep_votes": rep,
+                "other_votes": oth,
+                "total_votes": total,
+                "dem_candidate": dem_candidate or "",
+                "rep_candidate": rep_candidate or "",
+                "margin": int(rep - dem),
+                "margin_pct": float(round(m_pct, 4)),
+                "winner": winner,
+                "color": calculate_competitiveness(m_pct),
+            }
+        )
+
+    rows.sort(key=lambda x: str(x.get("county", "")))
+    return {
+        "year": int(year),
+        "contest_type": str(contest_type),
+        "meta": {
+            "source": "batch_shatter_vap_party_split",
+            "office": office_label,
+            "nongeo_allocation_mode": nongeo_allocation_mode,
+        },
+        "rows": rows,
+    }
+
+
+def update_contests_manifest(manifest_path: Path, entries: list[dict]) -> None:
+    if not entries:
+        return
+    base = {"files": []}
+    if manifest_path.exists():
+        try:
+            base = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception:
+            base = {"files": []}
+    files = list((base.get("files") or []))
+
+    idx: dict[tuple[str, int], dict] = {}
+    for e in files:
+        try:
+            idx[(str(e.get("contest_type")), int(e.get("year")))] = e
+        except Exception:
+            continue
+    for e in entries:
+        idx[(str(e.get("contest_type")), int(e.get("year")))] = e
+
+    merged = list(idx.values())
+    merged.sort(key=lambda x: (int(x.get("year", 0)), str(x.get("contest_type", ""))))
+    manifest_path.write_text(json.dumps({"files": merged}, indent=2), encoding="utf-8")
+
 
 def build_county_shares(
     crosswalk_df: pd.DataFrame,
@@ -1087,6 +1188,29 @@ def main() -> None:
         default="summary",
         help="Use batch summary office->key mapping, or infer from results CSV using KNOWN_OFFICE_KEYS.",
     )
+    parser.add_argument(
+        "--contest-type-regex",
+        type=str,
+        default="",
+        help="Optional regex to filter derived contest_type keys (e.g. '^president$' or '^nc_').",
+    )
+    parser.add_argument(
+        "--contests-only",
+        action="store_true",
+        help="Only write precinct-level contest slices (skip VAP shatter + district aggregation).",
+    )
+    parser.add_argument(
+        "--write-contests",
+        action="store_true",
+        help="Also write precinct-level contest slices to data/contests (enables county view for judicial, etc).",
+    )
+    parser.add_argument("--contests-dir", type=Path, default=Path("data/contests"))
+    parser.add_argument("--contests-manifest", type=Path, default=Path("data/contests/manifest.json"))
+    parser.add_argument(
+        "--contests-only-missing",
+        action="store_true",
+        help="When writing contests, only create files that do not already exist.",
+    )
     args = parser.parse_args()
 
     # Load the closest-available SBE precinct name->code alias map and attach it
@@ -1111,10 +1235,7 @@ def main() -> None:
     build_auto_precinct_overrides._sbe_map = sbe_map  # type: ignore[attr-defined]
 
     src = pd.read_csv(args.results_csv, dtype=str, low_memory=False)
-    alloc_year = int(args.allocation_year) if args.allocation_year is not None else int(args.year)
-    allocation_weights = load_allocation_weights(args.allocation_weights_json)
     crosswalk_df = load_crosswalk(args.crosswalk_csv, "precinct_id", "block_geoid20")
-    vap_df = load_vap(args.vap_csv, "block_geoid20", "vap_count")
     matched_precincts = set(crosswalk_df["precinct_id"].astype(str).str.strip().str.upper().unique())
     src_precinct_ids = (
         src["county"].astype(str).str.strip().str.upper()
@@ -1124,6 +1245,90 @@ def main() -> None:
     auto_overrides = build_auto_precinct_overrides(src_precinct_ids, matched_precincts)
     manual_overrides = load_precinct_overrides(args.precinct_overrides_csv, args.year)
     precinct_overrides = {**auto_overrides, **manual_overrides}
+
+    offices_to_run: list[tuple[str, str]] = []
+    if args.office_source == "summary":
+        batch_summary = pd.read_csv(args.batch_dir / "summary.csv", dtype=str).fillna("")
+        for _, row in batch_summary.iterrows():
+            office = str(row["office"]).strip()
+            contest_type = str(row["office_key"]).strip()
+            if office and contest_type:
+                offices_to_run.append((office, contest_type))
+    else:
+        seen = set()
+        for office in sorted(src["office"].dropna().astype(str).unique()):
+            key = infer_office_key(office)
+            if key and key not in seen:
+                offices_to_run.append((office.strip(), key))
+                seen.add(key)
+
+    if args.contests_only:
+        contests_written = 0
+        for office, contest_type in offices_to_run:
+            if not office or not contest_type:
+                continue
+            if args.contest_type_regex:
+                try:
+                    if not re.search(str(args.contest_type_regex), str(contest_type)):
+                        continue
+                except re.error:
+                    pass
+            if not args.write_contests:
+                continue
+
+            print(f"Processing (contests-only) {office} -> {contest_type}")
+            if args.nongeo_allocation_mode == "county_weights":
+                precinct_party, _, dem_candidate, rep_candidate = build_precinct_party_votes_county_weight_mode(
+                    src, office, precinct_overrides=precinct_overrides, election_year=args.year
+                )
+            else:
+                precinct_party, dem_candidate, rep_candidate = build_precinct_party_votes(
+                    src, office, precinct_overrides=precinct_overrides, election_year=args.year
+                )
+            if precinct_party.empty:
+                continue
+
+            args.contests_dir.mkdir(parents=True, exist_ok=True)
+            contest_file = args.contests_dir / f"{contest_type}_{int(args.year)}.json"
+            payload = None
+            if contest_file.exists() and args.contests_only_missing:
+                try:
+                    payload = json.loads(contest_file.read_text(encoding="utf-8"))
+                except Exception:
+                    payload = None
+            else:
+                payload = build_precinct_contest_payload(
+                    year=int(args.year),
+                    contest_type=str(contest_type),
+                    office_label=office,
+                    nongeo_allocation_mode=str(args.nongeo_allocation_mode),
+                    precinct_party=precinct_party,
+                    dem_candidate=dem_candidate,
+                    rep_candidate=rep_candidate,
+                )
+                contest_file.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+                contests_written += 1
+
+            if payload is None:
+                continue
+            update_contests_manifest(
+                args.contests_manifest,
+                [
+                    {
+                        "year": int(args.year),
+                        "contest_type": str(contest_type),
+                        "file": contest_file.name,
+                        "rows": int(len((payload.get("rows") or []))),
+                    }
+                ],
+            )
+
+        print(f"Wrote {contests_written} contest slices.")
+        return
+
+    alloc_year = int(args.allocation_year) if args.allocation_year is not None else int(args.year)
+    allocation_weights = load_allocation_weights(args.allocation_weights_json)
+    vap_df = load_vap(args.vap_csv, "block_geoid20", "vap_count")
 
     house_map = load_district_map(args.house_file, "Block", "District")
     senate_map = load_district_map(args.senate_file, "Block", "District")
@@ -1157,25 +1362,16 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     written = 0
-    offices_to_run: list[tuple[str, str]] = []
-    if args.office_source == "summary":
-        batch_summary = pd.read_csv(args.batch_dir / "summary.csv", dtype=str).fillna("")
-        for _, row in batch_summary.iterrows():
-            office = str(row["office"]).strip()
-            contest_type = str(row["office_key"]).strip()
-            if office and contest_type:
-                offices_to_run.append((office, contest_type))
-    else:
-        seen = set()
-        for office in sorted(src["office"].dropna().astype(str).unique()):
-            key = infer_office_key(office)
-            if key and key not in seen:
-                offices_to_run.append((office.strip(), key))
-                seen.add(key)
 
     for office, contest_type in offices_to_run:
         if not office or not contest_type:
             continue
+        if args.contest_type_regex:
+            try:
+                if not re.search(str(args.contest_type_regex), str(contest_type)):
+                    continue
+            except re.error:
+                pass
         print(f"Processing {office} -> {contest_type}")
         if args.nongeo_allocation_mode == "county_weights":
             precinct_party, county_non_geo_party, dem_candidate, rep_candidate = build_precinct_party_votes_county_weight_mode(
@@ -1273,6 +1469,32 @@ def main() -> None:
         for name, payload in payloads.items():
             (out_dir / name).write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
             written += 1
+
+        if args.write_contests:
+            args.contests_dir.mkdir(parents=True, exist_ok=True)
+            contest_file = args.contests_dir / f"{contest_type}_{int(args.year)}.json"
+            if (not args.contests_only_missing) or (not contest_file.exists()):
+                contest_payload = build_precinct_contest_payload(
+                    year=int(args.year),
+                    contest_type=str(contest_type),
+                    office_label=office,
+                    nongeo_allocation_mode=str(args.nongeo_allocation_mode),
+                    precinct_party=precinct_party,
+                    dem_candidate=dem_candidate,
+                    rep_candidate=rep_candidate,
+                )
+                contest_file.write_text(json.dumps(contest_payload, separators=(",", ":")), encoding="utf-8")
+                update_contests_manifest(
+                    args.contests_manifest,
+                    [
+                        {
+                            "year": int(args.year),
+                            "contest_type": str(contest_type),
+                            "file": contest_file.name,
+                            "rows": int(len((contest_payload.get("rows") or []))),
+                        }
+                    ],
+                )
 
     # Rebuild manifest
     manifest = []
