@@ -3570,13 +3570,21 @@ document.addEventListener('DOMContentLoaded', function() {
       saveUIState();
     }
 
-    function getDistrictNumberFromProps(props, candidates) {
+    function normalizeDistrictNumber(raw) {
+      const s = (raw ?? '').toString().trim();
+      if (!s) return '';
+      const m = s.match(/\d+/);
+      if (!m) return s;
+      const n = Number(m[0]);
+      return Number.isFinite(n) ? String(n) : m[0];
+    }
+
+    function getDistrictNumberFromPropsCandidates(props, candidates) {
       for (const key of candidates) {
         const val = props?.[key];
         if (val !== undefined && val !== null && `${val}`.trim() !== '') {
           const raw = `${val}`.trim();
-          const digits = raw.match(/\d+/);
-          return digits ? digits[0] : raw;
+          return normalizeDistrictNumber(raw);
         }
       }
       return '';
@@ -4184,7 +4192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function renderDistrictHover(e, scope, districtLabel, districtFieldCandidates) {
       if (!(e.features && e.features[0])) return;
       const props = e.features[0].properties || {};
-      const districtNum = getDistrictNumberFromProps(props, districtFieldCandidates);
+      const districtNum = getDistrictNumberFromPropsCandidates(props, districtFieldCandidates);
       if (!districtNum) return;
       const requestId = ++districtHoverRequestId;
       setDistrictHoverOutline(scope, districtNum);
@@ -5279,7 +5287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         map.on('click', 'district-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
-            const districtNum = props.DISTRICT || props.CD118FP || props.district_id || props.district;
+            const districtNum = normalizeDistrictNumber(props.DISTRICT || props.CD118FP || props.district_id || props.district);
             if (districtNum) {
               // Show detailed sidebar (results + trends).
               showDistrictDetails(districtNum);
@@ -5362,7 +5370,7 @@ document.addEventListener('DOMContentLoaded', function() {
         map.on('click', 'state-house-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
-            const districtNum = props.DISTRICT || props.SLDLST || props.district_id || props.district;
+            const districtNum = normalizeDistrictNumber(props.DISTRICT || props.SLDLST || props.district_id || props.district);
             if (districtNum) {
               // Show detailed sidebar (results + trends).
               showStateDistrictDetails(districtNum, 'house');
@@ -5443,7 +5451,7 @@ document.addEventListener('DOMContentLoaded', function() {
         map.on('click', 'state-senate-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
             const props = e.features[0].properties;
-            const districtNum = props.DISTRICT || props.SLDUST || props.district_id || props.district;
+            const districtNum = normalizeDistrictNumber(props.DISTRICT || props.SLDUST || props.district_id || props.district);
             if (districtNum) {
               // Show detailed sidebar (results + trends).
               showStateDistrictDetails(districtNum, 'senate');
@@ -5660,7 +5668,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    function getDistrictNumberFromProps(props) {
+    function getDistrictNumberFromPropsNumeric(props) {
       const p = props || {};
       const raw = p.DISTRICT || p.SLDLST || p.SLDUST || p.district_id || p.district || p.DIST || p.CD118FP || p.CD || p.cd || null;
       const n = Number(String(raw || '').replace(/[^0-9]/g, ''));
@@ -5679,7 +5687,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const gj = await ensureSearchGeoJSON(sourceId, path);
       if (!gj || !gj.features) return;
 
-      const match = gj.features.find(f => getDistrictNumberFromProps(f.properties) === Number(districtNum));
+      const match = gj.features.find(f => getDistrictNumberFromPropsNumeric(f.properties) === Number(districtNum));
       if (!match) {
         console.warn('District not found for search:', label, districtNum);
         return;
