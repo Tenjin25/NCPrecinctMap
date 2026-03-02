@@ -4787,7 +4787,7 @@ document.addEventListener('DOMContentLoaded', function() {
           source: 'counties',
           layout: { visibility: 'none' },
           filter: ['==', ['get', '_'], '__'],
-          paint: { 'line-color': '#f59e0b', 'line-width': 3, 'line-opacity': 0.95 }
+          paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 3, 'line-opacity': 0.95 }
         });
         // County label layer (disabled for precinct geometry performance)
         addLayerWithOptionalSourceLayer({
@@ -4956,7 +4956,7 @@ document.addEventListener('DOMContentLoaded', function() {
         minzoom: CONFIG.precincts?.minZoom || 8.5,
         layout: { visibility: 'none' },
         filter: ['==', ['get', '_'], '__'],
-        paint: { 'line-color': '#f59e0b', 'line-width': 2.5, 'line-opacity': 0.95 }
+        paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 2.5, 'line-opacity': 0.95 }
       });
 
       map.on('click', 'precinct-fill', (e) => {
@@ -5272,7 +5272,7 @@ document.addEventListener('DOMContentLoaded', function() {
           source: 'districts',
           layout: { visibility: 'none' },
           filter: ['==', ['get', '_'], '__'],
-          paint: { 'line-color': '#f59e0b', 'line-width': 4, 'line-opacity': 0.95 }
+          paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 4, 'line-opacity': 0.95 }
         });
         
         // Add click handler for districts with full trends popup
@@ -5355,7 +5355,7 @@ document.addEventListener('DOMContentLoaded', function() {
           source: 'state-house',
           layout: { visibility: 'none' },
           filter: ['==', ['get', '_'], '__'],
-          paint: { 'line-color': '#f59e0b', 'line-width': 3, 'line-opacity': 0.95 }
+          paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 3, 'line-opacity': 0.95 }
         });
         
         // Add click handler for state house districts with full trends popup
@@ -5436,7 +5436,7 @@ document.addEventListener('DOMContentLoaded', function() {
           source: 'state-senate',
           layout: { visibility: 'none' },
           filter: ['==', ['get', '_'], '__'],
-          paint: { 'line-color': '#f59e0b', 'line-width': 3, 'line-opacity': 0.95 }
+          paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 3, 'line-opacity': 0.95 }
         });
         
         // Add click handler for state senate districts with full trends popup
