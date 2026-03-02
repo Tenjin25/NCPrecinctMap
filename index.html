@@ -3921,6 +3921,22 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     }
 
+    function buildAnyPropertyMatchFilter(keys, districtNum) {
+      const raw = (districtNum || '').toString().trim();
+      if (!raw) return ['==', 1, 0];
+      const padded3 = raw.padStart(3, '0');
+      const num = Number(raw);
+
+      const clauses = [];
+      (keys || []).forEach(k => {
+        clauses.push(['==', ['to-string', ['get', k]], raw]);
+        clauses.push(['==', ['to-string', ['get', k]], padded3]);
+        if (Number.isFinite(num)) clauses.push(['==', ['to-number', ['get', k]], num]);
+      });
+
+      return clauses.length ? ['any', ...clauses] : ['==', 1, 0];
+    }
+
     function setDistrictHoverOutline(scope, districtNum) {
       const d = (districtNum || '').toString().trim();
       if (!d) return clearHoverOutline();
@@ -3928,7 +3944,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (scope === 'congressional') {
         showHoverOutline(
           'district-stroke-hover',
-          ['==', ['to-string', ['coalesce', ['get', 'DISTRICT'], ['get', 'CD118FP'], ['get', 'district_id'], ['get', 'district'], ['get', 'NAMELSAD']]], d],
+          buildAnyPropertyMatchFilter(['DISTRICT', 'CD118FP', 'district_id', 'district'], d),
           `district:${scope}:${d}`
         );
         return;
@@ -3937,7 +3953,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (scope === 'state_house') {
         showHoverOutline(
           'state-house-stroke-hover',
-          ['==', ['to-string', ['coalesce', ['get', 'DISTRICT'], ['get', 'SLDLST'], ['get', 'district_id'], ['get', 'district'], ['get', 'NAMELSAD']]], d],
+          buildAnyPropertyMatchFilter(['DISTRICT', 'SLDLST', 'district_id', 'district'], d),
           `district:${scope}:${d}`
         );
         return;
@@ -3946,7 +3962,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (scope === 'state_senate') {
         showHoverOutline(
           'state-senate-stroke-hover',
-          ['==', ['to-string', ['coalesce', ['get', 'DISTRICT'], ['get', 'SLDUST'], ['get', 'district_id'], ['get', 'district'], ['get', 'NAMELSAD']]], d],
+          buildAnyPropertyMatchFilter(['DISTRICT', 'SLDUST', 'district_id', 'district'], d),
           `district:${scope}:${d}`
         );
       }
