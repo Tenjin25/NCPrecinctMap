@@ -2269,6 +2269,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const tooltip = document.getElementById('hover-tooltip');
       if (tooltip) tooltip.style.display = 'none';
       clearHoverOutline();
+      clearPrecinctHoverFeature();
       clearVoteCounterHoverState();
     }
 
@@ -3881,13 +3882,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hover outline (stroke-only highlight) helpers.
     const HOVER_OUTLINE_LAYER_IDS = [
-      'precinct-stroke-hover',
       'county-stroke-hover',
       'district-stroke-hover',
       'state-house-stroke-hover',
       'state-senate-stroke-hover'
     ];
     let lastHoverOutlineKey = null;
+    let precinctHoverFeatureId = null; // feature-state hover on precinct polygons (performance-friendly)
 
     function setLayerVisibilityIfExists(layerId, visibility) {
       if (!layerId || !map.getLayer(layerId)) return;
@@ -3898,6 +3899,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (lastHoverOutlineKey === null) return;
       lastHoverOutlineKey = null;
       HOVER_OUTLINE_LAYER_IDS.forEach(id => setLayerVisibilityIfExists(id, 'none'));
+      clearPrecinctHoverFeature();
     }
 
     function showHoverOutline(layerId, filter, key) {
@@ -3919,14 +3921,21 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     }
 
-    function setPrecinctHoverOutline(precinctNorm) {
-      const norm = (precinctNorm || '').toString().trim().toUpperCase();
-      if (!norm) return clearHoverOutline();
-      showHoverOutline(
-        'precinct-stroke-hover',
-        ['==', ['to-string', ['get', 'precinct_norm']], norm],
-        `precinct:${norm}`
-      );
+    function clearPrecinctHoverFeature() {
+      if (precinctHoverFeatureId === null || precinctHoverFeatureId === undefined) return;
+      try { map.setFeatureState({ source: 'precincts', id: precinctHoverFeatureId }, { hover: false }); } catch (_) {}
+      precinctHoverFeatureId = null;
+    }
+
+    function setPrecinctHoverFeature(feature) {
+      const src = feature?.layer?.source || feature?.source || '';
+      if (src !== 'precincts') return clearPrecinctHoverFeature();
+      const id = feature?.id;
+      if (id === null || id === undefined) return;
+      if (precinctHoverFeatureId === id) return;
+      clearPrecinctHoverFeature();
+      precinctHoverFeatureId = id;
+      try { map.setFeatureState({ source: 'precincts', id }, { hover: true }); } catch (_) {}
     }
 
     function buildAnyPropertyMatchFilter(keys, districtNum) {
@@ -4080,7 +4089,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const countyName = (props.county_nam || '').toString().trim();
       const precId = (props.prec_id || '').toString().trim();
       const title = `${countyName} - ${precId}`;
-      setPrecinctHoverOutline(precinctNorm);
+      setPrecinctHoverFeature(feature);
 
       const contestValue = document.getElementById('contestSelect')?.value || '';
       const [contestType, year] = parseContestValue(contestValue);
@@ -4151,6 +4160,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
       }
+      clearPrecinctHoverFeature();
 
       const layerName = currentView === 'counties'
         ? 'county-fill'
@@ -4167,6 +4177,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideHoverTooltip();
         clearHoverOutline();
         clearVoteCounterHoverState();
+        clearPrecinctHoverFeature();
         return;
       }
       const evt = { point: lastPointerPoint, features };
@@ -4923,7 +4934,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (_) {}
       // Do not overwrite window.countiesData (used for county search/zoom).
       window.precinctsData = precincts;
-      map.addSource('precincts', { type: 'geojson', data: precincts });
+      map.addSource('precincts', { type: 'geojson', data: precincts, generateId: true });
       precinctSourceLoaded = true;
       precinctLoadInFlight = false;
       addPrecinctLayers();
@@ -4955,16 +4966,11 @@ document.addEventListener('DOMContentLoaded', function() {
         source: 'precincts',
         minzoom: CONFIG.precincts?.minZoom || 8.5,
         layout: { visibility: 'none' },
-        paint: { 'line-color': '#6b7280', 'line-width': 0.25 }
-      });
-      map.addLayer({
-        id: 'precinct-stroke-hover',
-        type: 'line',
-        source: 'precincts',
-        minzoom: CONFIG.precincts?.minZoom || 8.5,
-        layout: { visibility: 'none' },
-        filter: ['==', ['get', '_'], '__'],
-        paint: { 'line-color': 'rgba(15, 23, 42, 0.55)', 'line-width': 2.5, 'line-opacity': 0.95 }
+        paint: {
+          'line-color': ['case', ['boolean', ['feature-state', 'hover'], false], 'rgba(15, 23, 42, 0.75)', '#6b7280'],
+          'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.25, 0.25],
+          'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0.65]
+        }
       });
 
       map.on('click', 'precinct-fill', (e) => {
@@ -5228,7 +5234,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (polyVisible && !precinctSourceLoaded && !precinctLoadInFlight) {
         ensurePrecinctSourceLoaded().catch(err => console.warn('Precinct load failed:', err?.message || err));
       }
-      ['precinct-fill', 'precinct-stroke', 'precinct-stroke-hover'].forEach(id => {
+      ['precinct-fill', 'precinct-stroke'].forEach(id => {
         if (map.getLayer(id)) {
           map.setLayoutProperty(id, 'visibility', polyVisible ? 'visible' : 'none');
         }
