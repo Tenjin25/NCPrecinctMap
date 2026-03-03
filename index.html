@@ -5075,18 +5075,25 @@ document.addEventListener('DOMContentLoaded', function() {
               showCountyDetails(countyName);
               lastSelectedCounty = countyName;
               setCountyHoverOutline(countyName);
-              // Show historical trends popup based on current contest selection.
-              const contestValue = document.getElementById('contestSelect')?.value || '';
-              const [contestType] = parseContestValue(contestValue);
-              const trendType = contestType || 'president';
-              try {
-                const series = await getCountyTrendSeries(trendType, countyName);
-                const content = formatTrendSeries(`${countyName} County - ${formatContestName(trendType, '')} Trends`, series);
-                showHoverTooltip(e.point.x, e.point.y, content);
-                wireTooltipButtons();
+              if (IS_COARSE_POINTER) {
+                // On touch devices, tapping a county should open the same result card/chips
+                // used by hover so flip indicators are visible.
+                renderCountyHoverAtPoint(e);
                 maybePinTooltipForTap();
-              } catch (err) {
-                console.warn('Failed to load county trends:', err?.message || err);
+              } else {
+                // Desktop click keeps the historical trend popup behavior.
+                const contestValue = document.getElementById('contestSelect')?.value || '';
+                const [contestType] = parseContestValue(contestValue);
+                const trendType = contestType || 'president';
+                try {
+                  const series = await getCountyTrendSeries(trendType, countyName);
+                  const content = formatTrendSeries(`${countyName} County - ${formatContestName(trendType, '')} Trends`, series);
+                  showHoverTooltip(e.point.x, e.point.y, content);
+                  wireTooltipButtons();
+                  maybePinTooltipForTap();
+                } catch (err) {
+                  console.warn('Failed to load county trends:', err?.message || err);
+                }
               }
               // Optionally, expand sidebar if minimized
               const sidebar = document.getElementById('sidebar');
@@ -7639,13 +7646,15 @@ document.addEventListener('DOMContentLoaded', function() {
       let prevPrecinctMarginByNorm = null; // Map<string, number>
       let prevCountyTotals = null; // Map countyNorm -> {dem, rep, total}
 
-      // Preload prior-year data only when the active mode needs it.
-      // In margins/winners mode this avoids unnecessary contest-slice and precinct-index work.
-      const needsPrevData = (mode === 'shift' || mode === 'flips');
+      // Keep previous-cycle county totals loaded for hover flip chips across modes.
+      // Precinct-level prior margins remain opt-in for shift/flip mode to keep non-shift
+      // contest switches lightweight when precinct overlay is enabled.
+      const needsPrevData = true;
+      const needsPrevPrecinctMargins = needsPrecinctDetail && (mode === 'shift' || mode === 'flips');
       if (needsPrevData) {
         try {
           vizPrevCache = await ensurePrevContestCache(contestType, Number(year), {
-            includePrecinctMargins: needsPrecinctDetail
+            includePrecinctMargins: needsPrevPrecinctMargins
           });
         } catch (_) {
           vizPrevCache = {
@@ -7657,10 +7666,6 @@ document.addEventListener('DOMContentLoaded', function() {
             hasPrecinctMargins: false
           };
         }
-      } else {
-        // Leave prior-year cache unset when the mode doesn't need it so a later
-        // flip/shift switch can load real previous-cycle data.
-        vizPrevCache = null;
       }
 
       if (mode === 'shift') {
@@ -7947,7 +7952,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const winner = winnerRaw.startsWith('REP') ? 'R' : (winnerRaw.startsWith('DEM') ? 'D' : winnerFromSignedMarginPct(signed));
             let color = '#e0e0e0';
             if (mode === 'flips') {
-              const prevRow = prevResults ? (prevResults[String(districtId)] || prevResults[String(districtNum)] || null) : null;
+              const prevRow = prevResults ? (prevResults[String(districtId)] || prevResults[String(Number(districtId))] || null) : null;
               const prevSigned = prevRow ? Number(prevRow.margin_pct || 0) : 0;
               const f = flipInfo(prevSigned, signed);
               color = f.flipped ? colorForFlipMode(f.to) : colorForFlipMode('T');
