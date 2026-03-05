@@ -2546,9 +2546,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // (saveUIState/restoreUIState defined above as no-ops)
 
-    function isNonGeographicPrecinctToken(code) {
+    function normalizeCountyToken(name) {
+      return (name || '')
+        .toString()
+        .replace(/[^a-z0-9 .\-]/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+    }
+
+    function isKnownPrecinctCodeForCounty(countyNameOrNorm, code) {
+      const countyNorm = normalizeCountyToken(countyNameOrNorm);
+      const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
+      if (!countyNorm || !c || !precinctCodeIndexByCounty) return false;
+      const codes = precinctCodeIndexByCounty.get(countyNorm);
+      return !!(codes && codes.has(c));
+    }
+
+    function isNonGeographicPrecinctToken(code, countyNameOrNorm = '') {
       const c = (code || '').toString().replace(/\s+/g, ' ').trim().toUpperCase();
       if (!c) return true;
+      // If we have a county+code pair that exists in precinct geometry, treat it as geographic.
+      if (isKnownPrecinctCodeForCounty(countyNameOrNorm, c)) return false;
       // Compact bucket codes used by some exports.
       if (/^(ABSEN|PROVI|TRANS)$/i.test(c)) return true;
       if (c === 'EV') return true;
@@ -4893,7 +4912,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cNorm !== norm) return;
         const token = (pRaw || '').toString().trim().toUpperCase();
         if (!token) return;
-        if (!isNonGeographicPrecinctToken(token)) return;
+        if (!isNonGeographicPrecinctToken(token, cNorm)) return;
         if (!buckets.has(token)) buckets.set(token, { dem: 0, rep: 0, other: 0, total: 0 });
         const node = buckets.get(token);
         node.dem += Number(r[`${contestType}_dem`] || 0);
@@ -5965,7 +5984,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const county = (countyNameRaw || '').toString().trim().toUpperCase();
       const code = (precinctCodeRaw || '').toString().trim().toUpperCase();
-      if (isNonGeographicPrecinctToken(code)) {
+      try { await ensurePrecinctCodeIndex(); } catch (_) {}
+      if (isNonGeographicPrecinctToken(code, county)) {
         setStatus(`${county} - ${code} is a non-geographic vote bucket (e.g., Early Vote/Absentee) and isn't mapped to a precinct shape.`);
         try { showCountyDetails(county); } catch (_) {}
         return;
@@ -7218,8 +7238,13 @@ document.addEventListener('DOMContentLoaded', function() {
 	      if (includePrecinctMargins) {
 	        try { precinctIdx = await ensurePrecinctCodeIndex(); } catch (_) { precinctIdx = null; }
 	      }
-	      function isNonGeographicPrecinctCode(code) {
-	        return isNonGeographicPrecinctToken(code);
+	      function isNonGeographicPrecinctCode(code, countyNorm = '') {
+	        const c = (code || '').toString().trim().toUpperCase();
+	        if (c && precinctIdx && countyNorm) {
+	          const codes = precinctIdx.get(countyNorm);
+	          if (codes && codes.has(c)) return false;
+	        }
+	        return isNonGeographicPrecinctToken(c, countyNorm);
 	      }
 	      function precinctNormVariantsLite(rowName) {
 	        const raw = (rowName || '').toString();
@@ -7233,7 +7258,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        const countyNorm = normalize(countyOnly);
 	        const precRaw = (precRaw0 || '').trim().toUpperCase();
 	        if (!countyOnly || !precRaw) return Array.from(out);
-	        if (isNonGeographicPrecinctCode(precRaw)) return [];
+	        if (isNonGeographicPrecinctCode(precRaw, countyNorm)) return [];
 	        const addKey = (t) => {
 	          const altFull = normalize(`${countyOnly} - ${t}`);
 	          if (altFull) out.add(altFull);
@@ -7427,8 +7452,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try { precinctIdx = await ensurePrecinctCodeIndex(); } catch (_) { precinctIdx = null; }
       }
 
-	      function isNonGeographicPrecinctCode(code) {
-	        return isNonGeographicPrecinctToken(code);
+	      function isNonGeographicPrecinctCode(code, countyNorm = '') {
+	        const c = (code || '').toString().trim().toUpperCase();
+	        if (c && precinctIdx && countyNorm) {
+	          const codes = precinctIdx.get(countyNorm);
+	          if (codes && codes.has(c)) return false;
+	        }
+	        return isNonGeographicPrecinctToken(c, countyNorm);
 	      }
 
 	      function precinctNormVariants(rowName) {
@@ -7444,7 +7474,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        const countyNorm = normalizeCountyName(countyOnly);
 	        const precRaw = (precRaw0 || '').trim().toUpperCase();
 	        if (!countyOnly || !precRaw) return Array.from(out);
-	        if (isNonGeographicPrecinctCode(precRaw)) return [];
+	        if (isNonGeographicPrecinctCode(precRaw, countyNorm)) return [];
 
 	        // Extract a compact code token (if present) so we can handle split precinct IDs
 	        // like "03S" -> "03SE"/"03SM" and "10" -> "10A"/"10B" using the centroid index.
