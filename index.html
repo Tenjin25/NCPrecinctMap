@@ -279,10 +279,14 @@
         try {
           const topbar = document.getElementById('map-topbar');
           if (!topbar) return;
-          const topbarHeight = Math.max(156, Math.round(topbar.getBoundingClientRect().height || 0));
+          const topbarHeight = Math.max(224, Math.round(topbar.getBoundingClientRect().height || 0));
           document.documentElement.style.setProperty('--topbar-h', `${topbarHeight}px`);
+          if (typeof window.updateMobileOverlayOffsets === 'function') {
+            window.updateMobileOverlayOffsets();
+          }
         } catch (_) {}
       }
+      window.syncInitialTopbarOffset = syncInitialTopbarOffset;
 
       var sidebar = document.getElementById('sidebar');
       var sidebarBtn = document.getElementById('sidebar-minimize-btn');
@@ -361,6 +365,23 @@
       requestAnimationFrame(syncInitialTopbarOffset);
       setTimeout(syncInitialTopbarOffset, 180);
       window.addEventListener('resize', syncInitialTopbarOffset, { passive: true });
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          try { syncInitialTopbarOffset(); } catch (_) {}
+        }).catch(() => {});
+      }
+      try {
+        const topbar = document.getElementById('map-topbar');
+        if (topbar && typeof ResizeObserver !== 'undefined') {
+          if (window.__topbarResizeObserver) {
+            try { window.__topbarResizeObserver.disconnect(); } catch (_) {}
+          }
+          window.__topbarResizeObserver = new ResizeObserver(() => {
+            try { syncInitialTopbarOffset(); } catch (_) {}
+          });
+          window.__topbarResizeObserver.observe(topbar);
+        }
+      } catch (_) {}
       setupRegionJumpButtons();
       updateContextBanner();
     });
@@ -1981,7 +2002,7 @@ body { height: var(--app-height); }
   }
 
   :root {
-    --topbar-h: 156px;
+    --topbar-h: 224px;
     --desktop-left-w: 380px;
     --desktop-right-w: 360px;
   }
@@ -2012,6 +2033,32 @@ body { height: var(--app-height); }
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 20px 52px rgba(15, 23, 42, 0.28);
     backdrop-filter: blur(18px);
+  }
+
+  .desktop-ui-left,
+  .desktop-ui-right {
+    position: fixed;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 1003;
+    pointer-events: none;
+  }
+
+  .desktop-ui-left {
+    left: 20px;
+    width: min(var(--desktop-left-w), calc(100vw - 40px));
+  }
+
+  .desktop-ui-right {
+    right: 20px;
+    width: min(var(--desktop-right-w), calc(100vw - 40px));
+  }
+
+  .desktop-ui-left > *,
+  .desktop-ui-right > * {
+    pointer-events: auto;
   }
 
   .map-topbar-meta {
@@ -2388,6 +2435,132 @@ body { height: var(--app-height); }
     padding: 18px 18px 16px;
   }
 
+  @media (min-width: 769px) {
+    .desktop-ui-left,
+    .desktop-ui-right {
+      display: contents;
+    }
+
+    .map-topbar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: min(var(--desktop-left-w), calc(100vw - 40px));
+      min-height: 0;
+      padding: 16px;
+    }
+
+    .context-banner {
+      display: none;
+    }
+
+    .map-topbar-hints {
+      margin-top: 10px;
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+
+    .main-controls {
+      position: fixed;
+      top: calc(28px + var(--topbar-h, 156px));
+      left: 20px;
+      right: auto;
+      width: min(var(--desktop-left-w), calc(100vw - 40px));
+      min-width: 0;
+      max-width: var(--desktop-left-w);
+      max-height: min(58vh, calc(100vh - var(--topbar-h, 156px) - 112px));
+      overflow-y: auto;
+    }
+
+    .main-controls.minimized {
+      top: calc(28px + var(--topbar-h, 156px));
+      left: 20px;
+      width: auto;
+      min-width: 148px;
+      max-width: calc(100vw - 40px);
+      max-height: none;
+      overflow: visible;
+    }
+
+    .legend {
+      position: fixed;
+      left: auto;
+      right: 20px;
+      bottom: 20px;
+      width: min(var(--desktop-left-w), calc(100vw - 40px));
+      min-width: 250px;
+      max-width: min(var(--desktop-left-w), calc(100vw - 40px));
+      max-height: min(44vh, 420px);
+      overflow-y: auto;
+    }
+
+    .legend-header {
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .legend-content {
+      padding: 14px 18px;
+    }
+
+    .legend-item {
+      margin-bottom: 8px;
+      font-size: 13px;
+      line-height: normal;
+      white-space: normal;
+    }
+
+    .legend.minimized {
+      width: auto;
+      left: auto;
+      right: 20px;
+      max-width: calc(100vw - 40px);
+      max-height: none;
+      overflow: visible;
+    }
+
+    .legend.minimized .legend-header {
+      position: relative;
+      top: auto;
+    }
+
+    .legend.minimized .legend-header,
+    .main-controls.minimized {
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+    }
+
+    .viz-modes {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .viz-mode-btn {
+      flex: 1 1 calc(50% - 6px);
+      min-width: 0;
+      text-align: center;
+    }
+
+    .viz-mode-btn.active::after {
+      display: none;
+    }
+
+    .vote-counter {
+      position: fixed;
+      top: 118px;
+      right: 20px;
+      left: auto;
+      width: min(var(--desktop-right-w), calc(100vw - 40px));
+      min-width: 300px;
+      max-width: var(--desktop-right-w);
+      transform: none;
+    }
+  }
+
   .focus-card {
     display: none;
   }
@@ -2471,6 +2644,97 @@ body { height: var(--app-height); }
     background: linear-gradient(90deg, #f87171, #dc2626);
   }
 
+  .focus-trend {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .focus-trend-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .focus-trend-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+  }
+
+  .focus-trend-caption {
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .focus-trend-chart {
+    min-height: 88px;
+  }
+
+  .focus-trend-empty {
+    display: flex;
+    align-items: center;
+    min-height: 72px;
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  .focus-sparkline {
+    display: block;
+    width: 100%;
+    height: 68px;
+  }
+
+  .focus-trend-dots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .focus-trend-dot {
+    padding: 8px 6px;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(248, 250, 252, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .focus-trend-dot-year {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .focus-trend-dot-value {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .focus-trend-dot-value.dem {
+    color: #1d4ed8;
+  }
+
+  .focus-trend-dot-value.rep {
+    color: #dc2626;
+  }
+
+  .focus-trend-dot-value.tie {
+    color: #475569;
+  }
+
   @media (min-width: 769px) and (max-width: 1180px) {
     :root {
       --desktop-left-w: 344px;
@@ -2493,6 +2757,11 @@ body { height: var(--app-height); }
   }
 
   @media (max-width: 768px) {
+    .desktop-ui-left,
+    .desktop-ui-right {
+      display: contents;
+    }
+
     .map-topbar {
       position: fixed;
       top: 0;
@@ -2750,6 +3019,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <div id="map"></div>
 
+  <div class="desktop-ui-left">
   <div class="map-topbar" id="map-topbar">
     <div class="map-topbar-meta">
       <div class="map-topbar-badge">NC Precinct Map</div>
@@ -2795,71 +3065,6 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="context-banner-item">
         <span class="context-banner-label">Focus</span>
         <span class="context-banner-value" id="context-focus">Statewide</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Visualization Mode Tabs - VoteHub Style -->
-  <div class="viz-modes" id="viz-modes">
-    <button class="viz-mode-btn active" data-mode="margins" id="mode-margins">
-      <span>Margins</span>
-    </button>
-    <button class="viz-mode-btn" data-mode="winners" id="mode-winners">
-      <span>Winners</span>
-    </button>
-    <button class="viz-mode-btn" data-mode="shift" id="mode-shift">
-      <span>Shift</span>
-    </button>
-    <button class="viz-mode-btn" data-mode="flips" id="mode-flips">
-      <span>Flips</span>
-    </button>
-  </div>
-
-  <!-- Vote Counter Display - VoteHub Style -->
-  <div class="vote-counter" id="vote-counter">
-    <div class="vote-counter-context" id="vote-counter-context">
-      <div class="context-left">
-        <div class="context-title" id="vote-context-title">Statewide Focus</div>
-        <div class="context-sub" id="vote-context-sub">Hover a county or district</div>
-      </div>
-      <button class="context-clear" id="vote-context-clear" title="Clear selection">Clear</button>
-    </div>
-    <div class="focus-card visible" id="focus-card">
-      <div class="focus-summary">
-        <div class="focus-pill">
-          <span class="focus-pill-label">Winner</span>
-          <span class="focus-pill-value tie" id="focus-winner">No data</span>
-        </div>
-        <div class="focus-pill">
-          <span class="focus-pill-label">Margin</span>
-          <span class="focus-pill-value" id="focus-margin">0.00%</span>
-        </div>
-        <div class="focus-pill">
-          <span class="focus-pill-label">Total Votes</span>
-          <span class="focus-pill-value" id="focus-total">0</span>
-        </div>
-      </div>
-      <div class="focus-bar" aria-label="Vote share split">
-        <div class="focus-bar-segment dem" id="focus-bar-dem" style="width:0%;"></div>
-        <div class="focus-bar-segment other" id="focus-bar-other" style="width:0%;"></div>
-        <div class="focus-bar-segment rep" id="focus-bar-rep" style="width:0%;"></div>
-      </div>
-    </div>
-    <div class="vote-counter-row">
-      <div class="vote-item">
-        <div class="vote-label dem">Dem</div>
-        <div class="vote-count dem" id="dem-count">0</div>
-        <div class="vote-percent" id="dem-percent">0%</div>
-      </div>
-      <div class="vote-item">
-        <div class="vote-label rep">Rep</div>
-        <div class="vote-count rep" id="rep-count">0</div>
-        <div class="vote-percent" id="rep-percent">0%</div>
-      </div>
-      <div class="vote-item">
-        <div class="vote-label other">OTHER</div>
-        <div class="vote-count" id="other-count">0</div>
-        <div class="vote-percent" id="other-percent">0%</div>
       </div>
     </div>
   </div>
@@ -2927,9 +3132,9 @@ document.addEventListener('DOMContentLoaded', function() {
               <p class="controls-subtitle">Switch layers, jump to major regions, and compare contests without leaving the map.</p>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="controls-collapsed-label">Tools</span>
+              <span class="controls-collapsed-label">Explore</span>
               <button id="help-btn" title="Help" type="button">?</button>
-              <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn">-</button>
+              <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn" title="Minimize controls">-</button>
             </div>
         </div>
         <div class="controls-content" id="controls-content">
@@ -2983,13 +3188,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-  <!-- Duplicate sidebar removed to fix HTML errors -->
-
     <!-- Legend -->
-    <div class="legend" id="legend">
+    <div class="legend minimized" id="legend">
         <div class="legend-header">
             <h4>Political Categories</h4>
-            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn">-</button>
+            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn" title="Expand legend">+</button>
         </div>
         <div class="legend-content" id="legend-content">
             <div class="legend-item"><div class="legend-color" style="background: #67000d;"></div>Annihilation Republican (&ge;40.00%)</div>
@@ -2999,7 +3202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="legend-item"><div class="legend-color" style="background: #fb6a4a;"></div>Likely Republican (5.50-9.99%)</div>
             <div class="legend-item"><div class="legend-color" style="background: #fcae91;"></div>Lean Republican (1.00-5.49%)</div>
             <div class="legend-item"><div class="legend-color" style="background: #fee8c8;"></div>Tilt Republican (0.50-0.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #f7f7f7; border: 1px solid rgba(15,23,42,0.35);"></div>Tossup (<0.50%)</div>
+            <div class="legend-item"><div class="legend-color" style="background: #f7f7f7; border: 1px solid rgba(15,23,42,0.35);"></div>Tossup (&lt;0.50%)</div>
             <div class="legend-item"><div class="legend-color" style="background: #e1f5fe;"></div>Tilt Democratic (0.50-0.99%)</div>
             <div class="legend-item"><div class="legend-color" style="background: #c6dbef;"></div>Lean Democratic (1.00-5.49%)</div>
             <div class="legend-item"><div class="legend-color" style="background: #9ecae1;"></div>Likely Democratic (5.50-9.99%)</div>
@@ -3009,6 +3212,85 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="legend-item"><div class="legend-color" style="background: #08306b;"></div>Annihilation Democratic (&ge;40.00%)</div>
         </div>
     </div>
+  </div>
+
+  <div class="desktop-ui-right">
+  <!-- Visualization Mode Tabs - VoteHub Style -->
+  <div class="viz-modes" id="viz-modes">
+    <button class="viz-mode-btn active" data-mode="margins" id="mode-margins">
+      <span>Margins</span>
+    </button>
+    <button class="viz-mode-btn" data-mode="winners" id="mode-winners">
+      <span>Winners</span>
+    </button>
+    <button class="viz-mode-btn" data-mode="shift" id="mode-shift">
+      <span>Shift</span>
+    </button>
+    <button class="viz-mode-btn" data-mode="flips" id="mode-flips">
+      <span>Flips</span>
+    </button>
+  </div>
+
+  <!-- Vote Counter Display - VoteHub Style -->
+  <div class="vote-counter" id="vote-counter">
+    <div class="vote-counter-context" id="vote-counter-context">
+      <div class="context-left">
+        <div class="context-title" id="vote-context-title">Statewide Focus</div>
+        <div class="context-sub" id="vote-context-sub">Hover a county or district</div>
+      </div>
+      <button class="context-clear" id="vote-context-clear" title="Clear selection">Clear</button>
+    </div>
+    <div class="focus-card visible" id="focus-card">
+      <div class="focus-summary">
+        <div class="focus-pill">
+          <span class="focus-pill-label">Winner</span>
+          <span class="focus-pill-value tie" id="focus-winner">No data</span>
+        </div>
+        <div class="focus-pill">
+          <span class="focus-pill-label">Margin</span>
+          <span class="focus-pill-value" id="focus-margin">0.00%</span>
+        </div>
+        <div class="focus-pill">
+          <span class="focus-pill-label">Total Votes</span>
+          <span class="focus-pill-value" id="focus-total">0</span>
+        </div>
+      </div>
+      <div class="focus-bar" aria-label="Vote share split">
+        <div class="focus-bar-segment dem" id="focus-bar-dem" style="width:0%;"></div>
+        <div class="focus-bar-segment other" id="focus-bar-other" style="width:0%;"></div>
+        <div class="focus-bar-segment rep" id="focus-bar-rep" style="width:0%;"></div>
+      </div>
+      <div class="focus-trend" id="focus-trend">
+        <div class="focus-trend-head">
+          <span class="focus-trend-title">Trend</span>
+          <span class="focus-trend-caption" id="focus-trend-caption">Statewide history</span>
+        </div>
+        <div class="focus-trend-chart" id="focus-trend-chart">
+          <div class="focus-trend-empty">Select a contest to load trend history.</div>
+        </div>
+      </div>
+    </div>
+    <div class="vote-counter-row">
+      <div class="vote-item">
+        <div class="vote-label dem">Dem</div>
+        <div class="vote-count dem" id="dem-count">0</div>
+        <div class="vote-percent" id="dem-percent">0%</div>
+      </div>
+      <div class="vote-item">
+        <div class="vote-label rep">Rep</div>
+        <div class="vote-count rep" id="rep-count">0</div>
+        <div class="vote-percent" id="rep-percent">0%</div>
+      </div>
+      <div class="vote-item">
+        <div class="vote-label other">OTHER</div>
+        <div class="vote-count" id="other-count">0</div>
+        <div class="vote-percent" id="other-percent">0%</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Duplicate sidebar removed to fix HTML errors -->
 
     <!-- Hover Tooltip -->
     <div id="hover-tooltip" class="hover-tooltip"></div>
@@ -3492,6 +3774,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let voteCounterBaseline = null; // {title, sub, dem, rep, other}
     let voteCounterPinned = null;   // {title, sub, dem, rep, other}
     let voteCounterHoverActive = false;
+    let voteCounterTrendRequestId = 0;
 
     function setVoteCounterContext(title, sub, {showClear = false} = {}) {
       const t = document.getElementById('vote-context-title');
@@ -3502,19 +3785,201 @@ document.addEventListener('DOMContentLoaded', function() {
       if (c) c.style.display = showClear ? 'inline-flex' : 'none';
     }
 
-    function setVoteCounterBaselineState(title, sub, demVotes, repVotes, otherVotes) {
-      voteCounterBaseline = { title, sub, demVotes, repVotes, otherVotes };
-      if (!voteCounterPinned) {
-        setVoteCounterContext(title, sub, { showClear: false });
-        updateVoteCounter(demVotes, repVotes, otherVotes);
+    function renderFocusTrendEmpty(message, caption = 'Statewide history') {
+      const captionEl = document.getElementById('focus-trend-caption');
+      const chartEl = document.getElementById('focus-trend-chart');
+      if (captionEl) captionEl.textContent = caption;
+      if (chartEl) {
+        chartEl.innerHTML = `<div class="focus-trend-empty">${message}</div>`;
       }
     }
 
-    function pinVoteCounterState(title, sub, demVotes, repVotes, otherVotes) {
-      voteCounterPinned = { title, sub, demVotes, repVotes, otherVotes };
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderFocusTrendSeries(series, caption = 'Trend history') {
+      const captionEl = document.getElementById('focus-trend-caption');
+      const chartEl = document.getElementById('focus-trend-chart');
+      if (!chartEl) return;
+      if (captionEl) captionEl.textContent = caption;
+      if (!series || !series.length) {
+        chartEl.innerHTML = `<div class="focus-trend-empty">No historical trend data available.</div>`;
+        return;
+      }
+
+      const points = series
+        .slice()
+        .sort((a, b) => a.year - b.year)
+        .map((item, idx, arr) => {
+          const signed = Number(item.margin_pct || 0);
+          const maxAbs = Math.max(5, ...arr.map(v => Math.abs(Number(v.margin_pct || 0))));
+          const x = arr.length === 1 ? 50 : (idx / (arr.length - 1)) * 100;
+          const y = 34 - ((signed / maxAbs) * 28);
+          return { x, y, signed, item };
+        });
+
+      const polyline = points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+      const dots = points.map(p => {
+        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
+        const label = winnerMarginLabelShort(
+          p.item.rep_votes,
+          p.item.dem_votes,
+          p.item.total_votes,
+          p.item.rep_candidate,
+          p.item.dem_candidate
+        );
+        return `
+          <div class="focus-trend-dot">
+            <span class="focus-trend-dot-year">${escapeHtml(p.item.year)}</span>
+            <span class="focus-trend-dot-value ${partyClass}">${escapeHtml(label)}</span>
+          </div>
+        `;
+      }).join('');
+
+      const circles = points.map(p => {
+        const fill = p.signed > 0 ? '#dc2626' : (p.signed < 0 ? '#1d4ed8' : '#64748b');
+        return `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="3.6" fill="${fill}"></circle>`;
+      }).join('');
+
+      chartEl.innerHTML = `
+        <svg class="focus-sparkline" viewBox="0 0 100 68" preserveAspectRatio="none" aria-label="${escapeHtml(caption)} sparkline">
+          <line x1="0" y1="34" x2="100" y2="34" stroke="rgba(100,116,139,0.28)" stroke-width="1" stroke-dasharray="3 3"></line>
+          <polyline fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${polyline}"></polyline>
+          ${circles}
+        </svg>
+        <div class="focus-trend-dots">${dots}</div>
+      `;
+    }
+
+    async function getStatewideTrendSeries(contestType) {
+      const entries = (contestManifest || [])
+        .filter(f => f && f.contest_type === contestType && Number.isFinite(Number(f.year)))
+        .slice()
+        .sort((a, b) => Number(a.year) - Number(b.year));
+
+      const out = [];
+      for (const e of entries) {
+        const year = Number(e.year);
+        const rows = await loadContestSlice(contestType, year);
+        let dem = 0, rep = 0, oth = 0, tot = 0;
+        let demCand = '', repCand = '';
+        rows.forEach(r => {
+          dem += Number(r[`${contestType}_dem`]) || 0;
+          rep += Number(r[`${contestType}_rep`]) || 0;
+          oth += Number(r[`${contestType}_other`]) || 0;
+          tot += Number(r[`${contestType}_total`]) || 0;
+          if (!demCand) demCand = r[`${contestType}_dem_candidate`] || '';
+          if (!repCand) repCand = r[`${contestType}_rep_candidate`] || '';
+        });
+        if (tot <= 0) continue;
+        const margin = rep - dem;
+        out.push({
+          year,
+          dem_votes: dem,
+          rep_votes: rep,
+          other_votes: oth,
+          total_votes: tot,
+          dem_candidate: demCand,
+          rep_candidate: repCand,
+          winner: margin > 0 ? 'REP' : (margin < 0 ? 'DEM' : 'TIE'),
+          margin_pct: Number(((margin / tot) * 100).toFixed(2))
+        });
+      }
+      if (!out.length && contestType === 'us_house' && Array.isArray(congressionalData) && congressionalData.length) {
+        const byYear = new Map();
+        congressionalData.forEach(row => {
+          const year = Number(row.year);
+          if (!Number.isFinite(year)) return;
+          if (!byYear.has(year)) byYear.set(year, { dem: 0, rep: 0, other: 0, total: 0 });
+          const agg = byYear.get(year);
+          agg.dem += Number(row.us_house_dem || 0);
+          agg.rep += Number(row.us_house_rep || 0);
+          agg.total += Number(row.us_house_total || 0);
+        });
+        Array.from(byYear.entries())
+          .sort((a, b) => a[0] - b[0])
+          .forEach(([year, agg]) => {
+            if (agg.total <= 0) return;
+            const margin = agg.rep - agg.dem;
+            out.push({
+              year,
+              dem_votes: agg.dem,
+              rep_votes: agg.rep,
+              other_votes: Math.max(0, agg.total - agg.dem - agg.rep),
+              total_votes: agg.total,
+              dem_candidate: '',
+              rep_candidate: '',
+              winner: margin > 0 ? 'REP' : (margin < 0 ? 'DEM' : 'TIE'),
+              margin_pct: Number(((margin / agg.total) * 100).toFixed(2))
+            });
+          });
+      }
+      return out;
+    }
+
+    async function refreshFocusTrend(state) {
+      const reqId = ++voteCounterTrendRequestId;
+      const contestValue = document.getElementById('contestSelect')?.value || '';
+      const [contestType, year] = parseContestValue(contestValue);
+      if (!contestType || !year) {
+        renderFocusTrendEmpty('Select a contest to load trend history.', 'Trend history');
+        return;
+      }
+
+      const meta = state?.meta || { kind: 'statewide', contestType, year };
+      const baseCaption = meta.kind === 'statewide'
+        ? 'Statewide history'
+        : (meta.kind === 'county'
+          ? `${displayCountyName(meta.county)} County`
+          : (meta.kind === 'district'
+            ? (meta.scope === 'congressional'
+              ? `Congressional District ${meta.districtNum}`
+              : (meta.scope === 'state_house' ? `State House District ${meta.districtNum}` : `State Senate District ${meta.districtNum}`))
+            : (meta.kind === 'precinct' ? `${meta.precinct}` : 'Trend history')));
+
+      renderFocusTrendEmpty('Loading trend history...', baseCaption);
+
+      try {
+        let series = [];
+        if (meta.kind === 'county' && meta.county) {
+          series = await getCountyTrendSeries(contestType, meta.county);
+        } else if (meta.kind === 'district' && meta.scope && meta.districtNum !== undefined) {
+          series = await getDistrictTrendSeries(meta.scope, contestType, meta.districtNum);
+        } else if (meta.kind === 'precinct' && meta.county) {
+          series = await getCountyTrendSeries(contestType, meta.county);
+        } else {
+          series = await getStatewideTrendSeries(contestType);
+        }
+        if (reqId !== voteCounterTrendRequestId) return;
+        renderFocusTrendSeries(series, baseCaption);
+      } catch (err) {
+        if (reqId !== voteCounterTrendRequestId) return;
+        renderFocusTrendEmpty('Failed to load trend history.', baseCaption);
+        console.warn('Failed to load focus trend:', err?.message || err);
+      }
+    }
+
+    function setVoteCounterBaselineState(title, sub, demVotes, repVotes, otherVotes, meta = null) {
+      voteCounterBaseline = { title, sub, demVotes, repVotes, otherVotes, meta };
+      if (!voteCounterPinned) {
+        setVoteCounterContext(title, sub, { showClear: false });
+        updateVoteCounter(demVotes, repVotes, otherVotes);
+        refreshFocusTrend(voteCounterBaseline);
+      }
+    }
+
+    function pinVoteCounterState(title, sub, demVotes, repVotes, otherVotes, meta = null) {
+      voteCounterPinned = { title, sub, demVotes, repVotes, otherVotes, meta };
       voteCounterHoverActive = false;
       setVoteCounterContext(title, sub, { showClear: true });
       updateVoteCounter(demVotes, repVotes, otherVotes);
+      refreshFocusTrend(voteCounterPinned);
     }
 
     function clearPinnedVoteCounterState() {
@@ -3523,8 +3988,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (voteCounterBaseline) {
         setVoteCounterContext(voteCounterBaseline.title, voteCounterBaseline.sub, { showClear: false });
         updateVoteCounter(voteCounterBaseline.demVotes, voteCounterBaseline.repVotes, voteCounterBaseline.otherVotes);
+        refreshFocusTrend(voteCounterBaseline);
       } else {
         setVoteCounterContext('Statewide', 'Hover a county or district', { showClear: false });
+        renderFocusTrendEmpty('Select a contest to load trend history.', 'Trend history');
         hideVoteCounter();
       }
     }
@@ -5073,6 +5540,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (modeEl) modeEl.textContent = getReadableModeLabel(currentVizMode);
       if (contestEl) contestEl.textContent = contestValue ? `${formatContestName(contestType, year)} ${year}` : 'Select a contest';
       if (focusEl) focusEl.textContent = getReadableFocusLabel();
+      try {
+        if (typeof window.syncInitialTopbarOffset === 'function') {
+          window.syncInitialTopbarOffset();
+        }
+      } catch (_) {}
     }
 
     function jumpToRegion(regionKey) {
@@ -5581,6 +6053,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Expand controls
         controls.classList.remove('minimized');
         controlsContent.style.display = 'block';
+        controls.scrollTop = 0;
         minimizeBtn.textContent = '-';
         minimizeBtn.title = 'Minimize controls';
       } else {
@@ -5667,6 +6140,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Votes
       const demVotes = countyData[`${contestType}_dem`] || 0;
       const repVotes = countyData[`${contestType}_rep`] || 0;
+      const otherVotes = countyData[`${contestType}_other`] || 0;
       const totalVotes = countyData[`${contestType}_total`] || 0;
       if (totalVotes === 0) {
         contentEl.innerHTML = `<p>No ${formatContestName(contestType, year)} data available for ${countyDisplay} County in ${year}.</p>`;
@@ -5680,6 +6154,14 @@ document.addEventListener('DOMContentLoaded', function() {
   let repCandidate = (countyData[`${contestType}_rep_candidate`] || '').toString().trim() || getCandidateName(year, formatContestName(contestType, year), 'Republican');
   demCandidate = stripRunningMateName(demCandidate);
   repCandidate = stripRunningMateName(repCandidate);
+      pinVoteCounterState(
+        `Selected: ${countyDisplay} County`,
+        `${formatContestName(contestType, year)} ${year}`,
+        demVotes,
+        repVotes,
+        otherVotes,
+        { kind: 'county', county: countyDisplay.toUpperCase(), contestType, year: Number(year) }
+      );
       // Margin
       const margin = demVotes - repVotes;
       const marginPct = (Math.abs(margin) / totalVotes * 100).toFixed(2);
@@ -5777,7 +6259,6 @@ document.addEventListener('DOMContentLoaded', function() {
   sidebarContent += `<p class="sidebar-breakdown"><span style="color: ${repColor}; font-weight: bold;">${repCandidate} (R)</span> : ${repPct.toFixed(2)}% (${repVotes.toLocaleString()})</p>`;
   
   // Add Other votes if they exist
-  const otherVotes = countyData[`${contestType}_other`] || 0;
   if (otherVotes > 0) {
     const otherPct = (otherVotes / totalVotes * 100);
     sidebarContent += `<p class="sidebar-breakdown"><span style="color: #6b7280; font-weight: bold;">Other Candidates</span> : ${otherPct.toFixed(2)}% (${otherVotes.toLocaleString()})</p>`;
@@ -6459,7 +6940,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   const demVotes = Number(row.dem_votes || 0);
                   const repVotes = Number(row.rep_votes || 0);
                   const otherVotes = Number(row.other_votes || 0);
-                  pinVoteCounterState(`Selected: Congressional District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                  pinVoteCounterState(`Selected: Congressional District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes, { kind: 'district', scope: 'congressional', districtNum: Number(districtNum), contestType, year: Number(year) });
                 }).catch(() => {});
               }
 
@@ -6541,7 +7022,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   const demVotes = Number(row.dem_votes || 0);
                   const repVotes = Number(row.rep_votes || 0);
                   const otherVotes = Number(row.other_votes || 0);
-                  pinVoteCounterState(`Selected: State House District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                  pinVoteCounterState(`Selected: State House District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes, { kind: 'district', scope: 'state_house', districtNum: Number(districtNum), contestType, year: Number(year) });
                 }).catch(() => {});
               }
 
@@ -6622,7 +7103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   const demVotes = Number(row.dem_votes || 0);
                   const repVotes = Number(row.rep_votes || 0);
                   const otherVotes = Number(row.other_votes || 0);
-                  pinVoteCounterState(`Selected: State Senate District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+                  pinVoteCounterState(`Selected: State Senate District ${districtNum}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes, { kind: 'district', scope: 'state_senate', districtNum: Number(districtNum), contestType, year: Number(year) });
                 }).catch(() => {});
               }
 
@@ -7083,7 +7564,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const demVotes = Number(row[`${contestType}_dem`] || 0);
         const repVotes = Number(row[`${contestType}_rep`] || 0);
         const otherVotes = Number(row[`${contestType}_other`] || 0);
-        pinVoteCounterState(`Selected: ${target}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes);
+        pinVoteCounterState(`Selected: ${target}`, `${formatContestName(contestType, year)} ${year}`, demVotes, repVotes, otherVotes, { kind: 'precinct', county, precinct: target, contestType, year: Number(year) });
       }
 
       const sidebar = document.getElementById('sidebar');
@@ -8737,7 +9218,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       // Baseline vote counter (statewide) for this contest/view.
-      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, statewidedemVotes, statewidrepVotes, statewidotherVotes);
+      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, statewidedemVotes, statewidrepVotes, statewidotherVotes, { kind: 'statewide', contestType, year: Number(year) });
 
       // Build county expression (base map)
       let mode = (currentVizMode || 'margins');
@@ -8987,10 +9468,19 @@ document.addEventListener('DOMContentLoaded', function() {
         ]);
         expr.push(color);
       });
+
+      const totals = contestData.reduce((acc, row) => {
+        acc.dem += Number(row.us_house_dem || 0);
+        acc.rep += Number(row.us_house_rep || 0);
+        acc.total += Number(row.us_house_total || 0);
+        return acc;
+      }, { dem: 0, rep: 0, total: 0 });
+      const totalOther = Math.max(0, totals.total - totals.dem - totals.rep);
       
       expr.push('#e0e0e0'); // default color
       
       map.setPaintProperty('district-fill', 'fill-color', expr);
+      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totals.dem, totals.rep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
   document.getElementById('contest-name').textContent = `US House (${year})`;
       setStatus(`Applied contest: NC US House ${year}`);
     }
@@ -9107,7 +9597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             : '';
           document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`;
           setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)${coverageText}`);
-          setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year} (2022 lines)`, totalDem, totalRep, totalOther);
+          setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year} (2022 lines)`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
           return;
         }
       }
@@ -9161,7 +9651,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Statewide Result`;
       setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)`);
-      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totalDem, totalRep, totalOther);
+      setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
     }
 
     window.onload = init;
