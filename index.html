@@ -275,18 +275,57 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+      function isMobileViewport() {
+        try {
+          return !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+        } catch (_) {
+          return window.innerWidth <= 768;
+        }
+      }
+
+      function syncMobileTopbarToggle() {
+        try {
+          const topbar = document.getElementById('map-topbar');
+          const toggle = document.getElementById('mobile-topbar-toggle');
+          if (!topbar || !toggle) return;
+          if (!isMobileViewport()) {
+            topbar.classList.remove('topbar-expanded');
+          }
+          const expanded = isMobileViewport() && topbar.classList.contains('topbar-expanded');
+          toggle.textContent = expanded ? 'Hide details' : 'Show details';
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        } catch (_) {}
+      }
+
+      function collapseMobileTopbar() {
+        try {
+          if (!isMobileViewport()) return;
+          const topbar = document.getElementById('map-topbar');
+          if (!topbar) return;
+          topbar.classList.remove('topbar-expanded');
+          syncMobileTopbarToggle();
+          if (typeof window.syncInitialTopbarOffset === 'function') {
+            window.syncInitialTopbarOffset();
+          }
+        } catch (_) {}
+      }
+
       function syncInitialTopbarOffset() {
         try {
           const topbar = document.getElementById('map-topbar');
           if (!topbar) return;
-          const topbarHeight = Math.max(224, Math.round(topbar.getBoundingClientRect().height || 0));
+          const minTopbarHeight = isMobileViewport() ? 0 : 224;
+          const topbarHeight = Math.max(minTopbarHeight, Math.round(topbar.getBoundingClientRect().height || 0));
           document.documentElement.style.setProperty('--topbar-h', `${topbarHeight}px`);
+          syncMobileTopbarToggle();
           if (typeof window.updateMobileOverlayOffsets === 'function') {
             window.updateMobileOverlayOffsets();
           }
         } catch (_) {}
       }
       window.syncInitialTopbarOffset = syncInitialTopbarOffset;
+      window.collapseMobileTopbar = collapseMobileTopbar;
+      window.syncMobileTopbarToggle = syncMobileTopbarToggle;
 
       var sidebar = document.getElementById('sidebar');
       var sidebarBtn = document.getElementById('sidebar-minimize-btn');
@@ -294,6 +333,17 @@
       var detailsDiv = document.getElementById('county-details');
       var contentEl = document.getElementById('county-info-content');
       var statusExit = document.getElementById('status-exit');
+      var mobileTopbarToggle = document.getElementById('mobile-topbar-toggle');
+      var topbar = document.getElementById('map-topbar');
+
+      if (mobileTopbarToggle && topbar) {
+        mobileTopbarToggle.addEventListener('click', function() {
+          if (!isMobileViewport()) return;
+          topbar.classList.toggle('topbar-expanded');
+          syncMobileTopbarToggle();
+          syncInitialTopbarOffset();
+        });
+      }
 
       if (!SIDEBAR_ENABLED) {
         if (sidebar) sidebar.style.display = 'none';
@@ -361,6 +411,7 @@
         detailsDiv.style.display = 'block';
       }
 
+      syncMobileTopbarToggle();
       syncInitialTopbarOffset();
       requestAnimationFrame(syncInitialTopbarOffset);
       setTimeout(syncInitialTopbarOffset, 180);
@@ -2012,8 +2063,8 @@ body { height: var(--app-height); }
 
   :root {
     --topbar-h: 224px;
-    --desktop-left-w: 380px;
-    --desktop-right-w: 360px;
+    --desktop-left-w: 356px;
+    --desktop-right-w: 332px;
   }
 
   .sr-only {
@@ -2050,7 +2101,7 @@ body { height: var(--app-height); }
     top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     z-index: 1003;
     pointer-events: none;
   }
@@ -2217,6 +2268,33 @@ body { height: var(--app-height); }
 
   .map-topbar-hints::-webkit-scrollbar {
     display: none;
+  }
+
+  .map-topbar-details {
+    display: block;
+  }
+
+  .mobile-topbar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(191, 219, 254, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .mobile-topbar-toggle:hover {
+    background: rgba(96, 165, 250, 0.18);
+    border-color: rgba(147, 197, 253, 0.42);
   }
 
   .fly-search-chip {
@@ -2456,39 +2534,117 @@ body { height: var(--app-height); }
       left: 20px;
       width: min(var(--desktop-left-w), calc(100vw - 40px));
       min-height: 0;
-      padding: 16px;
+      padding: 14px 14px 15px;
     }
 
     .context-banner {
       display: none;
     }
 
+    .map-topbar-meta {
+      margin-bottom: 10px;
+    }
+
+    .map-topbar-copy strong {
+      font-size: 13px;
+    }
+
+    .map-topbar-copy span {
+      font-size: 11px;
+    }
+
+    .fly-search-bar {
+      gap: 8px;
+    }
+
+    .fly-search-submit {
+      padding: 0 14px;
+    }
+
     .map-topbar-hints {
       margin-top: 10px;
+      gap: 6px;
       flex-wrap: wrap;
       overflow: visible;
     }
 
+    .fly-search-chip {
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+
     .main-controls {
       position: fixed;
-      top: calc(28px + var(--topbar-h, 156px));
+      top: calc(22px + var(--topbar-h, 156px));
       left: 20px;
       right: auto;
       width: min(var(--desktop-left-w), calc(100vw - 40px));
       min-width: 0;
       max-width: var(--desktop-left-w);
-      max-height: min(58vh, calc(100vh - var(--topbar-h, 156px) - 112px));
+      max-height: min(66vh, calc(100vh - var(--topbar-h, 156px) - 72px));
+      padding: 16px;
       overflow-y: auto;
     }
 
     .main-controls.minimized {
-      top: calc(28px + var(--topbar-h, 156px));
+      top: calc(22px + var(--topbar-h, 156px));
       left: 20px;
       width: auto;
       min-width: 148px;
       max-width: calc(100vw - 40px);
       max-height: none;
       overflow: visible;
+    }
+
+    .controls-header {
+      margin-bottom: 12px;
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .region-jumps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .region-jump-btn {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .view-toggle-row {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px !important;
+    }
+
+    .view-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+    }
+
+    .contest-toolbar {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      flex-wrap: wrap !important;
+    }
+
+    .contest-toolbar label {
+      margin-right: 2px;
+    }
+
+    .contest-toolbar #precinct-toggle {
+      margin-left: auto;
     }
 
     .legend {
@@ -2544,6 +2700,9 @@ body { height: var(--app-height); }
       position: fixed;
       top: 20px;
       right: 20px;
+      width: min(var(--desktop-right-w), calc(100vw - 40px));
+      padding: 10px;
+      gap: 8px;
       justify-content: space-between;
       flex-wrap: wrap;
     }
@@ -2551,6 +2710,8 @@ body { height: var(--app-height); }
     .viz-mode-btn {
       flex: 1 1 calc(50% - 6px);
       min-width: 0;
+      min-height: 48px;
+      padding: 10px 12px;
       text-align: center;
     }
 
@@ -2560,12 +2721,13 @@ body { height: var(--app-height); }
 
     .vote-counter {
       position: fixed;
-      top: 118px;
+      top: 114px;
       right: 20px;
       left: auto;
       width: min(var(--desktop-right-w), calc(100vw - 40px));
-      min-width: 300px;
+      min-width: 286px;
       max-width: var(--desktop-right-w);
+      padding: 16px 16px 14px;
       transform: none;
     }
   }
@@ -2580,9 +2742,13 @@ body { height: var(--app-height); }
 
   .focus-summary {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 12px;
+  }
+
+  .focus-pill-total {
+    grid-column: 1 / -1;
   }
 
   .focus-pill {
@@ -2752,15 +2918,15 @@ body { height: var(--app-height); }
 
   .focus-trend-dots {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
     gap: 8px;
     margin-top: 10px;
   }
 
   .focus-trend-dot {
-    padding: 8px 6px;
+    padding: 9px 8px;
     border-radius: 12px;
-    text-align: center;
+    text-align: left;
     background: rgba(248, 250, 252, 0.92);
     border: 1px solid rgba(15, 23, 42, 0.08);
   }
@@ -2776,9 +2942,13 @@ body { height: var(--app-height); }
 
   .focus-trend-dot-value {
     display: block;
-    margin-top: 4px;
+    margin-top: 6px;
     font-size: 12px;
     font-weight: 900;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .focus-trend-dot-value.dem {
@@ -2791,6 +2961,24 @@ body { height: var(--app-height); }
 
   .focus-trend-dot-value.tie {
     color: #475569;
+  }
+
+  .focus-trend-dot-meta {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  .focus-trend-dot-subtle {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #64748b;
   }
 
   @media (min-width: 769px) and (max-width: 1180px) {
@@ -2810,7 +2998,7 @@ body { height: var(--app-height); }
 
     .viz-mode-btn {
       min-width: 82px;
-      padding: 10px 14px;
+      padding: 10px 12px;
     }
   }
 
@@ -2829,6 +3017,36 @@ body { height: var(--app-height); }
       max-width: none;
       padding: calc(12px + var(--safe-top, 0px)) calc(12px + var(--safe-right, 0px)) 14px calc(12px + var(--safe-left, 0px));
       border-radius: 0 0 20px 20px;
+    }
+
+    .map-topbar-meta {
+      align-items: flex-start;
+    }
+
+    .fly-search-bar {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fly-search-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 46px;
+    }
+
+    .mobile-topbar-toggle {
+      display: inline-flex;
+    }
+
+    .map-topbar-details {
+      display: none;
+    }
+
+    .map-topbar.topbar-expanded .map-topbar-details {
+      display: block;
+      margin-top: 10px;
     }
 
     .map-topbar-copy strong {
@@ -2898,6 +3116,23 @@ body { height: var(--app-height); }
       transform: none !important;
     }
 
+    .vote-counter-context {
+      align-items: flex-start;
+    }
+
+    .region-jumps,
+    .view-toggle-row {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px !important;
+    }
+
+    .region-jump-btn,
+    .view-toggle-btn {
+      width: 100%;
+      min-height: 44px;
+    }
+
     .focus-summary {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
@@ -2924,11 +3159,11 @@ body { height: var(--app-height); }
     }
 
     .context-banner {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .focus-summary {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .focus-bar-head {
@@ -2937,6 +3172,23 @@ body { height: var(--app-height); }
 
     .focus-bar-label {
       font-size: 10px;
+    }
+
+    .focus-pill-total {
+      grid-column: 1 / -1;
+    }
+
+    .focus-pill-value {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .vote-counter-row {
+      gap: 10px;
     }
   }
     </style>
@@ -3112,29 +3364,32 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <button type="submit" class="fly-search-submit">Fly to</button>
     </form>
-    <div class="map-topbar-hints" aria-label="Search examples">
-      <button type="button" class="fly-search-chip" data-search-example="Wake">Wake</button>
-      <button type="button" class="fly-search-chip" data-search-example="CD 13">CD 13</button>
-      <button type="button" class="fly-search-chip" data-search-example="HD 73">HD 73</button>
-      <button type="button" class="fly-search-chip" data-search-example="SD 18">SD 18</button>
-      <button type="button" class="fly-search-chip" data-search-example="Wake 01-14">Wake 01-14</button>
-    </div>
-    <div class="context-banner" id="context-banner" aria-label="Current map state">
-      <div class="context-banner-item">
-        <span class="context-banner-label">View</span>
-        <span class="context-banner-value" id="context-view">Counties</span>
+    <button type="button" class="mobile-topbar-toggle" id="mobile-topbar-toggle" aria-controls="map-topbar-details" aria-expanded="false">Show details</button>
+    <div class="map-topbar-details" id="map-topbar-details">
+      <div class="map-topbar-hints" aria-label="Search examples">
+        <button type="button" class="fly-search-chip" data-search-example="Wake">Wake</button>
+        <button type="button" class="fly-search-chip" data-search-example="CD 13">CD 13</button>
+        <button type="button" class="fly-search-chip" data-search-example="HD 73">HD 73</button>
+        <button type="button" class="fly-search-chip" data-search-example="SD 18">SD 18</button>
+        <button type="button" class="fly-search-chip" data-search-example="Wake 01-14">Wake 01-14</button>
       </div>
-      <div class="context-banner-item">
-        <span class="context-banner-label">Mode</span>
-        <span class="context-banner-value" id="context-mode">Margins</span>
-      </div>
-      <div class="context-banner-item">
-        <span class="context-banner-label">Contest</span>
-        <span class="context-banner-value" id="context-contest">Select a contest</span>
-      </div>
-      <div class="context-banner-item">
-        <span class="context-banner-label">Focus</span>
-        <span class="context-banner-value" id="context-focus">Statewide</span>
+      <div class="context-banner" id="context-banner" aria-label="Current map state">
+        <div class="context-banner-item">
+          <span class="context-banner-label">View</span>
+          <span class="context-banner-value" id="context-view">Counties</span>
+        </div>
+        <div class="context-banner-item">
+          <span class="context-banner-label">Mode</span>
+          <span class="context-banner-value" id="context-mode">Margins</span>
+        </div>
+        <div class="context-banner-item">
+          <span class="context-banner-label">Contest</span>
+          <span class="context-banner-value" id="context-contest">Select a contest</span>
+        </div>
+        <div class="context-banner-item">
+          <span class="context-banner-label">Focus</span>
+          <span class="context-banner-value" id="context-focus">Statewide</span>
+        </div>
       </div>
     </div>
   </div>
@@ -3320,7 +3575,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <span class="focus-pill-label">Lead</span>
           <span class="focus-pill-value tie" id="focus-margin">Tie</span>
         </div>
-        <div class="focus-pill">
+        <div class="focus-pill focus-pill-total">
           <span class="focus-pill-label">Total Votes</span>
           <span class="focus-pill-value" id="focus-total">0</span>
         </div>
@@ -3839,6 +4094,41 @@ document.addEventListener('DOMContentLoaded', function() {
       return `${short} ${Number(pct || 0).toFixed(2)}%`;
     }
 
+    function formatCompactVoteTotal(value) {
+      const votes = Number(value || 0);
+      if (!Number.isFinite(votes) || votes <= 0) return '0';
+      if (votes >= 1000000) {
+        const digits = votes >= 10000000 ? 1 : 2;
+        return `${(votes / 1000000).toFixed(digits)}M`;
+      }
+      if (votes >= 1000) {
+        const digits = votes >= 100000 ? 0 : 1;
+        return `${(votes / 1000).toFixed(digits)}K`;
+      }
+      return votes.toLocaleString();
+    }
+
+    function getTrendWinnerMeta(item) {
+      const repVotes = Number(item?.rep_votes || 0);
+      const demVotes = Number(item?.dem_votes || 0);
+      if (repVotes > demVotes) {
+        return {
+          partyClass: 'rep',
+          label: `${shortCandidateLabel(item?.rep_candidate, 'Republican')} (R)`
+        };
+      }
+      if (demVotes > repVotes) {
+        return {
+          partyClass: 'dem',
+          label: `${shortCandidateLabel(item?.dem_candidate, 'Democratic')} (D)`
+        };
+      }
+      return {
+        partyClass: 'tie',
+        label: 'Tie'
+      };
+    }
+
     function setVoteCounterLabels(candidates = null, meta = null) {
       const demLabelEl = document.getElementById('dem-label');
       const repLabelEl = document.getElementById('rep-label');
@@ -3909,7 +4199,7 @@ document.addEventListener('DOMContentLoaded', function() {
           : 'Tie');
       const leadLabel = winnerParty === 'tie'
         ? 'Tie'
-        : winnerMarginLabelShort(r, d, total, resolvedCandidates.repCandidate, resolvedCandidates.demCandidate);
+        : leadMarginPctLabel(r, d, total);
 
       winnerEl.textContent = winnerLabel;
       winnerEl.className = `focus-pill-value ${winnerParty}`;
@@ -4004,18 +4294,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const polyline = points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
       const dots = points.map(p => {
-        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
-        const label = winnerMarginLabelShort(
+        const winnerMeta = getTrendWinnerMeta(p.item);
+        const leadLabel = leadMarginPctLabel(
           p.item.rep_votes,
           p.item.dem_votes,
-          p.item.total_votes,
-          p.item.rep_candidate,
-          p.item.dem_candidate
+          p.item.total_votes
         );
+        const totalVotesLabel = formatCompactVoteTotal(p.item.total_votes);
         return `
           <div class="focus-trend-dot">
             <span class="focus-trend-dot-year">${escapeHtml(p.item.year)}</span>
-            <span class="focus-trend-dot-value ${partyClass}">${escapeHtml(label)}</span>
+            <span class="focus-trend-dot-value ${winnerMeta.partyClass}">${escapeHtml(winnerMeta.label)}</span>
+            <span class="focus-trend-dot-meta">${escapeHtml(leadLabel === 'Tie' ? 'Lead: Tie' : `Lead: ${leadLabel}`)}</span>
+            <span class="focus-trend-dot-subtle">${escapeHtml(`${totalVotesLabel} votes`)}</span>
           </div>
         `;
       }).join('');
@@ -5579,13 +5870,26 @@ document.addEventListener('DOMContentLoaded', function() {
       return raw;
     }
 
+    function marginPctValue(repVotes, demVotes, totalVotes) {
+      const margin = Number(repVotes || 0) - Number(demVotes || 0);
+      if (!totalVotes) return 0;
+      return Math.abs(margin) / Number(totalVotes || 0) * 100.0;
+    }
+
+    function leadMarginPctLabel(repVotes, demVotes, totalVotes) {
+      const margin = Number(repVotes || 0) - Number(demVotes || 0);
+      if (!margin) return 'Tie';
+      return `${marginPctValue(repVotes, demVotes, totalVotes).toFixed(2)}%`;
+    }
+
     function compactWinnerMarginLabel(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
       const margin = Number(repVotes || 0) - Number(demVotes || 0);
+      const pctLabel = `${marginPctValue(repVotes, demVotes, totalVotes).toFixed(2)}%`;
       if (margin > 0) {
-        return `${shortCandidateLabel(repCandidate, 'R')} +${(totalVotes ? Math.abs(margin) / totalVotes * 100.0 : 0).toFixed(2)}`;
+        return `${shortCandidateLabel(repCandidate, 'R')} +${pctLabel}`;
       }
       if (margin < 0) {
-        return `${shortCandidateLabel(demCandidate, 'D')} +${(totalVotes ? Math.abs(margin) / totalVotes * 100.0 : 0).toFixed(2)}`;
+        return `${shortCandidateLabel(demCandidate, 'D')} +${pctLabel}`;
       }
       return 'Tie';
     }
@@ -5968,6 +6272,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const region = REGION_JUMPS[regionKey];
       if (!region || !map) return;
       map.fitBounds(region.bounds, { padding: 28, duration: 900 });
+      try {
+        if (typeof window.collapseMobileTopbar === 'function') {
+          window.collapseMobileTopbar();
+        }
+      } catch (_) {}
       setStatus(`Jumped to ${region.label}`);
     }
 
@@ -7736,6 +8045,11 @@ document.addEventListener('DOMContentLoaded', function() {
       hideAllSearchDropdowns();
       suppressHoverRefresh(1400, { clearPointer: true });
       await handleSearchSelection(query);
+      try {
+        if (typeof window.collapseMobileTopbar === 'function') {
+          window.collapseMobileTopbar();
+        }
+      } catch (_) {}
     }
 
     function renderSearchDropdown(dropdown, suggestions, ownerInput) {
