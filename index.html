@@ -3187,8 +3187,1286 @@ body { height: var(--app-height); }
       -webkit-box-orient: vertical;
     }
 
-    .vote-counter-row {
+  .vote-counter-row {
       gap: 10px;
+    }
+  }
+
+  /* Refined control, legend, and statewide surfaces */
+  .main-controls {
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.94) 100%);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+  }
+
+  .main-controls::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #38bdf8 28%, #14b8a6 60%, #f97316 100%);
+    opacity: 0.88;
+    pointer-events: none;
+  }
+
+  .controls-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    gap: 12px;
+    align-items: flex-start;
+    padding-bottom: 10px;
+    margin-bottom: 2px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+  }
+
+  .controls-heading {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .controls-kicker {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .controls-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .main-controls.minimized .controls-kicker,
+  .main-controls.minimized .controls-subtitle {
+    display: none !important;
+  }
+
+  .controls-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .desktop-fly-group {
+    display: none;
+  }
+
+  .main-controls .control-group {
+    margin-bottom: 0;
+    padding: 13px 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.82) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+  }
+
+  .controls-panel-note {
+    margin-top: 9px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #64748b;
+  }
+
+  .control-summary {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.93) 100%);
+    color: #f8fafc;
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.20);
+  }
+
+  .control-summary-head,
+  .control-summary-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .control-summary-kicker,
+  .control-summary-mode,
+  .control-summary-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .control-summary-kicker {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .control-summary-mode {
+    background: rgba(96, 165, 250, 0.16);
+    color: #bfdbfe;
+  }
+
+  .control-summary-title {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .control-summary-pill {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+  }
+
+  .control-summary-pill-muted {
+    background: rgba(148, 163, 184, 0.18);
+    color: #cbd5e1;
+  }
+
+  .view-toggle-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+    padding: 6px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .view-toggle-btn {
+    min-height: 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.76);
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: none;
+  }
+
+  .view-toggle-btn.active {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.16);
+  }
+
+  .viz-modes,
+  .viz-modes-inline {
+    background: rgba(248, 250, 252, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  .viz-mode-btn {
+    color: #475569;
+    font-weight: 800;
+  }
+
+  .viz-mode-btn:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+  }
+
+  .viz-mode-btn.active {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+
+  .contest-toolbar {
+    gap: 10px !important;
+    margin-bottom: 10px;
+  }
+
+  .contest-toolbar label {
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .contest-search-wrap,
+  .contest-select-wrap {
+    position: relative;
+  }
+
+  .contest-search-wrap {
+    margin-top: 8px;
+  }
+
+  #contestSearch,
+  #contestSelect {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 14px !important;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  #help-btn,
+  #accessibility-toggle,
+  #label-toggle {
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+    background: rgba(15, 23, 42, 0.92) !important;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14) !important;
+  }
+
+  #precinct-toggle {
+    background: linear-gradient(180deg, #065f46 0%, #047857 100%) !important;
+    box-shadow: 0 12px 22px rgba(6, 95, 70, 0.20) !important;
+  }
+
+  .desktop-statewide-panel {
+    display: none;
+  }
+
+  .desktop-statewide-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .desktop-statewide-copy {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .desktop-statewide-kicker,
+  .desktop-statewide-tag {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .desktop-statewide-kicker {
+    background: rgba(15, 23, 42, 0.06);
+    color: #334155;
+  }
+
+  .desktop-statewide-tag {
+    background: rgba(37, 99, 235, 0.10);
+    color: #1d4ed8;
+  }
+
+  .desktop-statewide-title {
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+  }
+
+  .desktop-statewide-sub,
+  .desktop-statewide-placeholder {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #475569;
+  }
+
+  .desktop-statewide-body {
+    display: grid;
+    gap: 12px;
+  }
+
+  .statewide-card {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 48%, rgba(241, 245, 249, 0.92) 100%);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.10);
+  }
+
+  .statewide-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .statewide-kicker {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .statewide-call {
+    margin-top: 4px;
+    font-size: clamp(28px, 3vw, 36px);
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+  }
+
+  .statewide-call[data-party="dem"] { color: #1d4ed8; }
+  .statewide-call[data-party="rep"] { color: #b91c1c; }
+  .statewide-call[data-party="tie"] { color: #475569; }
+
+  .statewide-subline {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #475569;
+  }
+
+  .statewide-competitive {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(255, 255, 255, 0.88);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .statewide-share-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .statewide-share-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(255, 255, 255, 0.84);
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .statewide-share-chip strong {
+    color: inherit;
+    font-size: 13px;
+  }
+
+  .statewide-share-chip.dem {
+    color: #1d4ed8;
+    background: rgba(219, 234, 254, 0.72);
+    border-color: rgba(96, 165, 250, 0.32);
+  }
+
+  .statewide-share-chip.rep {
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.76);
+    border-color: rgba(248, 113, 113, 0.30);
+  }
+
+  .statewide-share-chip.other {
+    color: #475569;
+    background: rgba(241, 245, 249, 0.94);
+  }
+
+  .statewide-bar {
+    height: 18px;
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.70);
+  }
+
+  .statewide-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .statewide-breakdown-item {
+    display: grid;
+    gap: 8px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .statewide-breakdown-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .statewide-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+    background: #94a3b8;
+  }
+
+  .statewide-dot.dem { background: #2563eb; }
+  .statewide-dot.rep { background: #dc2626; }
+  .statewide-dot.other { background: #64748b; }
+
+  .statewide-breakdown-label {
+    min-width: 0;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .statewide-breakdown-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #0f172a;
+  }
+
+  .statewide-breakdown-value span {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .statewide-footer-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .statewide-stat {
+    display: grid;
+    gap: 5px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: rgba(248, 250, 252, 0.92);
+  }
+
+  .statewide-stat span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .statewide-stat strong {
+    font-size: 15px;
+    line-height: 1.25;
+    color: #0f172a;
+  }
+
+  .legend {
+    overflow: hidden;
+    border-radius: 20px;
+    background: rgba(248, 250, 252, 0.92);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .legend::before {
+    content: '';
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, #dc2626 0%, #f8fafc 50%, #2563eb 100%);
+    opacity: 0.9;
+  }
+
+  .legend-header {
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px 12px;
+    border-bottom: none;
+    background: rgba(248, 250, 252, 0.96);
+  }
+
+  .legend-header-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .legend-handle {
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.70);
+    display: none;
+  }
+
+  .legend-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .legend-kicker {
+    display: inline-flex;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .legend-subtitle {
+    margin: 0;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .legend-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .legend-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.10);
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .legend-content {
+    display: grid;
+    gap: 8px;
+    padding: 0 16px 14px;
+  }
+
+  .legend-item {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    color: #334155;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .legend-color {
+    width: 18px;
+    height: 18px;
+    margin-right: 0;
+    border-radius: 6px;
+  }
+
+  .legend-footer {
+    padding: 0 16px 16px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .legend-scale-shell {
+    display: grid;
+    gap: 10px;
+  }
+
+  .legend-spectrum {
+    display: grid;
+    gap: 2px;
+    height: 18px;
+    padding: 2px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    background: rgba(255, 255, 255, 0.88);
+    overflow: hidden;
+  }
+
+  .legend-spectrum.margins {
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+  }
+
+  .legend-spectrum.shift {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .legend-segment.legend-color {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    margin-right: 0;
+  }
+
+  .legend-spectrum .legend-segment:first-child {
+    border-radius: 999px 0 0 999px;
+  }
+
+  .legend-spectrum .legend-segment:last-child {
+    border-radius: 0 999px 999px 0;
+  }
+
+  .legend-axis {
+    display: grid;
+    gap: 8px;
+    align-items: start;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .legend-axis.margins {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .legend-axis.shift {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .legend-axis span {
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .legend-axis span:first-child {
+    text-align: left;
+  }
+
+  .legend-axis span:last-child {
+    text-align: right;
+  }
+
+  .legend-axis .rep {
+    color: #b91c1c;
+  }
+
+  .legend-axis .dem {
+    color: #1d4ed8;
+  }
+
+  .legend-scale-caption {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .legend-scale-caption span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    line-height: 1.35;
+  }
+
+  .legend-scale-caption span:first-child {
+    text-align: left;
+  }
+
+  .legend-scale-caption span:nth-child(2) {
+    text-align: center;
+  }
+
+  .legend-scale-caption span:last-child {
+    text-align: right;
+  }
+
+  .legend-scale-caption .rep {
+    color: #b91c1c;
+  }
+
+  .legend-scale-caption .dem {
+    color: #1d4ed8;
+  }
+
+  .legend-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .legend-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(248, 250, 252, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .legend-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+  }
+
+  .legend-swatch-card {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .legend-swatch-card .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+  }
+
+  .legend.minimized .legend-content,
+  .legend.minimized .legend-footer {
+    display: none !important;
+  }
+
+  .legend.minimized .legend-kicker,
+  .legend.minimized .legend-subtitle,
+  .legend.minimized .legend-badge {
+    display: none;
+  }
+
+  .legend.minimized .legend-header {
+    align-items: center;
+    padding: 14px 16px;
+  }
+
+  .vote-counter {
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .vote-counter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #cbd5e1 50%, #dc2626 100%);
+  }
+
+  .vote-counter-context {
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .vote-counter-context .context-title {
+    color: #0f172a;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .vote-counter-context .context-sub {
+    margin-top: 4px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .vote-counter-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.92) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .vote-total,
+  .vote-lead {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .vote-total {
+    color: #0f172a;
+  }
+
+  .vote-lead {
+    color: #475569;
+    text-align: right;
+  }
+
+  .vote-lead[data-party="dem"] { color: #1d4ed8; }
+  .vote-lead[data-party="rep"] { color: #b91c1c; }
+  .vote-lead[data-party="tie"] { color: #475569; }
+
+  .vote-counter-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .vote-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    text-align: left;
+  }
+
+  .vote-item-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .vote-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+  }
+
+  .vote-item.dem .vote-swatch { background: #2563eb; }
+  .vote-item.rep .vote-swatch { background: #dc2626; }
+  .vote-item.other .vote-swatch { background: #64748b; }
+
+  .vote-count {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .vote-share-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(226, 232, 240, 0.92);
+    overflow: hidden;
+  }
+
+  .vote-share-fill {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    transition: width 240ms ease;
+  }
+
+  .vote-share-fill.dem { background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%); }
+  .vote-share-fill.rep { background: linear-gradient(90deg, #fb7185 0%, #dc2626 100%); }
+  .vote-share-fill.other { background: linear-gradient(90deg, #94a3b8 0%, #64748b 100%); }
+
+  @media (min-width: 769px) {
+    .main-controls {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .controls-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 4px;
+      margin-right: -4px;
+      scrollbar-gutter: stable both-edges;
+    }
+
+    .desktop-statewide-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.94) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    }
+
+    .desktop-statewide-panel .statewide-call {
+      font-size: clamp(30px, 2.4vw, 38px);
+    }
+
+    .desktop-statewide-panel .statewide-breakdown {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .desktop-statewide-panel .statewide-breakdown-item:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .main-controls {
+      border-radius: 20px !important;
+    }
+
+    .controls-header {
+      padding-bottom: 8px;
+    }
+
+    .control-summary {
+      padding: 12px;
+      border-radius: 16px;
+    }
+
+    .control-summary-title {
+      font-size: 16px;
+    }
+
+    .control-summary-kicker,
+    .control-summary-mode,
+    .control-summary-pill {
+      font-size: 10px;
+    }
+
+    .main-controls .control-group {
+      padding: 12px;
+      border-radius: 16px;
+    }
+
+    .legend {
+      border-radius: 22px 22px 0 0 !important;
+    }
+
+    .legend-header {
+      padding: 10px 14px 12px !important;
+      border-radius: 22px 22px 0 0 !important;
+    }
+
+    .legend-handle {
+      display: block;
+      align-self: center;
+    }
+
+    .legend-content {
+      padding: 0 14px 12px;
+    }
+
+    .legend-item {
+      min-height: 38px;
+      padding: 9px 10px;
+      font-size: 12px;
+    }
+
+    .legend-footer {
+      padding: 0 14px 12px;
+      font-size: 11px;
+    }
+
+    .vote-counter-meta {
+      padding: 9px 10px;
+      margin-bottom: 12px;
+    }
+
+    .vote-item {
+      padding: 10px;
+    }
+
+    .vote-share-track {
+      height: 7px;
+    }
+
+    .statewide-card {
+      padding: 12px;
+      border-radius: 16px;
+    }
+
+    .statewide-hero {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .statewide-call {
+      font-size: 30px;
+    }
+
+    .statewide-breakdown,
+    .statewide-footer-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 769px) {
+    :root {
+      --topbar-h: 0px;
+      --desktop-left-w: 500px;
+      --desktop-right-w: 340px;
+    }
+
+    .map-topbar {
+      display: none !important;
+    }
+
+    .desktop-ui-left {
+      width: min(var(--desktop-left-w), calc(100vw - 48px));
+      left: 24px;
+    }
+
+    .desktop-ui-right {
+      width: min(var(--desktop-right-w), calc(100vw - 48px));
+      right: 24px;
+    }
+
+    .main-controls {
+      top: 20px !important;
+      left: 24px !important;
+      width: min(var(--desktop-left-w), calc(100vw - 48px)) !important;
+      max-width: var(--desktop-left-w) !important;
+      max-height: calc(100vh - 40px) !important;
+      padding: 16px !important;
+      border-radius: 22px;
+    }
+
+    .main-controls.minimized {
+      top: 20px !important;
+      left: 24px !important;
+      min-width: 214px !important;
+      max-width: 260px !important;
+      padding: 12px 14px !important;
+      border-radius: 16px !important;
+    }
+
+    .main-controls.minimized .controls-header {
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 0;
+      padding-bottom: 0;
+      background: transparent;
+      backdrop-filter: none;
+    }
+
+    .main-controls.minimized .controls-heading {
+      display: flex;
+      min-width: 0;
+    }
+
+    .main-controls.minimized .controls-kicker {
+      display: inline-flex !important;
+      max-width: 100%;
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .main-controls.minimized .controls-header h3 {
+      display: none;
+    }
+
+    .controls-content {
+      padding-right: 6px;
+      margin-right: -6px;
+      gap: 12px;
+    }
+
+    .desktop-fly-group {
+      display: grid;
+      gap: 10px;
+      padding: 14px 14px 16px !important;
+      background: linear-gradient(180deg, rgba(239, 246, 255, 0.94) 0%, rgba(248, 250, 252, 0.92) 100%) !important;
+      border-color: rgba(96, 165, 250, 0.24) !important;
+    }
+
+    .desktop-fly-search-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .desktop-fly-search-field {
+      min-width: 0;
+    }
+
+    #desktop-fly-search {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(255, 255, 255, 0.98);
+      color: #0f172a;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    }
+
+    #desktop-fly-search:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .desktop-fly-submit {
+      min-width: 78px;
+      min-height: 48px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.20);
+    }
+
+    .desktop-fly-helper {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #475569;
+    }
+
+    .desktop-fly-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .desktop-fly-chip {
+      border: 1px solid rgba(15, 23, 42, 0.10);
+      background: rgba(255, 255, 255, 0.94);
+      color: #0f172a;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .desktop-fly-chip:hover {
+      background: #eff6ff;
+      border-color: rgba(37, 99, 235, 0.26);
+    }
+
+    .viz-modes {
+      display: none !important;
+    }
+
+    .viz-inline-group {
+      display: block;
+    }
+
+    .viz-modes-inline {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      overflow: visible;
+    }
+
+    .viz-modes-inline .viz-mode-btn {
+      min-width: 0 !important;
+      min-height: 46px;
+      padding: 10px 14px !important;
+      white-space: nowrap;
+    }
+
+    .vote-counter {
+      top: 20px !important;
+      right: 24px !important;
+      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
+      max-width: var(--desktop-right-w) !important;
+      min-width: 0 !important;
+    }
+
+    .legend {
+      right: 24px !important;
+      bottom: 24px !important;
+      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
+      max-width: var(--desktop-right-w) !important;
+      min-width: 0 !important;
+      max-height: min(46vh, 420px) !important;
+    }
+
+    .legend-header {
+      padding: 14px 16px 12px !important;
+    }
+
+    .desktop-statewide-panel .statewide-call {
+      font-size: clamp(30px, 2.5vw, 38px);
     }
   }
     </style>
@@ -3425,8 +4703,8 @@ document.addEventListener('DOMContentLoaded', function() {
         <details class="sidebar-panel" id="panel-statewide" open>
           <summary>Statewide</summary>
           <div class="statewide-results" id="statewide-results" style="margin-top: 10px;">
-            <h4 id="contest-name" style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#0f172a;"></h4>
-            <div id="statewide-content">
+            <h4 id="contest-name" data-statewide-contest-name="true" style="margin:0 0 12px 0; font-size:14px; font-weight:800; color:#0f172a;"></h4>
+            <div id="statewide-content" data-statewide-content="true">
               <p>Select a contest to see statewide results and margin.</p>
               <div id="statewide-temperature-bar" style="width:100%;height:24px;margin:12px 0;display:none;"></div>
             </div>
@@ -3450,19 +4728,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Main Controls Dropdown (Contest Selector) -->
     <div class="main-controls" id="main-controls">
-        <div class="controls-header" style="display:flex;align-items:center;justify-content:space-between;">
-            <div>
-              <span class="panel-eyebrow">Explore</span>
+        <div class="controls-header">
+            <div class="controls-heading">
+              <span class="controls-kicker">Atlas controls</span>
               <h3>North Carolina Election Atlas</h3>
               <p class="controls-subtitle">Switch layers, jump to major regions, and compare contests without leaving the map.</p>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="controls-collapsed-label">Explore</span>
+            <div class="controls-actions">
+              <span class="controls-collapsed-label">Atlas</span>
               <button id="help-btn" title="Help" type="button">?</button>
               <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn" title="Minimize controls">-</button>
             </div>
         </div>
         <div class="controls-content" id="controls-content">
+            <div class="control-group control-group-search desktop-fly-group">
+                <label class="control-section-label" for="desktop-fly-search">Fly to</label>
+                <div class="desktop-fly-search-wrap">
+                  <div class="desktop-fly-search-field fly-search-field">
+                    <input id="desktop-fly-search" type="search" placeholder="Wake County, CD 13, HD 73, SD 18, Wake 01-14" autocomplete="off" spellcheck="false" inputmode="search" />
+                  </div>
+                  <button id="desktop-fly-submit" class="desktop-fly-submit" type="button">Go</button>
+                </div>
+                <div class="desktop-fly-helper">Jump to counties, districts, or precincts without changing the selected contest.</div>
+                <div class="desktop-fly-chip-row" aria-label="Fly-to examples">
+                  <button class="desktop-fly-chip" type="button" data-search-example="Wake">Wake</button>
+                  <button class="desktop-fly-chip" type="button" data-search-example="CD 13">CD 13</button>
+                  <button class="desktop-fly-chip" type="button" data-search-example="HD 73">HD 73</button>
+                  <button class="desktop-fly-chip" type="button" data-search-example="SD 18">SD 18</button>
+                  <button class="desktop-fly-chip" type="button" data-search-example="Wake 01-14">Wake 01-14</button>
+                </div>
+            </div>
+            <div class="control-summary" id="control-summary">
+                <div class="control-summary-head">
+                  <span class="control-summary-kicker">Current map</span>
+                  <span class="control-summary-mode" id="control-summary-mode">Margins</span>
+                </div>
+                <div class="control-summary-title" id="control-summary-title">Choose a contest</div>
+                <div class="control-summary-meta">
+                  <span class="control-summary-pill" id="control-summary-view">Counties</span>
+                  <span class="control-summary-pill control-summary-pill-muted" id="control-summary-year">No contest selected</span>
+                </div>
+            </div>
+            <div class="desktop-statewide-panel" id="desktop-statewide-panel">
+                <div class="desktop-statewide-head">
+                  <div class="desktop-statewide-copy">
+                    <span class="desktop-statewide-kicker">Statewide snapshot</span>
+                    <div class="desktop-statewide-title" data-statewide-contest-name="true">Choose a contest</div>
+                    <div class="desktop-statewide-sub">Keeps the statewide race call visible while you browse counties, districts, and trend history.</div>
+                  </div>
+                  <span class="desktop-statewide-tag">Live summary</span>
+                </div>
+                <div class="desktop-statewide-body" data-statewide-content="true">
+                  <p class="desktop-statewide-placeholder">Select a contest to see the statewide leader, vote split, and competitiveness.</p>
+                </div>
+            </div>
             <div class="control-group" style="margin-bottom:12px;">
                 <span class="section-kicker">Quick Jumps</span>
                 <div class="region-jumps" id="region-jumps">
@@ -3500,13 +4819,15 @@ document.addEventListener('DOMContentLoaded', function() {
                   <button id="label-toggle" title="Toggle County Labels" style="background:#1f2937;color:#fff;border-radius:50%;width:32px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;">Aa</button>
                   <button id="precinct-toggle" title="Enable Precinct Overlay (Zoom 8.5+)" style="background:#065f46;color:#fff;border-radius:8px;height:32px;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.10);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold;padding:0 10px;">Precincts Off</button>
                 </div>
-                <div style="margin-top:8px;">
+                <div class="contest-search-wrap">
                   <input id="contestSearch" type="search" placeholder="Search contests (e.g., President, Senate, 2008)..." autocomplete="off" spellcheck="false" />
                 </div>
-                <select id="contestSelect">
-                    <option value="">Select a Contest...</option>
-                </select>
-                <div style="margin-top:8px;font-size:12px;color:#64748b;line-height:1.3;">
+                <div class="contest-select-wrap">
+                  <select id="contestSelect">
+                      <option value="">Select a Contest...</option>
+                  </select>
+                </div>
+                <div class="controls-panel-note">
                   Tips: click a county or district for trends. Shortcuts: `P` precincts, `L` labels.
                 </div>
             </div>
@@ -3514,28 +4835,64 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- Legend -->
-    <div class="legend minimized" id="legend">
+    <div class="legend" id="legend">
         <div class="legend-header">
-            <h4>Political Categories</h4>
-            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn" title="Expand legend">+</button>
+            <div class="legend-header-main">
+              <div class="legend-handle" aria-hidden="true"></div>
+              <div class="legend-copy">
+                <span class="legend-kicker">Map key</span>
+                <h4>Political Categories</h4>
+                <p class="legend-subtitle" id="legend-subtitle">Two-party margin buckets for the selected contest.</p>
+              </div>
+            </div>
+            <div class="legend-header-actions">
+              <span class="legend-badge" id="legend-badge">Margins</span>
+              <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn" title="Minimize legend">-</button>
+            </div>
         </div>
         <div class="legend-content" id="legend-content">
-            <div class="legend-item"><div class="legend-color" style="background: #67000d;"></div>Annihilation Republican (&ge;40.00%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #a50f15;"></div>Dominant Republican (30.00-39.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #cb181d;"></div>Stronghold Republican (20.00-29.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #ef3b2c;"></div>Safe Republican (10.00-19.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #fb6a4a;"></div>Likely Republican (5.50-9.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #fcae91;"></div>Lean Republican (1.00-5.49%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #fee8c8;"></div>Tilt Republican (0.50-0.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #f7f7f7; border: 1px solid rgba(15,23,42,0.35);"></div>Tossup (&lt;0.50%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #e1f5fe;"></div>Tilt Democratic (0.50-0.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #c6dbef;"></div>Lean Democratic (1.00-5.49%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #9ecae1;"></div>Likely Democratic (5.50-9.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #6baed6;"></div>Safe Democratic (10.00-19.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #3182bd;"></div>Stronghold Democratic (20.00-29.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #08519c;"></div>Dominant Democratic (30.00-39.99%)</div>
-            <div class="legend-item"><div class="legend-color" style="background: #08306b;"></div>Annihilation Democratic (&ge;40.00%)</div>
+            <div class="legend-scale-shell">
+              <div class="legend-spectrum margins">
+                <span class="legend-segment legend-color" style="background: #67000d;"></span>
+                <span class="legend-segment legend-color" style="background: #a50f15;"></span>
+                <span class="legend-segment legend-color" style="background: #cb181d;"></span>
+                <span class="legend-segment legend-color" style="background: #ef3b2c;"></span>
+                <span class="legend-segment legend-color" style="background: #fb6a4a;"></span>
+                <span class="legend-segment legend-color" style="background: #fcae91;"></span>
+                <span class="legend-segment legend-color" style="background: #fee8c8;"></span>
+                <span class="legend-segment legend-color" style="background: #f7f7f7; border-left: 1px solid rgba(15,23,42,0.12); border-right: 1px solid rgba(15,23,42,0.12);"></span>
+                <span class="legend-segment legend-color" style="background: #e1f5fe;"></span>
+                <span class="legend-segment legend-color" style="background: #c6dbef;"></span>
+                <span class="legend-segment legend-color" style="background: #9ecae1;"></span>
+                <span class="legend-segment legend-color" style="background: #6baed6;"></span>
+                <span class="legend-segment legend-color" style="background: #3182bd;"></span>
+                <span class="legend-segment legend-color" style="background: #08519c;"></span>
+                <span class="legend-segment legend-color" style="background: #08306b;"></span>
+              </div>
+              <div class="legend-scale-caption">
+                <span class="rep">Stronger Republican</span>
+                <span>Tossup</span>
+                <span class="dem">Stronger Democratic</span>
+              </div>
+              <div class="legend-axis margins">
+                <span class="rep">R +40</span>
+                <span class="rep">R +10</span>
+                <span class="rep">R +1</span>
+                <span>Tie</span>
+                <span class="dem">D +1</span>
+                <span class="dem">D +10</span>
+                <span class="dem">D +40</span>
+              </div>
+              <div class="legend-chip-row">
+                <span class="legend-chip">Blowout 40+</span>
+                <span class="legend-chip">Strong 20+</span>
+                <span class="legend-chip">Safe 10+</span>
+                <span class="legend-chip">Lean 1+</span>
+                <span class="legend-chip">Tilt 0.5+</span>
+              </div>
+            </div>
         </div>
+        <div class="legend-footer" id="legend-footer">Darker shades indicate larger two-party leads in the current contest.</div>
     </div>
   </div>
 
@@ -3564,6 +4921,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="context-sub" id="vote-context-sub">Hover a county or district</div>
       </div>
       <button class="context-clear" id="vote-context-clear" title="Clear selection">Clear</button>
+    </div>
+    <div class="vote-counter-meta">
+      <div class="vote-total" id="vote-total">0 total votes</div>
+      <div class="vote-lead" id="vote-lead" data-party="tie">Even race</div>
     </div>
     <div class="focus-card visible" id="focus-card">
       <div class="focus-summary">
@@ -3603,21 +4964,33 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     </div>
-      <div class="vote-counter-row">
-      <div class="vote-item">
-        <div class="vote-label dem" id="dem-label">Dem</div>
+    <div class="vote-counter-row">
+      <div class="vote-item dem">
+        <div class="vote-item-head">
+          <span class="vote-swatch"></span>
+          <div class="vote-label dem" id="dem-label">Dem</div>
+        </div>
         <div class="vote-count dem" id="dem-count">0</div>
         <div class="vote-percent" id="dem-percent">0%</div>
+        <div class="vote-share-track"><span class="vote-share-fill dem" id="dem-share-fill"></span></div>
       </div>
-      <div class="vote-item">
-        <div class="vote-label rep" id="rep-label">Rep</div>
+      <div class="vote-item rep">
+        <div class="vote-item-head">
+          <span class="vote-swatch"></span>
+          <div class="vote-label rep" id="rep-label">Rep</div>
+        </div>
         <div class="vote-count rep" id="rep-count">0</div>
         <div class="vote-percent" id="rep-percent">0%</div>
+        <div class="vote-share-track"><span class="vote-share-fill rep" id="rep-share-fill"></span></div>
       </div>
-      <div class="vote-item">
-        <div class="vote-label other" id="other-label">OTHER</div>
+      <div class="vote-item other">
+        <div class="vote-item-head">
+          <span class="vote-swatch"></span>
+          <div class="vote-label other" id="other-label">Other</div>
+        </div>
         <div class="vote-count" id="other-count">0</div>
         <div class="vote-percent" id="other-percent">0%</div>
+        <div class="vote-share-track"><span class="vote-share-fill other" id="other-share-fill"></span></div>
       </div>
     </div>
   </div>
@@ -5923,6 +7296,400 @@ document.addEventListener('DOMContentLoaded', function() {
       return { flipped, from, to };
     }
 
+    function winnerMarginCall(repVotes, demVotes, totalVotes, repCandidate, demCandidate) {
+      const marginPct = totalVotes > 0 ? Math.abs((repVotes - demVotes) / totalVotes * 100) : 0;
+      if (repVotes > demVotes) {
+        return {
+          party: 'rep',
+          winnerName: fullCandidateLabel(repCandidate, 'Republican'),
+          shortLabel: shortCandidateLabel(repCandidate, 'Republican'),
+          marginPct,
+          text: `${shortCandidateLabel(repCandidate, 'Republican')} +${marginPct.toFixed(2)}`
+        };
+      }
+      if (demVotes > repVotes) {
+        return {
+          party: 'dem',
+          winnerName: fullCandidateLabel(demCandidate, 'Democratic'),
+          shortLabel: shortCandidateLabel(demCandidate, 'Democratic'),
+          marginPct,
+          text: `${shortCandidateLabel(demCandidate, 'Democratic')} +${marginPct.toFixed(2)}`
+        };
+      }
+      return {
+        party: 'tie',
+        winnerName: 'Tie',
+        shortLabel: 'Even',
+        marginPct,
+        text: `Even ${marginPct.toFixed(2)}`
+      };
+    }
+
+    function compactCompetitivenessLabel(marginPct, party) {
+      const side = party === 'rep' ? 'R' : (party === 'dem' ? 'D' : '');
+      if (marginPct >= 40) return side ? `Blowout ${side}` : 'Blowout';
+      if (marginPct >= 30) return side ? `Dominant ${side}` : 'Dominant';
+      if (marginPct >= 20) return side ? `Strong ${side}` : 'Strong';
+      if (marginPct >= 10) return side ? `Safe ${side}` : 'Safe';
+      if (marginPct >= 5.5) return side ? `Likely ${side}` : 'Likely';
+      if (marginPct >= 1) return side ? `Lean ${side}` : 'Lean';
+      if (marginPct >= 0.5) return side ? `Tilt ${side}` : 'Tilt';
+      return 'Tossup';
+    }
+
+    function buildLegendSpectrum(colors, className) {
+      return `
+        <div class="legend-spectrum ${className}">
+          ${colors.map(color => `<span class="legend-segment legend-color" style="background: ${color};"></span>`).join('')}
+        </div>
+      `;
+    }
+
+    function buildMarginsLegendHTML() {
+      const colors = [
+        '#67000d', '#a50f15', '#cb181d', '#ef3b2c', '#fb6a4a', '#fcae91', '#fee8c8',
+        '#f7f7f7',
+        '#e1f5fe', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c', '#08306b'
+      ];
+      return `
+        <div class="legend-scale-shell">
+          ${buildLegendSpectrum(colors, 'margins')}
+          <div class="legend-scale-caption">
+            <span class="rep">Stronger Republican</span>
+            <span>Tossup</span>
+            <span class="dem">Stronger Democratic</span>
+          </div>
+          <div class="legend-axis margins">
+            <span class="rep">R +40</span>
+            <span class="rep">R +10</span>
+            <span class="rep">R +1</span>
+            <span>Tie</span>
+            <span class="dem">D +1</span>
+            <span class="dem">D +10</span>
+            <span class="dem">D +40</span>
+          </div>
+          <div class="legend-chip-row">
+            <span class="legend-chip">Blowout 40+</span>
+            <span class="legend-chip">Strong 20+</span>
+            <span class="legend-chip">Safe 10+</span>
+            <span class="legend-chip">Lean 1+</span>
+            <span class="legend-chip">Tilt 0.5+</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildWinnersLegendHTML() {
+      return `
+        <div class="legend-swatch-grid">
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForWinnerMode('D')};"></span><span>Democratic win</span></div>
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForWinnerMode('R')};"></span><span>Republican win</span></div>
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForWinnerMode('T')}; border: 1px solid rgba(15,23,42,0.18);"></span><span>Tie or no data</span></div>
+        </div>
+      `;
+    }
+
+    function buildFlipsLegendHTML() {
+      return `
+        <div class="legend-swatch-grid">
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForFlipMode('D')};"></span><span>Flip to Democratic</span></div>
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForFlipMode('R')};"></span><span>Flip to Republican</span></div>
+          <div class="legend-swatch-card"><span class="legend-color" style="background: ${colorForFlipMode('T')}; border: 1px solid rgba(15,23,42,0.18);"></span><span>No flip or no prior</span></div>
+        </div>
+      `;
+    }
+
+    function buildShiftLegendHTML() {
+      const colors = [
+        colorForShiftMode(-15),
+        colorForShiftMode(-10),
+        colorForShiftMode(-5),
+        colorForShiftMode(0),
+        colorForShiftMode(5),
+        colorForShiftMode(10),
+        colorForShiftMode(15)
+      ];
+      return `
+        <div class="legend-scale-shell">
+          ${buildLegendSpectrum(colors, 'shift')}
+          <div class="legend-scale-caption">
+            <span class="dem">Toward Democrats</span>
+            <span>No change</span>
+            <span class="rep">Toward Republicans</span>
+          </div>
+          <div class="legend-axis shift">
+            <span class="dem">D +15</span>
+            <span class="dem">D +10</span>
+            <span class="dem">D +5</span>
+            <span>0</span>
+            <span class="rep">R +5</span>
+            <span class="rep">R +10</span>
+            <span class="rep">R +15</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLegendForVizMode(mode, meta = {}) {
+      const legend = document.getElementById('legend');
+      const header = legend ? legend.querySelector('.legend-header h4') : null;
+      const subtitle = document.getElementById('legend-subtitle');
+      const badge = document.getElementById('legend-badge');
+      const footer = document.getElementById('legend-footer');
+      const content = document.getElementById('legend-content');
+      if (!content) return;
+      if (!content.dataset.marginsHtml) content.dataset.marginsHtml = buildMarginsLegendHTML();
+
+      if (mode === 'winners') {
+        if (header) header.textContent = 'Winners';
+        if (subtitle) subtitle.textContent = 'Each geography is shaded by the party currently ahead in the selected contest.';
+        if (badge) badge.textContent = 'Winners';
+        if (footer) footer.textContent = 'Gray indicates a tie or missing data.';
+        content.innerHTML = buildWinnersLegendHTML();
+      } else if (mode === 'flips') {
+        if (header) header.textContent = 'Flips';
+        if (subtitle) subtitle.textContent = 'Highlights places that switched parties compared with the prior comparable election.';
+        if (badge) badge.textContent = 'Flips';
+        if (footer) footer.textContent = 'Neutral areas either did not flip or do not have a usable prior result.';
+        content.innerHTML = buildFlipsLegendHTML();
+      } else if (mode === 'shift') {
+        const shiftRange = meta?.fromYear ? `${meta.fromYear}-${meta.toYear || 'current'}` : 'Shift';
+        if (header) header.textContent = meta?.fromYear ? `Shift (${shiftRange})` : 'Shift';
+        if (subtitle) {
+          subtitle.textContent = meta?.fromYear
+            ? `Shows the change in two-party margin from ${meta.fromYear} to ${meta.toYear || 'the current contest'}.`
+            : 'Shows the change in two-party margin relative to the prior comparable election.';
+        }
+        if (badge) badge.textContent = meta?.fromYear ? shiftRange : 'Shift';
+        if (footer) footer.textContent = 'Blue means movement toward Democrats; red means movement toward Republicans.';
+        content.innerHTML = buildShiftLegendHTML();
+      } else {
+        if (header) header.textContent = 'Political Categories';
+        if (subtitle) subtitle.textContent = 'A compact spectrum from strongest Republican to strongest Democratic performance.';
+        if (badge) badge.textContent = 'Margins';
+        if (footer) footer.textContent = 'Read left to right: stronger Republican, tossup, then stronger Democratic.';
+        content.innerHTML = content.dataset.marginsHtml;
+      }
+
+      if (typeof window.updateLegendColors === 'function') {
+        window.updateLegendColors();
+      }
+    }
+
+    function updateVoteCounterSummary(demVotes, repVotes, otherVotes = 0, candidates = null, meta = null) {
+      const d = Number(demVotes || 0);
+      const r = Number(repVotes || 0);
+      const o = Number(otherVotes || 0);
+      const total = d + r + o;
+
+      const winnerEl = document.getElementById('focus-winner');
+      const marginEl = document.getElementById('focus-margin');
+      const totalEl = document.getElementById('focus-total');
+      const barDem = document.getElementById('focus-bar-dem');
+      const barOther = document.getElementById('focus-bar-other');
+      const barRep = document.getElementById('focus-bar-rep');
+      const barDemLabelEl = document.getElementById('focus-bar-label-dem');
+      const barMidLabelEl = document.getElementById('focus-bar-label-mid');
+      const barRepLabelEl = document.getElementById('focus-bar-label-rep');
+      const totalMetaEl = document.getElementById('vote-total');
+      const leadMetaEl = document.getElementById('vote-lead');
+      const demShareFill = document.getElementById('dem-share-fill');
+      const repShareFill = document.getElementById('rep-share-fill');
+      const otherShareFill = document.getElementById('other-share-fill');
+
+      if (!winnerEl || !marginEl || !totalEl || !barDem || !barOther || !barRep || !barDemLabelEl || !barMidLabelEl || !barRepLabelEl) return;
+
+      const resolvedCandidates = setVoteCounterLabels(candidates, meta);
+
+      if (total <= 0) {
+        winnerEl.textContent = 'No data';
+        winnerEl.className = 'focus-pill-value tie';
+        marginEl.textContent = 'Tie';
+        marginEl.className = 'focus-pill-value tie';
+        totalEl.textContent = '0';
+        barDem.style.width = '0%';
+        barOther.style.width = '0%';
+        barRep.style.width = '0%';
+        barDemLabelEl.textContent = 'Dem 0.00%';
+        barMidLabelEl.textContent = '50%';
+        barRepLabelEl.textContent = 'Rep 0.00%';
+        if (totalMetaEl) totalMetaEl.textContent = '0 total votes';
+        if (leadMetaEl) {
+          leadMetaEl.textContent = 'Even race';
+          leadMetaEl.dataset.party = 'tie';
+        }
+        if (demShareFill) demShareFill.style.width = '0%';
+        if (repShareFill) repShareFill.style.width = '0%';
+        if (otherShareFill) otherShareFill.style.width = '0%';
+        return;
+      }
+
+      const demPct = (d / total) * 100;
+      const repPct = (r / total) * 100;
+      const otherPct = (o / total) * 100;
+      const winnerParty = repPct > demPct ? 'rep' : (demPct > repPct ? 'dem' : 'tie');
+      const winnerLabel = winnerParty === 'rep'
+        ? formatVoteCounterCandidateLabel(resolvedCandidates.repCandidate, 'R', 'Republican')
+        : (winnerParty === 'dem'
+          ? formatVoteCounterCandidateLabel(resolvedCandidates.demCandidate, 'D', 'Democratic')
+          : 'Tie');
+      const leadLabel = winnerParty === 'tie' ? 'Tie' : leadMarginPctLabel(r, d, total);
+
+      winnerEl.textContent = winnerLabel;
+      winnerEl.className = `focus-pill-value ${winnerParty}`;
+      marginEl.textContent = leadLabel;
+      marginEl.className = `focus-pill-value ${winnerParty}`;
+      totalEl.textContent = total.toLocaleString();
+      barDem.style.width = `${demPct.toFixed(4)}%`;
+      barOther.style.width = `${otherPct.toFixed(4)}%`;
+      barRep.style.width = `${repPct.toFixed(4)}%`;
+      barDemLabelEl.textContent = formatFocusBarLabel(resolvedCandidates.demCandidate, demPct, 'Dem');
+      barMidLabelEl.textContent = '50%';
+      barRepLabelEl.textContent = formatFocusBarLabel(resolvedCandidates.repCandidate, repPct, 'Rep');
+      if (totalMetaEl) totalMetaEl.textContent = `${total.toLocaleString()} total votes`;
+      if (leadMetaEl) {
+        leadMetaEl.textContent = winnerParty === 'tie'
+          ? 'Even race'
+          : compactWinnerMarginLabel(r, d, total, resolvedCandidates.repCandidate, resolvedCandidates.demCandidate);
+        leadMetaEl.dataset.party = winnerParty;
+      }
+      if (demShareFill) demShareFill.style.width = `${demPct.toFixed(2)}%`;
+      if (repShareFill) repShareFill.style.width = `${repPct.toFixed(2)}%`;
+      if (otherShareFill) otherShareFill.style.width = `${otherPct.toFixed(2)}%`;
+    }
+
+    function updateStatewideResults(contestType, year, demVotes, repVotes, totalVotes, opts = {}) {
+      const statewideTargets = getStatewideContentNodes();
+      if (!statewideTargets.length) return;
+      if (totalVotes === 0) {
+        setStatewideResultsMarkup('<p class="desktop-statewide-placeholder">No statewide data available for this contest.</p>');
+        return;
+      }
+
+      try {
+        const otherVotes = Number.isFinite(opts?.otherVotes) ? Math.max(0, Number(opts.otherVotes)) : Math.max(0, totalVotes - demVotes - repVotes);
+        const demPct = (demVotes / totalVotes) * 100;
+        const repPct = (repVotes / totalVotes) * 100;
+        const otherPct = (otherVotes / totalVotes) * 100;
+        const marginPct = Math.abs(demPct - repPct);
+        const officeName = formatContestName(contestType, year);
+        let demCandidate = (opts?.demCandidate || '').toString().trim() || getCandidateName(year, officeName, 'Democrat');
+        let repCandidate = (opts?.repCandidate || '').toString().trim() || getCandidateName(year, officeName, 'Republican');
+        demCandidate = stripRunningMateName(demCandidate);
+        repCandidate = stripRunningMateName(repCandidate);
+
+        const winnerCall = winnerMarginCall(repVotes, demVotes, totalVotes, repCandidate, demCandidate);
+        let compLabel = '';
+        let compColor = '#6b7280';
+        if (marginPct >= 40) {
+          compLabel = winnerCall.party === 'rep' ? 'Annihilation Republican (40%+)' : 'Annihilation Democratic (40%+)';
+          compColor = winnerCall.party === 'rep' ? '#7f1d1d' : '#1e3a8a';
+        } else if (marginPct >= 30) {
+          compLabel = winnerCall.party === 'rep' ? 'Dominant Republican (30.00-39.99%)' : 'Dominant Democratic (30.00-39.99%)';
+          compColor = winnerCall.party === 'rep' ? '#7f1d1d' : '#1e3a8a';
+        } else if (marginPct >= 20) {
+          compLabel = winnerCall.party === 'rep' ? 'Stronghold Republican (20.00-29.99%)' : 'Stronghold Democratic (20.00-29.99%)';
+          compColor = winnerCall.party === 'rep' ? '#dc2626' : '#2563eb';
+        } else if (marginPct >= 10) {
+          compLabel = winnerCall.party === 'rep' ? 'Safe Republican (10.00-19.99%)' : 'Safe Democratic (10.00-19.99%)';
+          compColor = winnerCall.party === 'rep' ? '#dc2626' : '#3b82f6';
+        } else if (marginPct >= 5.5) {
+          compLabel = winnerCall.party === 'rep' ? 'Likely Republican (5.50-9.99%)' : 'Likely Democratic (5.50-9.99%)';
+          compColor = winnerCall.party === 'rep' ? '#ef4444' : '#60a5fa';
+        } else if (marginPct >= 1) {
+          compLabel = winnerCall.party === 'rep' ? 'Lean Republican (1.00-5.49%)' : 'Lean Democratic (1.00-5.49%)';
+          compColor = winnerCall.party === 'rep' ? '#f87171' : '#93c5fd';
+        } else if (marginPct >= 0.5) {
+          compLabel = winnerCall.party === 'rep' ? 'Tilt Republican (0.50-0.99%)' : 'Tilt Democratic (0.50-0.99%)';
+          compColor = winnerCall.party === 'rep' ? '#fff1f2' : '#dbeafe';
+        } else {
+          compLabel = winnerCall.party === 'dem' ? 'Tossup (Democratic Win - <0.50%)' : (winnerCall.party === 'rep' ? 'Tossup (Republican Win - <0.50%)' : 'Tossup');
+          compColor = winnerCall.party === 'dem' ? '#2563eb' : (winnerCall.party === 'rep' ? '#dc2626' : '#64748b');
+        }
+
+        const breakdownItems = [
+          {
+            key: 'dem',
+            label: 'D',
+            candidate: fullCandidateLabel(demCandidate, 'Democratic'),
+            color: '#2563eb',
+            votes: demVotes,
+            pct: demPct
+          },
+          {
+            key: 'rep',
+            label: 'R',
+            candidate: fullCandidateLabel(repCandidate, 'Republican'),
+            color: '#dc2626',
+            votes: repVotes,
+            pct: repPct
+          }
+        ];
+        if (otherVotes > 0) {
+          breakdownItems.push({
+            key: 'other',
+            label: 'Other',
+            candidate: 'Other',
+            color: '#6b7280',
+            votes: otherVotes,
+            pct: otherPct
+          });
+        }
+
+        const shareChips = breakdownItems.map(item => (
+          `<div class="statewide-share-chip ${item.key}">${item.label} <strong>${item.pct.toFixed(2)}%</strong></div>`
+        )).join('');
+        const barSegments = [`<div style="width:${demPct.toFixed(4)}%;background:#2563eb;"></div>`];
+        if (otherVotes > 0) barSegments.push(`<div style="width:${otherPct.toFixed(4)}%;background:#6b7280;"></div>`);
+        barSegments.push(`<div style="width:${repPct.toFixed(4)}%;background:#dc2626;"></div>`);
+        const breakdownGrid = breakdownItems.map(item => (
+          `<div class="statewide-breakdown-item">` +
+            `<div class="statewide-breakdown-head">` +
+              `<span class="statewide-dot ${item.key}"></span>` +
+              `<span class="statewide-breakdown-label">${item.label}: ${item.candidate}</span>` +
+            `</div>` +
+            `<div class="statewide-breakdown-value" style="color:${item.color};">` +
+              `${item.votes.toLocaleString()}` +
+              `<span>${item.pct.toFixed(2)}%</span>` +
+            `</div>` +
+          `</div>`
+        )).join('');
+
+        const winnerSummary = winnerCall.party === 'tie'
+          ? 'Even race'
+          : `${winnerCall.winnerName} (${winnerCall.party === 'rep' ? 'R' : 'D'})`;
+
+        setStatewideResultsMarkup(`
+          <div class="statewide-card" data-party="${winnerCall.party}">
+            <div class="statewide-hero">
+              <div>
+                <div class="statewide-kicker">Statewide leader</div>
+                <div class="statewide-call" data-party="${winnerCall.party}">${winnerCall.text}</div>
+                <div class="statewide-subline">${winnerSummary} | ${Math.abs(repVotes - demVotes).toLocaleString()} vote margin</div>
+              </div>
+              <div class="statewide-competitive" style="color:${compColor};" title="${compLabel}">${compactCompetitivenessLabel(marginPct, winnerCall.party)}</div>
+            </div>
+            <div class="statewide-share-row">${shareChips}</div>
+            <div class="statewide-bar">${barSegments.join('')}</div>
+            <div class="statewide-breakdown">${breakdownGrid}</div>
+            <div class="statewide-footer-row">
+              <div class="statewide-stat">
+                <span>Total votes</span>
+                <strong>${totalVotes.toLocaleString()}</strong>
+              </div>
+              <div class="statewide-stat">
+                <span>Margin</span>
+                <strong>${marginPct.toFixed(2)} pts</strong>
+              </div>
+            </div>
+          </div>
+        `);
+      } catch (err) {
+        console.warn('Failed to render statewide sidebar:', err?.message || err);
+        setStatewideResultsMarkup('<p class="desktop-statewide-placeholder">Failed to render statewide results. Try re-selecting the contest.</p>');
+      }
+    }
+
     function flipChipHTML(prevSignedPct, curSignedPct) {
       const f = flipInfo(prevSignedPct, curSignedPct);
       if (!f.flipped) return '';
@@ -6241,6 +8008,49 @@ document.addEventListener('DOMContentLoaded', function() {
       return labels[mode] || 'Margins';
     }
 
+    function updateControlSummary(contestKey = document.getElementById('contestSelect')?.value || '') {
+      const titleEl = document.getElementById('control-summary-title');
+      const viewEl = document.getElementById('control-summary-view');
+      const yearEl = document.getElementById('control-summary-year');
+      const modeEl = document.getElementById('control-summary-mode');
+      if (!titleEl || !viewEl || !yearEl || !modeEl) return;
+
+      const key = String(contestKey || '').trim();
+      const [contestType, year] = parseContestValue(key);
+      viewEl.textContent = getReadableViewLabel(currentView);
+      modeEl.textContent = getReadableModeLabel(currentVizMode);
+
+      if (!contestType || !year) {
+        titleEl.textContent = 'Choose a contest';
+        yearEl.textContent = 'No contest selected';
+        return;
+      }
+
+      titleEl.textContent = formatContestName(contestType, year);
+      yearEl.textContent = String(year);
+    }
+
+    function getStatewideContentNodes() {
+      return Array.from(document.querySelectorAll('[data-statewide-content]'));
+    }
+
+    function getStatewideContestNameNodes() {
+      return Array.from(document.querySelectorAll('[data-statewide-contest-name]'));
+    }
+
+    function setStatewideContestTitle(text = '') {
+      const label = String(text || '').trim();
+      getStatewideContestNameNodes().forEach(node => {
+        node.textContent = label;
+      });
+    }
+
+    function setStatewideResultsMarkup(html) {
+      getStatewideContentNodes().forEach(node => {
+        node.innerHTML = html;
+      });
+    }
+
     function getReadableFocusLabel() {
       const raw = (window.lastSelectedCounty || '').toString().trim();
       if (!raw) return 'Statewide';
@@ -6261,6 +8071,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (modeEl) modeEl.textContent = getReadableModeLabel(currentVizMode);
       if (contestEl) contestEl.textContent = contestValue ? `${formatContestName(contestType, year)} ${year}` : 'Select a contest';
       if (focusEl) focusEl.textContent = getReadableFocusLabel();
+      updateControlSummary(contestValue);
       try {
         if (typeof window.syncInitialTopbarOffset === 'function') {
           window.syncInitialTopbarOffset();
@@ -7929,7 +9740,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let flySearchWired = false;
 
     function getFlySearchInputs() {
-      return ['county-search', 'sidebar-county-search']
+      return ['county-search', 'desktop-fly-search', 'sidebar-county-search']
         .map(id => document.getElementById(id))
         .filter(Boolean);
     }
@@ -8137,6 +9948,14 @@ document.addEventListener('DOMContentLoaded', function() {
             syncFlySearchInputs('', primary || null);
             hideAllSearchDropdowns();
             updateFlySearchClearButton('');
+          });
+        }
+
+        const desktopFlySubmit = document.getElementById('desktop-fly-submit');
+        if (desktopFlySubmit) {
+          desktopFlySubmit.addEventListener('click', async function() {
+            const desktopInput = document.getElementById('desktop-fly-search');
+            await submitFlySearch(desktopInput || '');
           });
         }
 
@@ -10225,7 +12044,7 @@ document.addEventListener('DOMContentLoaded', function() {
           map.setPaintProperty('precinct-dot', 'circle-color', exprPrecinct);
         }
       }
-  document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year})`;
+  setStatewideContestTitle(`${formatContestName(contestType, year)} (${year})`);
       setStatus(`Applied contest: ${formatContestName(contestType, year)} ${year}`);
     }
 
@@ -10284,7 +12103,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       map.setPaintProperty('district-fill', 'fill-color', expr);
       setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totals.dem, totals.rep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
-  document.getElementById('contest-name').textContent = `US House (${year})`;
+  setStatewideContestTitle(`US House (${year})`);
       setStatus(`Applied contest: NC US House ${year}`);
     }
 
@@ -10398,7 +12217,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const coverageText = (coveragePct !== undefined && coveragePct !== null)
             ? ` | match coverage ${Number(coveragePct).toFixed(2)}%`
             : '';
-          document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`;
+          setStatewideContestTitle(`${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`);
           setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)${coverageText}`);
           setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year} (2022 lines)`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
           return;
@@ -10452,7 +12271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setStatus('District layer not found!', 5000, true);
       }
 
-  document.getElementById('contest-name').textContent = `${formatContestName(contestType, year)} (${year}) - Statewide Result`;
+  setStatewideContestTitle(`${formatContestName(contestType, year)} (${year}) - Statewide Result`);
       setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)`);
       setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
     }
