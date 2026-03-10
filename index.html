@@ -4534,8 +4534,6 @@ body { height: var(--app-height); }
       --topbar-h: 0px;
       --desktop-left-w: 500px;
       --desktop-right-w: 340px;
-      --desktop-right-gap: 14px;
-      --desktop-vote-counter-h: 0px;
     }
 
     .map-topbar {
@@ -4548,8 +4546,31 @@ body { height: var(--app-height); }
     }
 
     .desktop-ui-right {
+      display: flex !important;
+      flex-direction: column;
+      gap: 14px;
+      top: 20px !important;
       width: min(var(--desktop-right-w), calc(100vw - 48px));
       right: 24px;
+      left: auto !important;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      pointer-events: auto;
+      padding-right: 4px;
+    }
+
+    .desktop-ui-right > * {
+      position: static !important;
+      top: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      left: auto !important;
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      transform: none !important;
+      flex: 0 0 auto;
     }
 
     .main-controls {
@@ -4720,10 +4741,8 @@ body { height: var(--app-height); }
     }
 
     .vote-counter {
-      top: 20px !important;
-      right: 24px !important;
-      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
-      max-width: var(--desktop-right-w) !important;
+      width: 100% !important;
+      max-width: none !important;
       min-width: 0 !important;
       max-height: min(58vh, 620px) !important;
       overflow-x: hidden;
@@ -4732,13 +4751,10 @@ body { height: var(--app-height); }
     }
 
     .legend {
-      right: 24px !important;
-      top: calc(20px + var(--desktop-vote-counter-h) + var(--desktop-right-gap)) !important;
-      bottom: auto !important;
-      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
-      max-width: var(--desktop-right-w) !important;
+      width: 100% !important;
+      max-width: none !important;
       min-width: 0 !important;
-      max-height: max(180px, calc(100vh - 40px - var(--desktop-vote-counter-h) - var(--desktop-right-gap))) !important;
+      max-height: none !important;
       overflow-y: auto;
     }
 
@@ -8913,19 +8929,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // Measure the floating UI so mobile overlays and the desktop right rail can avoid collisions.
       try {
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-        const isDesktop = window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
         const root = document.documentElement;
         const topbar = document.getElementById('map-topbar');
-        const voteCounter = document.getElementById('vote-counter');
         const th = topbar ? Math.round(topbar.getBoundingClientRect().height) : 112;
         root.style.setProperty('--topbar-h', `${Math.max(0, th)}px`);
-        if (isDesktop) {
-          const counterVisible = !!(voteCounter && voteCounter.style.display !== 'none' && voteCounter.getClientRects().length);
-          const vh = counterVisible ? Math.round(voteCounter.getBoundingClientRect().height) : 0;
-          root.style.setProperty('--desktop-vote-counter-h', `${Math.max(0, vh)}px`);
-        } else {
-          root.style.removeProperty('--desktop-vote-counter-h');
-        }
         if (!isMobile) {
           root.style.removeProperty('--legend-h');
           root.style.removeProperty('--controls-h');
