@@ -49,14 +49,23 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 
 - **Multiple Views:** Counties, Precincts (zoomed in), Congressional Districts, State House, State Senate
 - **Contest Picker:** Only valid contests for the current view are shown, driven by manifest files
+- **Atlas-Style Desktop UI:** Refined left/right control rails, statewide snapshot cards, and map-first layout inspired by modern election atlas interfaces
 - **Unopposed Filtering (Counties):** Unopposed Council of State contests are hidden from the Counties picker
-- **Hover + Sidebar Details:** Margins, vote shares, flip/shift modes, and trend lines for each geography
+- **Hover + Sidebar Details:** Margins, vote shares, flip/shift modes, statewide summaries, and trend history for each geography
+- **Compact Map Key:** Margins, winners, shift, and flips legends are presented in a cleaner visual key instead of long text lists
 - **Judicial Contests:** Supported in Counties view when corresponding JSON slices exist
 - **Flexible Data Model:** Add new contests, years, or district lines by updating manifests and data files
 
 ## Recent Updates (March 2026)
 
-**Last updated:** March 3, 2026
+**Last updated:** March 10, 2026
+
+- Refined the desktop atlas layout with tighter left/right rails, a stronger statewide results card, and a more polished controls panel.
+- Reworked the statewide summary presentation so the lead is shown as a margin percentage again, while previous-election trend tiles carry fuller winner/lead context.
+- Rebuilt the map key into compact visual legend modes for margins, winners, shift, and flips instead of relying on long stacked text rows.
+- Restored the original competitiveness naming in the legend and summary labels: `Annihilation`, `Dominant`, `Stronghold`, `Safe`, `Likely`, `Lean`, `Tilt`, `Tossup`.
+- Improved the trend chart readability by emphasizing labeled election points and guide bands over a heavy connector line.
+- Styled the `North Carolina Election Atlas` control header as a pill and carried that treatment into the minimized state so the panel title stays consistent.
 
 - Added historical Counties-view Council of State contest slices for **2000, 2004, and 2008**.
 - Rebuilt **2012** Council of State county/precinct slices with updated manifest metadata.
@@ -83,6 +92,13 @@ The current `index.html` includes several speed-focused improvements that are al
 - **Worker-based CSV parsing fallback:** Historical presidential OpenElections CSVs are stream-parsed in a Web Worker (Papa Parse) when needed, reducing main-thread UI stalls.
 - **Deferred trend loading:** County trend series are loaded asynchronously so contest application and map recoloring happen immediately.
 - **Counties-mode contest switch optimization (March 3, 2026):** Contest changes with `Precincts Off` now avoid unnecessary precinct matching/index work, improving responsiveness and reducing main-thread churn.
+
+## UI and Presentation Notes
+
+- **Desktop atlas layout:** The main map now uses dedicated desktop rails instead of treating controls and summaries like generic floating cards.
+- **Statewide snapshot focus:** The right-side summary stays visible while browsing counties, districts, and prior-election trend history.
+- **Trend display:** Trend history combines labeled point plots with summary tiles so individual election years are easier to read at a glance.
+- **Header language:** The control header and minimized state now use the full `North Carolina Election Atlas` title in pill form for stronger branding and consistency.
 
 ## What to Expect on the Live Site
 

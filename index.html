@@ -2482,11 +2482,33 @@ body { height: var(--app-height); }
   .controls-collapsed-label {
     display: none;
     align-items: center;
-    font-size: 12px;
+    gap: 8px;
+    min-height: 32px;
+    max-width: 100%;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(37, 99, 235, 0.9) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    color: #f8fafc;
+    font-size: 11.5px;
     font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #0f172a;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none;
+  }
+
+  .controls-collapsed-label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #38bdf8 0%, #bfdbfe 100%);
+    box-shadow: 0 0 0 4px rgba(191, 219, 254, 0.12);
+    flex: 0 0 auto;
   }
 
   .main-controls.minimized {
@@ -2899,21 +2921,131 @@ body { height: var(--app-height); }
   }
 
   .focus-trend-chart {
-    min-height: 88px;
+    display: grid;
+    gap: 10px;
+    min-height: 156px;
   }
 
   .focus-trend-empty {
     display: flex;
     align-items: center;
-    min-height: 72px;
+    min-height: 112px;
     color: #64748b;
     font-size: 12px;
+  }
+
+  .focus-trend-plot {
+    padding: 10px 10px 6px;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.94) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   }
 
   .focus-sparkline {
     display: block;
     width: 100%;
-    height: 68px;
+    height: 108px;
+    overflow: visible;
+  }
+
+  .focus-sparkline text {
+    font-family: inherit;
+  }
+
+  .focus-sparkline-guide,
+  .focus-sparkline-year,
+  .focus-sparkline-point-label {
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, 0.96);
+    stroke-width: 1.4px;
+    stroke-linejoin: round;
+  }
+
+  .focus-sparkline-guide {
+    font-size: 4.2px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    fill: #64748b;
+  }
+
+  .focus-sparkline-guide.rep {
+    fill: #b91c1c;
+  }
+
+  .focus-sparkline-guide.dem {
+    fill: #1d4ed8;
+  }
+
+  .focus-sparkline-year {
+    font-size: 4.1px;
+    font-weight: 800;
+    fill: #64748b;
+  }
+
+  .focus-sparkline-point-label {
+    font-size: 4.5px;
+    font-weight: 900;
+    fill: #0f172a;
+  }
+
+  .focus-sparkline-point-label.rep {
+    fill: #b91c1c;
+  }
+
+  .focus-sparkline-point-label.dem {
+    fill: #1d4ed8;
+  }
+
+  .focus-sparkline-point-label.tie {
+    fill: #475569;
+  }
+
+  .focus-sparkline-guide-line {
+    stroke: rgba(148, 163, 184, 0.28);
+    stroke-width: 1;
+    stroke-dasharray: 2.5 3;
+  }
+
+  .focus-sparkline-midline {
+    stroke: rgba(71, 85, 105, 0.42);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 3;
+  }
+
+  .focus-sparkline-segment {
+    stroke: rgba(71, 85, 105, 0.26);
+    stroke-width: 1.2;
+    stroke-dasharray: 1.75 3.4;
+    stroke-linecap: round;
+  }
+
+  .focus-sparkline-stem {
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+
+  .focus-sparkline-stem.rep {
+    stroke: rgba(220, 38, 38, 0.55);
+  }
+
+  .focus-sparkline-stem.dem {
+    stroke: rgba(37, 99, 235, 0.55);
+  }
+
+  .focus-sparkline-stem.tie {
+    stroke: rgba(100, 116, 139, 0.42);
+  }
+
+  .focus-sparkline-year-tick {
+    stroke: rgba(148, 163, 184, 0.42);
+    stroke-width: 1;
+    stroke-linecap: round;
+  }
+
+  .focus-sparkline-point {
+    stroke: #fff;
+    stroke-width: 1.8;
   }
 
   .focus-trend-dots {
@@ -3245,6 +3377,36 @@ body { height: var(--app-height); }
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .controls-title-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(37, 99, 235, 0.9) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    color: #f8fafc !important;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .controls-title-pill::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #38bdf8 0%, #bfdbfe 100%);
+    box-shadow: 0 0 0 4px rgba(191, 219, 254, 0.12);
+    flex: 0 0 auto;
   }
 
   .controls-actions {
@@ -4301,8 +4463,8 @@ body { height: var(--app-height); }
     .main-controls.minimized {
       top: 20px !important;
       left: 24px !important;
-      min-width: 214px !important;
-      max-width: 260px !important;
+      min-width: 252px !important;
+      max-width: 296px !important;
       padding: 12px 14px !important;
       border-radius: 16px !important;
     }
@@ -4318,8 +4480,7 @@ body { height: var(--app-height); }
     }
 
     .main-controls.minimized .controls-heading {
-      display: flex;
-      min-width: 0;
+      display: none;
     }
 
     .main-controls.minimized .controls-kicker {
@@ -4333,6 +4494,18 @@ body { height: var(--app-height); }
 
     .main-controls.minimized .controls-header h3 {
       display: none;
+    }
+
+    .main-controls.minimized .controls-actions {
+      width: 100%;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .main-controls.minimized .controls-collapsed-label {
+      display: inline-flex;
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
     .controls-content {
@@ -4731,11 +4904,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="controls-header">
             <div class="controls-heading">
               <span class="controls-kicker">Atlas controls</span>
-              <h3>North Carolina Election Atlas</h3>
+              <h3 class="controls-title-pill">North Carolina Election Atlas</h3>
               <p class="controls-subtitle">Switch layers, jump to major regions, and compare contests without leaving the map.</p>
             </div>
             <div class="controls-actions">
-              <span class="controls-collapsed-label">Atlas</span>
+              <span class="controls-collapsed-label">North Carolina Election Atlas</span>
               <button id="help-btn" title="Help" type="button">?</button>
               <button class="minimize-btn" onclick="toggleMainControls()" id="controls-minimize-btn" title="Minimize controls">-</button>
             </div>
@@ -4884,11 +5057,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="dem">D +40</span>
               </div>
               <div class="legend-chip-row">
-                <span class="legend-chip">Blowout 40+</span>
-                <span class="legend-chip">Strong 20+</span>
+                <span class="legend-chip">Annihilation 40+</span>
+                <span class="legend-chip">Dominant 30+</span>
+                <span class="legend-chip">Stronghold 20+</span>
                 <span class="legend-chip">Safe 10+</span>
+                <span class="legend-chip">Likely 5.5+</span>
                 <span class="legend-chip">Lean 1+</span>
                 <span class="legend-chip">Tilt 0.5+</span>
+                <span class="legend-chip">Tossup &lt;0.5</span>
               </div>
             </div>
         </div>
@@ -5654,18 +5830,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      const points = series
+      const sortedSeries = series
         .slice()
-        .sort((a, b) => a.year - b.year)
-        .map((item, idx, arr) => {
-          const signed = Number(item.margin_pct || 0);
-          const maxAbs = Math.max(5, ...arr.map(v => Math.abs(Number(v.margin_pct || 0))));
-          const x = arr.length === 1 ? 50 : (idx / (arr.length - 1)) * 100;
-          const y = 34 - ((signed / maxAbs) * 28);
-          return { x, y, signed, item };
-        });
+        .sort((a, b) => a.year - b.year);
+      const maxAbs = Math.max(5, ...sortedSeries.map(v => Math.abs(Number(v.margin_pct || 0))));
+      const plotLeft = 10;
+      const plotRight = 98;
+      const centerY = 38;
+      const amplitude = 24;
+      const topY = centerY - amplitude;
+      const bottomY = centerY + amplitude;
+      const yearY = 76;
+      const points = sortedSeries.map((item, idx, arr) => {
+        const signed = Number(item.margin_pct || 0);
+        const x = arr.length === 1 ? ((plotLeft + plotRight) / 2) : (plotLeft + ((idx / (arr.length - 1)) * (plotRight - plotLeft)));
+        const y = centerY - ((signed / maxAbs) * amplitude);
+        return { x, y, signed, item };
+      });
 
-      const polyline = points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
       const dots = points.map(p => {
         const winnerMeta = getTrendWinnerMeta(p.item);
         const leadLabel = leadMarginPctLabel(
@@ -5686,15 +5868,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const circles = points.map(p => {
         const fill = p.signed > 0 ? '#dc2626' : (p.signed < 0 ? '#1d4ed8' : '#64748b');
-        return `<circle cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="3.6" fill="${fill}"></circle>`;
+        return `<circle class="focus-sparkline-point" cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4.1" fill="${fill}"></circle>`;
       }).join('');
 
+      const stems = points.map(p => {
+        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
+        return `<line class="focus-sparkline-stem ${partyClass}" x1="${p.x.toFixed(2)}" y1="${centerY.toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}"></line>`;
+      }).join('');
+
+      const segments = points.slice(1).map((p, idx) => {
+        const prev = points[idx];
+        return `<line class="focus-sparkline-segment" x1="${prev.x.toFixed(2)}" y1="${prev.y.toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}"></line>`;
+      }).join('');
+
+      const valueLabels = points.map((p, idx) => {
+        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
+        const absLabel = Math.abs(Number(p.signed || 0));
+        const labelText = p.signed > 0
+          ? `R+${absLabel.toFixed(absLabel >= 10 ? 0 : 1)}`
+          : (p.signed < 0 ? `D+${absLabel.toFixed(absLabel >= 10 ? 0 : 1)}` : 'Even');
+        const nearTop = p.y <= (topY + 8);
+        const labelY = nearTop ? (p.y + 10) : (p.y - 7);
+        const anchor = idx === 0 ? 'start' : (idx === points.length - 1 ? 'end' : 'middle');
+        const x = idx === 0 ? (p.x + 1.5) : (idx === points.length - 1 ? (p.x - 1.5) : p.x);
+        return `<text class="focus-sparkline-point-label ${partyClass}" x="${x.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="${anchor}">${escapeHtml(labelText)}</text>`;
+      }).join('');
+
+      const yearLabels = points.map((p, idx) => {
+        const anchor = idx === 0 ? 'start' : (idx === points.length - 1 ? 'end' : 'middle');
+        const x = idx === 0 ? (p.x + 1.5) : (idx === points.length - 1 ? (p.x - 1.5) : p.x);
+        return `<text class="focus-sparkline-year" x="${x.toFixed(2)}" y="${yearY}" text-anchor="${anchor}">${escapeHtml(p.item.year)}</text>`;
+      }).join('');
+
+      const yearTicks = points.map(p => (
+        `<line class="focus-sparkline-year-tick" x1="${p.x.toFixed(2)}" y1="${(yearY - 5).toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${(yearY - 1.5).toFixed(2)}"></line>`
+      )).join('');
+
       chartEl.innerHTML = `
-        <svg class="focus-sparkline" viewBox="0 0 100 68" preserveAspectRatio="none" aria-label="${escapeHtml(caption)} sparkline">
-          <line x1="0" y1="34" x2="100" y2="34" stroke="rgba(100,116,139,0.28)" stroke-width="1" stroke-dasharray="3 3"></line>
-          <polyline fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${polyline}"></polyline>
-          ${circles}
-        </svg>
+        <div class="focus-trend-plot">
+          <svg class="focus-sparkline" viewBox="0 0 100 80" preserveAspectRatio="none" aria-label="${escapeHtml(caption)} sparkline">
+            <rect x="${plotLeft}" y="${topY}" width="${(plotRight - plotLeft).toFixed(2)}" height="${(centerY - topY).toFixed(2)}" fill="rgba(220,38,38,0.04)"></rect>
+            <rect x="${plotLeft}" y="${centerY}" width="${(plotRight - plotLeft).toFixed(2)}" height="${(bottomY - centerY).toFixed(2)}" fill="rgba(37,99,235,0.04)"></rect>
+            <line class="focus-sparkline-guide-line" x1="${plotLeft}" y1="${topY}" x2="${plotRight}" y2="${topY}"></line>
+            <line class="focus-sparkline-midline" x1="${plotLeft}" y1="${centerY}" x2="${plotRight}" y2="${centerY}"></line>
+            <line class="focus-sparkline-guide-line" x1="${plotLeft}" y1="${bottomY}" x2="${plotRight}" y2="${bottomY}"></line>
+            <text class="focus-sparkline-guide rep" x="0.5" y="${(topY + 1.5).toFixed(2)}" text-anchor="start">R lead</text>
+            <text class="focus-sparkline-guide" x="0.5" y="${(centerY + 1.5).toFixed(2)}" text-anchor="start">Even</text>
+            <text class="focus-sparkline-guide dem" x="0.5" y="${(bottomY + 1.5).toFixed(2)}" text-anchor="start">D lead</text>
+            ${segments}
+            ${stems}
+            ${circles}
+            ${valueLabels}
+            ${yearTicks}
+            ${yearLabels}
+          </svg>
+        </div>
         <div class="focus-trend-dots">${dots}</div>
       `;
     }
@@ -7327,9 +7555,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function compactCompetitivenessLabel(marginPct, party) {
       const side = party === 'rep' ? 'R' : (party === 'dem' ? 'D' : '');
-      if (marginPct >= 40) return side ? `Blowout ${side}` : 'Blowout';
+      if (marginPct >= 40) return side ? `Annihilation ${side}` : 'Annihilation';
       if (marginPct >= 30) return side ? `Dominant ${side}` : 'Dominant';
-      if (marginPct >= 20) return side ? `Strong ${side}` : 'Strong';
+      if (marginPct >= 20) return side ? `Stronghold ${side}` : 'Stronghold';
       if (marginPct >= 10) return side ? `Safe ${side}` : 'Safe';
       if (marginPct >= 5.5) return side ? `Likely ${side}` : 'Likely';
       if (marginPct >= 1) return side ? `Lean ${side}` : 'Lean';
@@ -7369,11 +7597,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="dem">D +40</span>
           </div>
           <div class="legend-chip-row">
-            <span class="legend-chip">Blowout 40+</span>
-            <span class="legend-chip">Strong 20+</span>
+            <span class="legend-chip">Annihilation 40+</span>
+            <span class="legend-chip">Dominant 30+</span>
+            <span class="legend-chip">Stronghold 20+</span>
             <span class="legend-chip">Safe 10+</span>
+            <span class="legend-chip">Likely 5.5+</span>
             <span class="legend-chip">Lean 1+</span>
             <span class="legend-chip">Tilt 0.5+</span>
+            <span class="legend-chip">Tossup &lt;0.5</span>
           </div>
         </div>
       `;
