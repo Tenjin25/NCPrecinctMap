@@ -6143,7 +6143,18 @@ document.addEventListener('DOMContentLoaded', function() {
       return `${full} (${partyCode})`;
     }
 
+    function shouldUseCompactVoteCounterWinnerLabel() {
+      try {
+        return !!(window.matchMedia && window.matchMedia('(max-width: 1180px)').matches);
+      } catch (_) {
+        return true;
+      }
+    }
+
     function formatVoteCounterWinnerLabel(name, partyCode, fallbackText) {
+      if (!shouldUseCompactVoteCounterWinnerLabel()) {
+        return formatVoteCounterCandidateLabel(name, partyCode, fallbackText);
+      }
       const short = shortCandidateLabel(name, fallbackText);
       if (!short || short.toUpperCase() === partyCode.toUpperCase()) return fallbackText;
       return `${short} (${partyCode})`;
