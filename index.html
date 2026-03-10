@@ -2923,7 +2923,7 @@ body { height: var(--app-height); }
   .focus-trend-chart {
     display: grid;
     gap: 10px;
-    min-height: 156px;
+    min-height: 0;
   }
 
   .focus-trend-empty {
@@ -2935,136 +2935,24 @@ body { height: var(--app-height); }
   }
 
   .focus-trend-plot {
-    padding: 10px 10px 6px;
+    padding: 12px;
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.16);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.94) 100%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   }
 
-  .focus-sparkline {
-    display: block;
-    width: 100%;
-    height: 108px;
-    overflow: visible;
-  }
-
-  .focus-sparkline text {
-    font-family: inherit;
-  }
-
-  .focus-sparkline-guide,
-  .focus-sparkline-year,
-  .focus-sparkline-point-label {
-    paint-order: stroke;
-    stroke: rgba(255, 255, 255, 0.96);
-    stroke-width: 1.4px;
-    stroke-linejoin: round;
-  }
-
-  .focus-sparkline-guide {
-    font-size: 4.2px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    fill: #64748b;
-  }
-
-  .focus-sparkline-guide.rep {
-    fill: #b91c1c;
-  }
-
-  .focus-sparkline-guide.dem {
-    fill: #1d4ed8;
-  }
-
-  .focus-sparkline-year {
-    font-size: 4.1px;
-    font-weight: 800;
-    fill: #64748b;
-  }
-
-  .focus-sparkline-point-label {
-    font-size: 4.5px;
-    font-weight: 900;
-    fill: #0f172a;
-  }
-
-  .focus-sparkline-point-label.rep {
-    fill: #b91c1c;
-  }
-
-  .focus-sparkline-point-label.dem {
-    fill: #1d4ed8;
-  }
-
-  .focus-sparkline-point-label.tie {
-    fill: #475569;
-  }
-
-  .focus-sparkline-guide-line {
-    stroke: rgba(148, 163, 184, 0.28);
-    stroke-width: 1;
-    stroke-dasharray: 2.5 3;
-  }
-
-  .focus-sparkline-midline {
-    stroke: rgba(71, 85, 105, 0.42);
-    stroke-width: 1.2;
-    stroke-dasharray: 3 3;
-  }
-
-  .focus-sparkline-segment {
-    stroke: rgba(71, 85, 105, 0.26);
-    stroke-width: 1.2;
-    stroke-dasharray: 1.75 3.4;
-    stroke-linecap: round;
-  }
-
-  .focus-sparkline-stem {
-    stroke-width: 2.2;
-    stroke-linecap: round;
-  }
-
-  .focus-sparkline-stem.rep {
-    stroke: rgba(220, 38, 38, 0.55);
-  }
-
-  .focus-sparkline-stem.dem {
-    stroke: rgba(37, 99, 235, 0.55);
-  }
-
-  .focus-sparkline-stem.tie {
-    stroke: rgba(100, 116, 139, 0.42);
-  }
-
-  .focus-sparkline-year-tick {
-    stroke: rgba(148, 163, 184, 0.42);
-    stroke-width: 1;
-    stroke-linecap: round;
-  }
-
-  .focus-sparkline-point {
-    stroke: #fff;
-    stroke-width: 1.8;
-  }
-
-  .focus-trend-dots {
+  .focus-trend-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
   }
 
-  .focus-trend-dot {
-    padding: 9px 8px;
-    border-radius: 12px;
-    text-align: left;
-    background: rgba(248, 250, 252, 0.92);
-    border: 1px solid rgba(15, 23, 42, 0.08);
+  .focus-trend-summary-copy {
+    display: grid;
+    gap: 4px;
   }
 
-  .focus-trend-dot-year {
-    display: block;
+  .focus-trend-summary-kicker {
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -3072,15 +2960,156 @@ body { height: var(--app-height); }
     color: #64748b;
   }
 
+  .focus-trend-summary-call {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  .focus-trend-summary-note {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #64748b;
+  }
+
+  .focus-trend-summary-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .focus-trend-summary-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(255, 255, 255, 0.84);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #334155;
+  }
+
+  .focus-trend-summary-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.9;
+  }
+
+  .focus-trend-summary-badge.rep {
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.78);
+  }
+
+  .focus-trend-summary-badge.dem {
+    color: #1d4ed8;
+    background: rgba(219, 234, 254, 0.82);
+  }
+
+  .focus-trend-summary-badge.tie {
+    color: #475569;
+    background: rgba(226, 232, 240, 0.86);
+  }
+
+  .focus-trend-dots {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(154px, 188px);
+    gap: 10px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 6px;
+    margin: 0 -2px;
+    scrollbar-width: thin;
+  }
+
+  .focus-trend-dot {
+    display: grid;
+    gap: 10px;
+    min-height: 156px;
+    padding: 10px;
+    border-radius: 14px;
+    text-align: left;
+    background: rgba(248, 250, 252, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    scroll-snap-align: start;
+  }
+
+  .focus-trend-dot[data-party="rep"] {
+    background: linear-gradient(180deg, rgba(254, 242, 242, 0.96) 0%, rgba(248, 250, 252, 0.94) 100%);
+  }
+
+  .focus-trend-dot[data-party="dem"] {
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%);
+  }
+
+  .focus-trend-dot-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .focus-trend-dot-year {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+  }
+
+  .focus-trend-dot-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(255, 255, 255, 0.82);
+    color: #475569;
+  }
+
+  .focus-trend-dot-badge.rep {
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.82);
+  }
+
+  .focus-trend-dot-badge.dem {
+    color: #1d4ed8;
+    background: rgba(219, 234, 254, 0.86);
+  }
+
+  .focus-trend-dot-badge.tie {
+    color: #475569;
+    background: rgba(226, 232, 240, 0.90);
+  }
+
   .focus-trend-dot-value {
     display: block;
-    margin-top: 6px;
     font-size: 12px;
     font-weight: 900;
     line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
   }
 
   .focus-trend-dot-value.dem {
@@ -3097,20 +3126,91 @@ body { height: var(--app-height); }
 
   .focus-trend-dot-meta {
     display: block;
-    margin-top: 4px;
     font-size: 11px;
     font-weight: 800;
     line-height: 1.2;
     color: #0f172a;
   }
 
+  .focus-trend-dot-bar {
+    display: flex;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(226, 232, 240, 0.9);
+  }
+
+  .focus-trend-dot-bar span {
+    display: block;
+    height: 100%;
+  }
+
+  .focus-trend-dot-footer {
+    display: grid;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .focus-trend-dot-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
   .focus-trend-dot-subtle {
     display: block;
-    margin-top: 4px;
     font-size: 10px;
     font-weight: 700;
     line-height: 1.2;
     color: #64748b;
+  }
+
+  .focus-trend-dot-shift {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #475569;
+    background: rgba(226, 232, 240, 0.74);
+  }
+
+  .focus-trend-dot-shift.rep {
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.78);
+  }
+
+  .focus-trend-dot-shift.dem {
+    color: #1d4ed8;
+    background: rgba(219, 234, 254, 0.84);
+  }
+
+  .focus-trend-dot-shift.tie {
+    color: #475569;
+    background: rgba(226, 232, 240, 0.86);
+  }
+
+  .focus-trend-dot-flip {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #5b21b6;
+    background: rgba(237, 233, 254, 0.88);
+    border: 1px solid rgba(139, 92, 246, 0.16);
   }
 
   @media (min-width: 769px) and (max-width: 1180px) {
@@ -4434,6 +4534,8 @@ body { height: var(--app-height); }
       --topbar-h: 0px;
       --desktop-left-w: 500px;
       --desktop-right-w: 340px;
+      --desktop-right-gap: 14px;
+      --desktop-vote-counter-h: 0px;
     }
 
     .map-topbar {
@@ -4623,15 +4725,21 @@ body { height: var(--app-height); }
       width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
       max-width: var(--desktop-right-w) !important;
       min-width: 0 !important;
+      max-height: min(58vh, 620px) !important;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
     }
 
     .legend {
       right: 24px !important;
-      bottom: 24px !important;
+      top: calc(20px + var(--desktop-vote-counter-h) + var(--desktop-right-gap)) !important;
+      bottom: auto !important;
       width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
       max-width: var(--desktop-right-w) !important;
       min-width: 0 !important;
-      max-height: min(46vh, 420px) !important;
+      max-height: max(180px, calc(100vh - 40px - var(--desktop-vote-counter-h) - var(--desktop-right-gap))) !important;
+      overflow-y: auto;
     }
 
     .legend-header {
@@ -5809,6 +5917,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (chartEl) {
         chartEl.innerHTML = `<div class="focus-trend-empty">${message}</div>`;
       }
+      try { updateMobileOverlayOffsets(); } catch (_) {}
     }
 
     function escapeHtml(text) {
@@ -5818,6 +5927,20 @@ document.addEventListener('DOMContentLoaded', function() {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function describeTrendShift(currentSignedPct, prevSignedPct, prevYear) {
+      if (!Number.isFinite(Number(prevSignedPct))) {
+        return { cls: 'tie', text: 'First available result' };
+      }
+      const shift = (Number(currentSignedPct) || 0) - (Number(prevSignedPct) || 0);
+      if (Math.abs(shift) < 0.01) {
+        return { cls: 'tie', text: `No shift vs ${prevYear}` };
+      }
+      return {
+        cls: shift > 0 ? 'rep' : 'dem',
+        text: `${shift > 0 ? 'R' : 'D'} +${Math.abs(shift).toFixed(2)} vs ${prevYear}`
+      };
     }
 
     function renderFocusTrendSeries(series, caption = 'Trend history') {
@@ -5833,98 +5956,113 @@ document.addEventListener('DOMContentLoaded', function() {
       const sortedSeries = series
         .slice()
         .sort((a, b) => a.year - b.year);
-      const maxAbs = Math.max(5, ...sortedSeries.map(v => Math.abs(Number(v.margin_pct || 0))));
-      const plotLeft = 10;
-      const plotRight = 98;
-      const centerY = 38;
-      const amplitude = 24;
-      const topY = centerY - amplitude;
-      const bottomY = centerY + amplitude;
-      const yearY = 76;
-      const points = sortedSeries.map((item, idx, arr) => {
-        const signed = Number(item.margin_pct || 0);
-        const x = arr.length === 1 ? ((plotLeft + plotRight) / 2) : (plotLeft + ((idx / (arr.length - 1)) * (plotRight - plotLeft)));
-        const y = centerY - ((signed / maxAbs) * amplitude);
-        return { x, y, signed, item };
+      const annotated = sortedSeries.map((item, idx) => {
+        const prev = idx > 0 ? sortedSeries[idx - 1] : null;
+        const totalVotes = Number(item.total_votes || 0);
+        const demVotes = Number(item.dem_votes || 0);
+        const repVotes = Number(item.rep_votes || 0);
+        const otherVotes = Number(item.other_votes || 0);
+        const demPct = totalVotes > 0 ? (demVotes / totalVotes) * 100 : 0;
+        const repPct = totalVotes > 0 ? (repVotes / totalVotes) * 100 : 0;
+        const otherPct = totalVotes > 0 ? (otherVotes / totalVotes) * 100 : 0;
+        const signedPct = Number(item.margin_pct || 0);
+        const winnerMeta = getTrendWinnerMeta(item);
+        const leadLabel = leadMarginPctLabel(repVotes, demVotes, totalVotes);
+        const shiftMeta = describeTrendShift(signedPct, prev ? prev.margin_pct : NaN, prev ? prev.year : '');
+        const flip = prev ? flipInfo(prev.margin_pct, signedPct) : { flipped: false, from: 'T', to: 'T' };
+        return {
+          item,
+          prev,
+          totalVotes,
+          demVotes,
+          repVotes,
+          otherVotes,
+          demPct,
+          repPct,
+          otherPct,
+          signedPct,
+          winnerMeta,
+          leadLabel,
+          shiftMeta,
+          flip
+        };
       });
 
-      const dots = points.map(p => {
-        const winnerMeta = getTrendWinnerMeta(p.item);
-        const leadLabel = leadMarginPctLabel(
-          p.item.rep_votes,
-          p.item.dem_votes,
-          p.item.total_votes
+      const latest = annotated[annotated.length - 1];
+      const closest = annotated.reduce((best, entry) => {
+        if (!best) return entry;
+        return Math.abs(entry.signedPct) < Math.abs(best.signedPct) ? entry : best;
+      }, null);
+      const latestSummary = winnerMarginLabelShort(
+        latest.repVotes,
+        latest.demVotes,
+        latest.totalVotes,
+        latest.item.rep_candidate,
+        latest.item.dem_candidate
+      );
+
+      const summaryBadges = [];
+      if (latest.shiftMeta) {
+        summaryBadges.push(
+          `<span class="focus-trend-summary-badge ${latest.shiftMeta.cls}">${escapeHtml(latest.shiftMeta.text)}</span>`
         );
-        const totalVotesLabel = formatCompactVoteTotal(p.item.total_votes);
-        return `
-          <div class="focus-trend-dot">
-            <span class="focus-trend-dot-year">${escapeHtml(p.item.year)}</span>
-            <span class="focus-trend-dot-value ${winnerMeta.partyClass}">${escapeHtml(winnerMeta.label)}</span>
-            <span class="focus-trend-dot-meta">${escapeHtml(leadLabel === 'Tie' ? 'Lead: Tie' : `Lead: ${leadLabel}`)}</span>
-            <span class="focus-trend-dot-subtle">${escapeHtml(`${totalVotesLabel} votes`)}</span>
-          </div>
-        `;
-      }).join('');
+      }
+      if (latest.flip && latest.flip.flipped) {
+        summaryBadges.push(
+          `<span class="focus-trend-summary-badge ${latest.flip.to === 'R' ? 'rep' : 'dem'}">${escapeHtml(`Flip ${latest.flip.from}->${latest.flip.to}`)}</span>`
+        );
+      }
 
-      const circles = points.map(p => {
-        const fill = p.signed > 0 ? '#dc2626' : (p.signed < 0 ? '#1d4ed8' : '#64748b');
-        return `<circle class="focus-sparkline-point" cx="${p.x.toFixed(2)}" cy="${p.y.toFixed(2)}" r="4.1" fill="${fill}"></circle>`;
-      }).join('');
-
-      const stems = points.map(p => {
-        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
-        return `<line class="focus-sparkline-stem ${partyClass}" x1="${p.x.toFixed(2)}" y1="${centerY.toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}"></line>`;
-      }).join('');
-
-      const segments = points.slice(1).map((p, idx) => {
-        const prev = points[idx];
-        return `<line class="focus-sparkline-segment" x1="${prev.x.toFixed(2)}" y1="${prev.y.toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${p.y.toFixed(2)}"></line>`;
-      }).join('');
-
-      const valueLabels = points.map((p, idx) => {
-        const partyClass = p.signed > 0 ? 'rep' : (p.signed < 0 ? 'dem' : 'tie');
-        const absLabel = Math.abs(Number(p.signed || 0));
-        const labelText = p.signed > 0
-          ? `R+${absLabel.toFixed(absLabel >= 10 ? 0 : 1)}`
-          : (p.signed < 0 ? `D+${absLabel.toFixed(absLabel >= 10 ? 0 : 1)}` : 'Even');
-        const nearTop = p.y <= (topY + 8);
-        const labelY = nearTop ? (p.y + 10) : (p.y - 7);
-        const anchor = idx === 0 ? 'start' : (idx === points.length - 1 ? 'end' : 'middle');
-        const x = idx === 0 ? (p.x + 1.5) : (idx === points.length - 1 ? (p.x - 1.5) : p.x);
-        return `<text class="focus-sparkline-point-label ${partyClass}" x="${x.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="${anchor}">${escapeHtml(labelText)}</text>`;
-      }).join('');
-
-      const yearLabels = points.map((p, idx) => {
-        const anchor = idx === 0 ? 'start' : (idx === points.length - 1 ? 'end' : 'middle');
-        const x = idx === 0 ? (p.x + 1.5) : (idx === points.length - 1 ? (p.x - 1.5) : p.x);
-        return `<text class="focus-sparkline-year" x="${x.toFixed(2)}" y="${yearY}" text-anchor="${anchor}">${escapeHtml(p.item.year)}</text>`;
-      }).join('');
-
-      const yearTicks = points.map(p => (
-        `<line class="focus-sparkline-year-tick" x1="${p.x.toFixed(2)}" y1="${(yearY - 5).toFixed(2)}" x2="${p.x.toFixed(2)}" y2="${(yearY - 1.5).toFixed(2)}"></line>`
-      )).join('');
+      const cards = annotated
+        .slice()
+        .reverse()
+        .map(entry => {
+          const winnerLabel = entry.winnerMeta.partyClass === 'rep'
+            ? 'Republican'
+            : (entry.winnerMeta.partyClass === 'dem' ? 'Democratic' : 'Tie');
+          const totalVotesLabel = formatCompactVoteTotal(entry.totalVotes);
+          const flipChip = entry.flip && entry.flip.flipped
+            ? `<span class="focus-trend-dot-flip">${escapeHtml(`Flip ${entry.flip.from}->${entry.flip.to}`)}</span>`
+            : '';
+          return `
+            <div class="focus-trend-dot" data-party="${entry.winnerMeta.partyClass}">
+              <div class="focus-trend-dot-head">
+                <span class="focus-trend-dot-year">${escapeHtml(entry.item.year)}</span>
+                <span class="focus-trend-dot-badge ${entry.winnerMeta.partyClass}">${escapeHtml(winnerLabel)}</span>
+              </div>
+              <span class="focus-trend-dot-value ${entry.winnerMeta.partyClass}">${escapeHtml(entry.winnerMeta.label)}</span>
+              <span class="focus-trend-dot-meta">${escapeHtml(entry.leadLabel === 'Tie' ? 'Even race' : entry.leadLabel)}</span>
+              <div class="focus-trend-dot-bar" aria-hidden="true">
+                <span style="width:${entry.demPct.toFixed(4)}%;background:#2563eb;"></span>
+                ${entry.otherVotes > 0 ? `<span style="width:${entry.otherPct.toFixed(4)}%;background:#64748b;"></span>` : ''}
+                <span style="width:${entry.repPct.toFixed(4)}%;background:#dc2626;"></span>
+              </div>
+              <div class="focus-trend-dot-footer">
+                <span class="focus-trend-dot-subtle">${escapeHtml(`${totalVotesLabel} votes`)}</span>
+                <div class="focus-trend-dot-badges">
+                  <span class="focus-trend-dot-shift ${entry.shiftMeta.cls}">${escapeHtml(entry.shiftMeta.text)}</span>
+                  ${flipChip}
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
 
       chartEl.innerHTML = `
         <div class="focus-trend-plot">
-          <svg class="focus-sparkline" viewBox="0 0 100 80" preserveAspectRatio="none" aria-label="${escapeHtml(caption)} sparkline">
-            <rect x="${plotLeft}" y="${topY}" width="${(plotRight - plotLeft).toFixed(2)}" height="${(centerY - topY).toFixed(2)}" fill="rgba(220,38,38,0.04)"></rect>
-            <rect x="${plotLeft}" y="${centerY}" width="${(plotRight - plotLeft).toFixed(2)}" height="${(bottomY - centerY).toFixed(2)}" fill="rgba(37,99,235,0.04)"></rect>
-            <line class="focus-sparkline-guide-line" x1="${plotLeft}" y1="${topY}" x2="${plotRight}" y2="${topY}"></line>
-            <line class="focus-sparkline-midline" x1="${plotLeft}" y1="${centerY}" x2="${plotRight}" y2="${centerY}"></line>
-            <line class="focus-sparkline-guide-line" x1="${plotLeft}" y1="${bottomY}" x2="${plotRight}" y2="${bottomY}"></line>
-            <text class="focus-sparkline-guide rep" x="0.5" y="${(topY + 1.5).toFixed(2)}" text-anchor="start">R lead</text>
-            <text class="focus-sparkline-guide" x="0.5" y="${(centerY + 1.5).toFixed(2)}" text-anchor="start">Even</text>
-            <text class="focus-sparkline-guide dem" x="0.5" y="${(bottomY + 1.5).toFixed(2)}" text-anchor="start">D lead</text>
-            ${segments}
-            ${stems}
-            ${circles}
-            ${valueLabels}
-            ${yearTicks}
-            ${yearLabels}
-          </svg>
+          <div class="focus-trend-summary">
+            <div class="focus-trend-summary-copy">
+              <span class="focus-trend-summary-kicker">History board</span>
+              <div class="focus-trend-summary-call">${escapeHtml(`${latest.item.year}: ${latestSummary}`)}</div>
+              <div class="focus-trend-summary-note">${escapeHtml(`Closest recent race: ${closest.item.year} (${winnerMarginLabelShort(closest.repVotes, closest.demVotes, closest.totalVotes, closest.item.rep_candidate, closest.item.dem_candidate)})`)}</div>
+            </div>
+            <div class="focus-trend-summary-badges">${summaryBadges.join('')}</div>
+          </div>
         </div>
-        <div class="focus-trend-dots">${dots}</div>
+        <div class="focus-trend-dots">${cards}</div>
       `;
+      try { updateMobileOverlayOffsets(); } catch (_) {}
     }
 
     async function getStatewideTrendSeries(contestType) {
@@ -6126,11 +6264,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function showVoteCounter() {
       const counter = document.getElementById('vote-counter');
       if (counter) counter.style.display = 'block';
+      try { updateMobileOverlayOffsets(); } catch (_) {}
     }
 
     function hideVoteCounter() {
       const counter = document.getElementById('vote-counter');
       if (counter) counter.style.display = 'none';
+      try { updateMobileOverlayOffsets(); } catch (_) {}
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -8770,13 +8910,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMobileOverlayOffsets() {
-      // Measure the top fly-to bar on every viewport size, then update mobile overlay spacing.
+      // Measure the floating UI so mobile overlays and the desktop right rail can avoid collisions.
       try {
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        const isDesktop = window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
         const root = document.documentElement;
         const topbar = document.getElementById('map-topbar');
+        const voteCounter = document.getElementById('vote-counter');
         const th = topbar ? Math.round(topbar.getBoundingClientRect().height) : 112;
         root.style.setProperty('--topbar-h', `${Math.max(0, th)}px`);
+        if (isDesktop) {
+          const counterVisible = !!(voteCounter && voteCounter.style.display !== 'none' && voteCounter.getClientRects().length);
+          const vh = counterVisible ? Math.round(voteCounter.getBoundingClientRect().height) : 0;
+          root.style.setProperty('--desktop-vote-counter-h', `${Math.max(0, vh)}px`);
+        } else {
+          root.style.removeProperty('--desktop-vote-counter-h');
+        }
         if (!isMobile) {
           root.style.removeProperty('--legend-h');
           root.style.removeProperty('--controls-h');
@@ -8799,6 +8948,22 @@ document.addEventListener('DOMContentLoaded', function() {
         updateMobileOverlayOffsets();
         window.addEventListener('resize', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
         window.addEventListener('orientationchange', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
+        if (typeof ResizeObserver !== 'undefined') {
+          const targets = ['map-topbar', 'main-controls', 'legend', 'vote-counter']
+            .map(id => document.getElementById(id))
+            .filter(Boolean);
+          if (targets.length) {
+            if (window.__overlayOffsetsResizeObserver) {
+              try { window.__overlayOffsetsResizeObserver.disconnect(); } catch (_) {}
+            }
+            window.__overlayOffsetsResizeObserver = new ResizeObserver(() => {
+              try { updateMobileOverlayOffsets(); } catch (_) {}
+            });
+            targets.forEach(node => {
+              try { window.__overlayOffsetsResizeObserver.observe(node); } catch (_) {}
+            });
+          }
+        }
       } catch (_) {}
     }
 
