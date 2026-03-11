@@ -4,7 +4,7 @@
 
 The live app is now presented as **North Carolina Election Atlas**, which is the public-facing name used in the current UI.
 
-**Live site:** [https://tenjin25.github.io/NCPrecinctMap/](https://tenjin25.github.io/NCPrecinctMap/)
+**Live site:** [https://tenjin25.github.io/NCElectionAtlas/](https://tenjin25.github.io/NCElectionAtlas/)
 
 ---
 
@@ -52,6 +52,7 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 - **Multiple Views:** Counties, Precincts (zoomed in), Congressional Districts, State House, State Senate
 - **Contest Picker:** Only valid contests for the current view are shown, driven by manifest files
 - **Atlas-Style Desktop UI:** Refined left/right control rails, statewide snapshot cards, and map-first layout inspired by modern election atlas interfaces
+- **Regional Quick Jumps:** Preset regions like the Triangle, Triad, Charlotte Metro, Mountains, Coast, and Sandhills can zoom the map and pin an aggregated regional result summary
 - **Unopposed Filtering (Counties):** Unopposed Council of State contests are hidden from the Counties picker
 - **Hover + Sidebar Details:** Margins, vote shares, flip/shift modes, statewide summaries, and trend history for each geography
 - **Compact Map Key:** Margins, winners, shift, and flips legends are presented in a cleaner visual key instead of long text lists
@@ -65,10 +66,13 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 - Refined the desktop atlas layout with tighter left/right rails, a stronger statewide results card, and a more polished controls panel.
 - Renamed the public-facing app to **North Carolina Election Atlas** on **March 10, 2026** to match the UI overhaul and atlas-style presentation.
 - Reworked the statewide summary presentation so the lead is shown as a margin percentage again, while previous-election trend tiles carry fuller winner/lead context.
+- Added preset regional rollups so quick jumps like **Triangle**, **Triad**, **Charlotte Metro**, **Mountains**, **Coast**, and **Sandhills** can show aggregated results and trend history instead of acting as camera jumps only.
 - Rebuilt the map key into compact visual legend modes for margins, winners, shift, and flips instead of relying on long stacked text rows.
 - Restored the original competitiveness naming in the legend and summary labels: `Annihilation`, `Dominant`, `Stronghold`, `Safe`, `Likely`, `Lean`, `Tilt`, `Tossup`.
 - Improved the trend chart readability by emphasizing labeled election points and guide bands over a heavy connector line.
+- Replaced the older line-graph-style statewide trend view with a more readable top-right timeline/history module for statewide and regional summaries.
 - Styled the `North Carolina Election Atlas` control header as a pill and carried that treatment into the minimized state so the panel title stays consistent.
+- Adjusted the top-right winner summary so wider desktop layouts can keep full candidate names with party labels while narrower widths fall back to shorter labels.
 
 - Added historical Counties-view Council of State contest slices for **2000, 2004, and 2008**.
 - Rebuilt **2012** Council of State county/precinct slices with updated manifest metadata.
@@ -100,16 +104,33 @@ The current `index.html` includes several speed-focused improvements that are al
 
 - **Desktop atlas layout:** The main map now uses dedicated desktop rails instead of treating controls and summaries like generic floating cards.
 - **Statewide snapshot focus:** The right-side summary stays visible while browsing counties, districts, and prior-election trend history.
-- **Trend display:** Trend history combines labeled point plots with summary tiles so individual election years are easier to read at a glance.
+- **Regional focus mode:** Quick-jump presets can pin multi-county regional summaries and use the same top-right module as statewide and county selections.
+- **Trend display:** The top-right trend area now uses a more readable history/timeline layout rather than leaning on a compact line graph alone.
 - **Header language:** The control header and minimized state now use the full `North Carolina Election Atlas` title in pill form for stronger branding and consistency.
+- **Responsive winner labels:** The winner pill keeps full candidate names on wider desktop widths and shortens them only when space is tighter.
+
+## Regional Presets
+
+The preset region buttons are more than camera shortcuts. They use curated North Carolina county groups so the app can calculate grouped results and trend history for commonly used regions.
+
+- **Current presets:** Triangle, Triad, Charlotte Metro, Mountains, Coast, and Sandhills
+- **How they work:** Clicking a preset zooms the map and pins an aggregated multi-county summary in the top-right analysis panel
+- **Definition note:** These are curated regional groupings for atlas use, so they may not match every economic-development, media-market, or commuting-region definition
+
+## Current Limitations
+
+- **District-only precinct coloring:** Precinct overlays on district maps work best for statewide contests. True precinct coloring for district-only races still depends on having precinct-level district results.
+- **Non-geographic vote buckets:** Early vote, absentee, provisional, and similar buckets remain in totals but do not map to precinct shapes.
+- **Regional definitions:** Region margins depend on the county set chosen for that preset, so a broader or narrower Charlotte/Triad/Sandhills definition will change the result.
 
 ## What to Expect on the Live Site
 
-Visit [https://tenjin25.github.io/NCPrecinctMap/](https://tenjin25.github.io/NCPrecinctMap/) — no installation or login required.
+Visit [https://tenjin25.github.io/NCElectionAtlas/](https://tenjin25.github.io/NCElectionAtlas/) — no installation or login required.
 
 - **Interactive Map:** Zoom and pan across North Carolina, with overlays for counties, precincts, and legislative districts.
 - **Contest Picker:** Select from available contests (President, US Senate, Governor, State House, etc.) and election years. Only contests with data will appear.
 - **Dynamic Views:** Switch between Counties, Precincts, Congressional Districts, State House, and State Senate. The map and sidebar update to reflect your selection.
+- **Regional Presets:** Use quick jumps like Triangle, Triad, Charlotte Metro, Mountains, Coast, and Sandhills to zoom and see grouped regional vote summaries.
 - **Hover and Sidebar Details:** See candidate names, vote totals, margins, and trend lines for any geography.
 - **Data Coverage:** Precinct-level results span **2000–2024**. Some contests or years may be incomplete depending on source data availability.
 - **Judicial and Special Contests:** Appear in the Counties view contest picker where available.
@@ -134,7 +155,7 @@ Visit [https://tenjin25.github.io/NCPrecinctMap/](https://tenjin25.github.io/NCP
 
 ## Getting Started
 
-This project is deployed on GitHub Pages and requires no local setup to use. Simply visit the [live site](https://tenjin25.github.io/NCPrecinctMap/).
+This project is deployed on GitHub Pages and requires no local setup to use. Simply visit the [live site](https://tenjin25.github.io/NCElectionAtlas/).
 
 To build or modify data files locally, you will need Python 3.x and PowerShell. See the "Rebuilding Data" section below.
 
