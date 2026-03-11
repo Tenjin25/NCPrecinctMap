@@ -9949,7 +9949,27 @@ document.addEventListener('DOMContentLoaded', function() {
               // Show tooltip with results.
               renderCountyHoverAtPoint(e);
               setTooltipPinned(true);      // Explicitly pin the tooltip
-              wireTooltipButtons();        // Ensure Pin/Unpin buttons are functional
+              
+              // Update button text and re-wire to ensure consistency
+              const pinBtn = document.getElementById('tooltip-pin-btn');
+              if (pinBtn) {
+                pinBtn.textContent = 'Unpin';
+                pinBtn.onclick = () => {
+                  setTooltipPinned(!tooltipPinned);
+                  pinBtn.textContent = tooltipPinned ? 'Unpin' : 'Pin';
+                };
+              }
+              const closeBtn = document.getElementById('tooltip-close-btn');
+              if (closeBtn) {
+                closeBtn.onclick = () => {
+                  setTooltipPinned(false);
+                  const tooltip = document.getElementById('hover-tooltip');
+                  if (tooltip) tooltip.style.display = 'none';
+                  clearHoverOutline();
+                  clearVoteCounterHoverState();
+                };
+              }
+              
               maybePinTooltipForTap();     // Additional handling for touch devices
               
               // Optionally, expand sidebar if minimized
