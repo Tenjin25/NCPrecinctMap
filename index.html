@@ -9517,15 +9517,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showCountyDetails(countyName) {
-      if (!SIDEBAR_ENABLED) return;
       // --- NC Map Card-Style Sidebar ---
       const sidebar = document.getElementById('sidebar');
       let sidebarContent = '';
       const detailsDiv = document.getElementById('county-details');
       const contentEl = document.getElementById('county-info-content');
+      const sidebarReady = !!(SIDEBAR_ENABLED && contentEl && detailsDiv);
       // sidebarContent will be declared once below
-      if (!contentEl || !detailsDiv) return;
-      if (sidebar) {
+      if (sidebarReady && sidebar) {
         sidebar.classList.remove('minimized');
         const sidebarContentEl = document.querySelector('.sidebar-content');
         if (sidebarContentEl) sidebarContentEl.style.display = 'block';
@@ -9548,8 +9547,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // sidebarContent already declared above
       // Guard: election results must exist
       if (!currentElectionResults) {
-        contentEl.innerHTML = '<p>Select a contest to see county results.</p>';
-        detailsDiv.style.display = 'block';
+        if (sidebarReady) {
+          contentEl.innerHTML = '<p>Select a contest to see county results.</p>';
+          detailsDiv.style.display = 'block';
+        }
         return;
       }
       // Normalize and find county data
@@ -9571,16 +9572,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       if (!countyData) {
-        contentEl.innerHTML = '<p>No results found for this county in the selected contest.</p>';
-        detailsDiv.style.display = 'block';
+        if (sidebarReady) {
+          contentEl.innerHTML = '<p>No results found for this county in the selected contest.</p>';
+          detailsDiv.style.display = 'block';
+        }
         return;
       }
       // Get contest info
       const contestSelect = document.getElementById('contestSelect');
       const contestKey = contestSelect && contestSelect.value;
       if (!contestKey) {
-        contentEl.innerHTML = '<p>Select a contest to see detailed results.</p>';
-        detailsDiv.style.display = 'block';
+        if (sidebarReady) {
+          contentEl.innerHTML = '<p>Select a contest to see detailed results.</p>';
+          detailsDiv.style.display = 'block';
+        }
         return;
       }
       const lastUnderscoreIndex = contestKey.lastIndexOf('_');
@@ -9592,8 +9597,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const otherVotes = countyData[`${contestType}_other`] || 0;
       const totalVotes = countyData[`${contestType}_total`] || 0;
       if (totalVotes === 0) {
-        contentEl.innerHTML = `<p>No ${formatContestName(contestType, year)} data available for ${countyDisplay} County in ${year}.</p>`;
-        detailsDiv.style.display = 'block';
+        if (sidebarReady) {
+          contentEl.innerHTML = `<p>No ${formatContestName(contestType, year)} data available for ${countyDisplay} County in ${year}.</p>`;
+          detailsDiv.style.display = 'block';
+        }
         return;
       }
       const demPct = (demVotes / totalVotes * 100);
@@ -9612,6 +9619,7 @@ document.addEventListener('DOMContentLoaded', function() {
         { kind: 'county', county: countyDisplay.toUpperCase(), contestType, year: Number(year) },
         { demCandidate, repCandidate }
       );
+      if (!sidebarReady) return;
       // Margin
       const margin = demVotes - repVotes;
       const marginPct = (Math.abs(margin) / totalVotes * 100).toFixed(2);
