@@ -9992,7 +9992,9 @@ document.addEventListener('DOMContentLoaded', function() {
               
               // Show tooltip with results.
               renderCountyHoverAtPoint(e);
-              maybePinTooltipForTap();
+              setTooltipPinned(true);      // Explicitly pin the tooltip
+              wireTooltipButtons();        // Ensure Pin/Unpin buttons are functional
+              maybePinTooltipForTap();     // Additional handling for touch devices
               
               // Optionally, expand sidebar if minimized
               const sidebar = document.getElementById('sidebar');
@@ -10475,6 +10477,7 @@ document.addEventListener('DOMContentLoaded', function() {
               // Mobile-friendly: show a tap tooltip (and outline) on selection.
               try {
                 await renderDistrictHover(e, 'congressional', 'Congressional District', ['DISTRICT', 'CD118FP', 'district_id', 'district', 'NAMELSAD']);
+                setTooltipPinned(true);  // Explicitly pin the tooltip
                 maybePinTooltipForTap();
               } catch (_) {}
             }
@@ -10564,6 +10567,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
               try {
                 await renderDistrictHover(e, 'state_house', 'State House District', ['DISTRICT', 'SLDLST', 'district_id', 'district', 'NAMELSAD']);
+                setTooltipPinned(true);  // Explicitly pin the tooltip
                 maybePinTooltipForTap();
               } catch (_) {}
             }
@@ -10653,6 +10657,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
               try {
                 await renderDistrictHover(e, 'state_senate', 'State Senate District', ['DISTRICT', 'SLDUST', 'district_id', 'district', 'NAMELSAD']);
+                setTooltipPinned(true);  // Explicitly pin the tooltip
                 maybePinTooltipForTap();
               } catch (_) {}
             }
