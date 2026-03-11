@@ -3794,18 +3794,8 @@ body { height: var(--app-height); }
     gap: 14px;
   }
 
-  .controls-brief-grid {
-    display: grid;
-    gap: 14px;
-  }
-
   .desktop-fly-group {
     display: none;
-  }
-
-  .viz-inline-group {
-    display: grid;
-    gap: 8px;
   }
 
   .main-controls .control-group {
@@ -4038,11 +4028,6 @@ body { height: var(--app-height); }
   .desktop-statewide-body {
     display: grid;
     gap: 12px;
-  }
-
-  .control-summary,
-  .desktop-statewide-panel {
-    min-width: 0;
   }
 
   .statewide-card {
@@ -4294,14 +4279,6 @@ body { height: var(--app-height); }
     min-width: 0;
   }
 
-  .legend-copy h4 {
-    margin: 0;
-    font-size: 18px;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: #0f172a;
-  }
-
   .legend-kicker {
     display: inline-flex;
     width: fit-content;
@@ -4495,17 +4472,16 @@ body { height: var(--app-height); }
   }
 
   .legend-chip-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
   .legend-chip {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     min-height: 28px;
-    padding: 8px 10px;
+    padding: 0 10px;
     border-radius: 999px;
     background: rgba(248, 250, 252, 0.96);
     border: 1px solid rgba(148, 163, 184, 0.18);
@@ -4513,8 +4489,6 @@ body { height: var(--app-height); }
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.04em;
-    line-height: 1.25;
-    text-align: center;
     text-transform: uppercase;
   }
 
@@ -4700,11 +4674,6 @@ body { height: var(--app-height); }
       flex-direction: column;
     }
 
-    .controls-brief-grid {
-      grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
-      align-items: stretch;
-    }
-
     .controls-content {
       flex: 1 1 auto;
       min-height: 0;
@@ -4722,15 +4691,6 @@ body { height: var(--app-height); }
       border: 1px solid rgba(148, 163, 184, 0.18);
       background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.94) 100%);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
-    }
-
-    .control-summary,
-    .desktop-statewide-panel {
-      min-height: 100%;
-    }
-
-    .viz-inline-group {
-      display: none;
     }
 
     .desktop-statewide-panel .statewide-call {
@@ -4842,6 +4802,8 @@ body { height: var(--app-height); }
       --topbar-h: 0px;
       --desktop-left-w: 500px;
       --desktop-right-w: 340px;
+      --desktop-right-gap: 14px;
+      --desktop-vote-counter-h: 0px;
     }
 
     .map-topbar {
@@ -4854,37 +4816,8 @@ body { height: var(--app-height); }
     }
 
     .desktop-ui-right {
-      display: flex !important;
-      flex-direction: column;
-      gap: 14px;
-      top: 20px !important;
       width: min(var(--desktop-right-w), calc(100vw - 48px));
       right: 24px;
-      left: auto !important;
-      max-height: calc(100vh - 40px);
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      pointer-events: auto;
-      padding-right: 4px;
-    }
-
-    .desktop-ui-right > * {
-      position: static !important;
-      top: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      left: auto !important;
-      width: 100% !important;
-      max-width: none !important;
-      min-width: 0 !important;
-      transform: none !important;
-      flex: 0 0 auto;
-    }
-
-    .desktop-ui-right .viz-modes,
-    .desktop-ui-right .vote-counter,
-    .desktop-ui-right .legend {
-      backdrop-filter: blur(14px);
     }
 
     .main-controls {
@@ -5055,8 +4988,10 @@ body { height: var(--app-height); }
     }
 
     .vote-counter {
-      width: 100% !important;
-      max-width: none !important;
+      top: 20px !important;
+      right: 24px !important;
+      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
+      max-width: var(--desktop-right-w) !important;
       min-width: 0 !important;
       max-height: min(58vh, 620px) !important;
       overflow-x: hidden;
@@ -5065,10 +5000,13 @@ body { height: var(--app-height); }
     }
 
     .legend {
-      width: 100% !important;
-      max-width: none !important;
+      right: 24px !important;
+      top: calc(20px + var(--desktop-vote-counter-h) + var(--desktop-right-gap)) !important;
+      bottom: auto !important;
+      width: min(var(--desktop-right-w), calc(100vw - 48px)) !important;
+      max-width: var(--desktop-right-w) !important;
       min-width: 0 !important;
-      max-height: none !important;
+      max-height: max(180px, calc(100vh - 40px - var(--desktop-vote-counter-h) - var(--desktop-right-gap))) !important;
       overflow-y: auto;
     }
 
@@ -5369,31 +5307,29 @@ document.addEventListener('DOMContentLoaded', function() {
                   <button class="desktop-fly-chip" type="button" data-search-example="Wake 01-14">Wake 01-14</button>
                 </div>
             </div>
-            <div class="controls-brief-grid">
-              <div class="control-summary" id="control-summary">
-                  <div class="control-summary-head">
-                    <span class="control-summary-kicker">Current map</span>
-                    <span class="control-summary-mode" id="control-summary-mode">Margins</span>
+            <div class="control-summary" id="control-summary">
+                <div class="control-summary-head">
+                  <span class="control-summary-kicker">Current map</span>
+                  <span class="control-summary-mode" id="control-summary-mode">Margins</span>
+                </div>
+                <div class="control-summary-title" id="control-summary-title">Choose a contest</div>
+                <div class="control-summary-meta">
+                  <span class="control-summary-pill" id="control-summary-view">Counties</span>
+                  <span class="control-summary-pill control-summary-pill-muted" id="control-summary-year">No contest selected</span>
+                </div>
+            </div>
+            <div class="desktop-statewide-panel" id="desktop-statewide-panel">
+                <div class="desktop-statewide-head">
+                  <div class="desktop-statewide-copy">
+                    <span class="desktop-statewide-kicker">Statewide snapshot</span>
+                    <div class="desktop-statewide-title" data-statewide-contest-name="true">Choose a contest</div>
+                    <div class="desktop-statewide-sub">Keeps the statewide race call visible while you browse counties, districts, and trend history.</div>
                   </div>
-                  <div class="control-summary-title" id="control-summary-title">Choose a contest</div>
-                  <div class="control-summary-meta">
-                    <span class="control-summary-pill" id="control-summary-view">Counties</span>
-                    <span class="control-summary-pill control-summary-pill-muted" id="control-summary-year">No contest selected</span>
-                  </div>
-              </div>
-              <div class="desktop-statewide-panel" id="desktop-statewide-panel">
-                  <div class="desktop-statewide-head">
-                    <div class="desktop-statewide-copy">
-                      <span class="desktop-statewide-kicker">Statewide snapshot</span>
-                      <div class="desktop-statewide-title" data-statewide-contest-name="true">Choose a contest</div>
-                      <div class="desktop-statewide-sub">Keeps the statewide race call visible while you browse counties, districts, and trend history.</div>
-                    </div>
-                    <span class="desktop-statewide-tag">Live summary</span>
-                  </div>
-                  <div class="desktop-statewide-body" data-statewide-content="true">
-                    <p class="desktop-statewide-placeholder">Select a contest to see the statewide leader, vote split, and competitiveness.</p>
-                  </div>
-              </div>
+                  <span class="desktop-statewide-tag">Live summary</span>
+                </div>
+                <div class="desktop-statewide-body" data-statewide-content="true">
+                  <p class="desktop-statewide-placeholder">Select a contest to see the statewide leader, vote split, and competitiveness.</p>
+                </div>
             </div>
             <div class="control-group" style="margin-bottom:12px;">
                 <span class="section-kicker">Quick Jumps</span>
@@ -5447,6 +5383,69 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
+    <!-- Legend -->
+    <div class="legend" id="legend">
+        <div class="legend-header">
+            <div class="legend-header-main">
+              <div class="legend-handle" aria-hidden="true"></div>
+              <div class="legend-copy">
+                <span class="legend-kicker">Map key</span>
+                <h4>Political Categories</h4>
+                <p class="legend-subtitle" id="legend-subtitle">Two-party margin buckets for the selected contest.</p>
+              </div>
+            </div>
+            <div class="legend-header-actions">
+              <span class="legend-badge" id="legend-badge">Margins</span>
+              <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn" title="Minimize legend">-</button>
+            </div>
+        </div>
+        <div class="legend-content" id="legend-content">
+            <div class="legend-scale-shell">
+              <div class="legend-spectrum margins">
+                <span class="legend-segment legend-color" style="background: #67000d;"></span>
+                <span class="legend-segment legend-color" style="background: #a50f15;"></span>
+                <span class="legend-segment legend-color" style="background: #cb181d;"></span>
+                <span class="legend-segment legend-color" style="background: #ef3b2c;"></span>
+                <span class="legend-segment legend-color" style="background: #fb6a4a;"></span>
+                <span class="legend-segment legend-color" style="background: #fcae91;"></span>
+                <span class="legend-segment legend-color" style="background: #fee8c8;"></span>
+                <span class="legend-segment legend-color" style="background: #f7f7f7; border-left: 1px solid rgba(15,23,42,0.12); border-right: 1px solid rgba(15,23,42,0.12);"></span>
+                <span class="legend-segment legend-color" style="background: #e1f5fe;"></span>
+                <span class="legend-segment legend-color" style="background: #c6dbef;"></span>
+                <span class="legend-segment legend-color" style="background: #9ecae1;"></span>
+                <span class="legend-segment legend-color" style="background: #6baed6;"></span>
+                <span class="legend-segment legend-color" style="background: #3182bd;"></span>
+                <span class="legend-segment legend-color" style="background: #08519c;"></span>
+                <span class="legend-segment legend-color" style="background: #08306b;"></span>
+              </div>
+              <div class="legend-scale-caption">
+                <span class="rep">Stronger Republican</span>
+                <span>Tossup</span>
+                <span class="dem">Stronger Democratic</span>
+              </div>
+              <div class="legend-axis margins">
+                <span class="rep">R +40</span>
+                <span class="rep">R +10</span>
+                <span class="rep">R +1</span>
+                <span>Tie</span>
+                <span class="dem">D +1</span>
+                <span class="dem">D +10</span>
+                <span class="dem">D +40</span>
+              </div>
+              <div class="legend-chip-row">
+                <span class="legend-chip">Annihilation 40+</span>
+                <span class="legend-chip">Dominant 30+</span>
+                <span class="legend-chip">Stronghold 20+</span>
+                <span class="legend-chip">Safe 10+</span>
+                <span class="legend-chip">Likely 5.5+</span>
+                <span class="legend-chip">Lean 1+</span>
+                <span class="legend-chip">Tilt 0.5+</span>
+                <span class="legend-chip">Tossup &lt;0.5</span>
+              </div>
+            </div>
+        </div>
+        <div class="legend-footer" id="legend-footer">Darker shades indicate larger two-party leads in the current contest.</div>
+    </div>
   </div>
 
   <div class="desktop-ui-right">
@@ -5546,68 +5545,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="vote-share-track"><span class="vote-share-fill other" id="other-share-fill"></span></div>
       </div>
     </div>
-  </div>
-  <div class="legend" id="legend">
-      <div class="legend-header">
-          <div class="legend-header-main">
-            <div class="legend-handle" aria-hidden="true"></div>
-            <div class="legend-copy">
-              <span class="legend-kicker">Map key</span>
-              <h4>Political Categories</h4>
-              <p class="legend-subtitle" id="legend-subtitle">Two-party margin buckets for the selected contest.</p>
-            </div>
-          </div>
-          <div class="legend-header-actions">
-            <span class="legend-badge" id="legend-badge">Margins</span>
-            <button class="minimize-btn" onclick="toggleLegend()" id="legend-minimize-btn" title="Minimize legend">-</button>
-          </div>
-      </div>
-      <div class="legend-content" id="legend-content">
-          <div class="legend-scale-shell">
-            <div class="legend-spectrum margins">
-              <span class="legend-segment legend-color" style="background: #67000d;"></span>
-              <span class="legend-segment legend-color" style="background: #a50f15;"></span>
-              <span class="legend-segment legend-color" style="background: #cb181d;"></span>
-              <span class="legend-segment legend-color" style="background: #ef3b2c;"></span>
-              <span class="legend-segment legend-color" style="background: #fb6a4a;"></span>
-              <span class="legend-segment legend-color" style="background: #fcae91;"></span>
-              <span class="legend-segment legend-color" style="background: #fee8c8;"></span>
-              <span class="legend-segment legend-color" style="background: #f7f7f7; border-left: 1px solid rgba(15,23,42,0.12); border-right: 1px solid rgba(15,23,42,0.12);"></span>
-              <span class="legend-segment legend-color" style="background: #e1f5fe;"></span>
-              <span class="legend-segment legend-color" style="background: #c6dbef;"></span>
-              <span class="legend-segment legend-color" style="background: #9ecae1;"></span>
-              <span class="legend-segment legend-color" style="background: #6baed6;"></span>
-              <span class="legend-segment legend-color" style="background: #3182bd;"></span>
-              <span class="legend-segment legend-color" style="background: #08519c;"></span>
-              <span class="legend-segment legend-color" style="background: #08306b;"></span>
-            </div>
-            <div class="legend-scale-caption">
-              <span class="rep">Stronger Republican</span>
-              <span>Tossup</span>
-              <span class="dem">Stronger Democratic</span>
-            </div>
-            <div class="legend-axis margins">
-              <span class="rep">R +40</span>
-              <span class="rep">R +10</span>
-              <span class="rep">R +1</span>
-              <span>Tie</span>
-              <span class="dem">D +1</span>
-              <span class="dem">D +10</span>
-              <span class="dem">D +40</span>
-            </div>
-            <div class="legend-chip-row">
-              <span class="legend-chip">Annihilation 40+</span>
-              <span class="legend-chip">Dominant 30+</span>
-              <span class="legend-chip">Stronghold 20+</span>
-              <span class="legend-chip">Safe 10+</span>
-              <span class="legend-chip">Likely 5.5+</span>
-              <span class="legend-chip">Lean 1+</span>
-              <span class="legend-chip">Tilt 0.5+</span>
-              <span class="legend-chip">Tossup &lt;0.5</span>
-            </div>
-          </div>
-      </div>
-      <div class="legend-footer" id="legend-footer">Darker shades indicate larger two-party leads in the current contest.</div>
   </div>
   </div>
 
@@ -6206,7 +6143,18 @@ document.addEventListener('DOMContentLoaded', function() {
       return `${full} (${partyCode})`;
     }
 
+    function shouldUseCompactVoteCounterWinnerLabel() {
+      try {
+        return !!(window.matchMedia && window.matchMedia('(max-width: 1180px)').matches);
+      } catch (_) {
+        return true;
+      }
+    }
+
     function formatVoteCounterWinnerLabel(name, partyCode, fallbackText) {
+      if (!shouldUseCompactVoteCounterWinnerLabel()) {
+        return formatVoteCounterCandidateLabel(name, partyCode, fallbackText);
+      }
       const short = shortCandidateLabel(name, fallbackText);
       if (!short || short.toUpperCase() === partyCode.toUpperCase()) return fallbackText;
       return `${short} (${partyCode})`;
@@ -6473,7 +6421,6 @@ document.addEventListener('DOMContentLoaded', function() {
         latest.item.rep_candidate,
         latest.item.dem_candidate
       );
-
       const earliest = annotated[0];
       const historyShift = describeTrendShift(latest.signedPct, earliest ? earliest.signedPct : NaN, earliest ? earliest.item.year : '');
       let streakCount = 0;
@@ -9153,7 +9100,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const row = currentPrecinctResults ? currentPrecinctResults.get(precinctNorm) : null;
       if (!row) {
-        showHoverTooltip(point.x, point.y, buildTooltipShell(title, `<div style="color:#64748b;">${getPrecinctOverlayUnavailableMessage()}</div>`));
+        showHoverTooltip(point.x, point.y, buildTooltipShell(title, '<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>'));
         wireTooltipButtons();
         return;
       }
@@ -9457,10 +9404,19 @@ document.addEventListener('DOMContentLoaded', function() {
       // Measure the floating UI so mobile overlays and the desktop right rail can avoid collisions.
       try {
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        const isDesktop = window.matchMedia && window.matchMedia('(min-width: 769px)').matches;
         const root = document.documentElement;
         const topbar = document.getElementById('map-topbar');
+        const voteCounter = document.getElementById('vote-counter');
         const th = topbar ? Math.round(topbar.getBoundingClientRect().height) : 112;
         root.style.setProperty('--topbar-h', `${Math.max(0, th)}px`);
+        if (isDesktop) {
+          const counterVisible = !!(voteCounter && voteCounter.style.display !== 'none' && voteCounter.getClientRects().length);
+          const vh = counterVisible ? Math.round(voteCounter.getBoundingClientRect().height) : 0;
+          root.style.setProperty('--desktop-vote-counter-h', `${Math.max(0, vh)}px`);
+        } else {
+          root.style.removeProperty('--desktop-vote-counter-h');
+        }
         if (!isMobile) {
           root.style.removeProperty('--legend-h');
           root.style.removeProperty('--controls-h');
@@ -9968,9 +9924,9 @@ document.addEventListener('DOMContentLoaded', function() {
                   const series = await getCountyTrendSeries(trendType, countyName);
                   const content = formatTrendSeries(`${countyName} County - ${formatContestName(trendType, '')} Trends`, series);
                   showHoverTooltip(e.point.x, e.point.y, content);
-                  maybePinTooltipForTap();
                   wireTooltipButtons();
-                } catch (err) {}
+                  maybePinTooltipForTap();
+                } catch (err) {
                   console.warn('Failed to load county trends:', err?.message || err);
                 }
               }
@@ -10289,7 +10245,7 @@ document.addEventListener('DOMContentLoaded', function() {
               showHoverTooltip(
                 evt.point.x,
                 evt.point.y,
-                buildTooltipShell(title, `<div style="color:#64748b;">${getPrecinctOverlayUnavailableMessage()}</div>`)
+                buildTooltipShell(title, `<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>`)
               );
               wireTooltipButtons();
               return;
@@ -12494,274 +12450,6 @@ document.addEventListener('DOMContentLoaded', function() {
       return cached;
     }
 
-    function getPrecinctOverlayUnavailableMessage() {
-      const contestValue = document.getElementById('contestSelect')?.value || '';
-      const [contestType] = parseContestValue(contestValue);
-      if ((currentView === 'districts' || currentView === 'state_house' || currentView === 'state_senate') && contestType === 'us_house') {
-        return 'Precinct boundaries are available here, but only district-level totals are loaded for this contest.';
-      }
-      return 'No precinct-level results are loaded for this contest in this view.';
-    }
-
-    function paintPrecinctOverlay(fillPaint) {
-      lastPrecinctFillExpr = fillPaint;
-      lastPrecinctDotExpr = fillPaint;
-      if (map.getLayer('precinct-fill')) {
-        try { map.setPaintProperty('precinct-fill', 'fill-color', fillPaint); } catch (_) {}
-      }
-      if (map.getLayer('precinct-dot')) {
-        try { map.setPaintProperty('precinct-dot', 'circle-color', fillPaint); } catch (_) {}
-      }
-      if (map.getLayer('precinct-dot-missing')) {
-        try { map.setPaintProperty('precinct-dot-missing', 'circle-color', fillPaint); } catch (_) {}
-      }
-    }
-
-    function clearPrecinctOverlayResults(fillPaint = '#d1d5db') {
-      currentPrecinctResults = null;
-      paintPrecinctOverlay(fillPaint);
-    }
-
-    function normalizePrecinctOverlayCountyName(name) {
-      return (name || '')
-        .replace(/[^a-z0-9 .\-]/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .toUpperCase();
-    }
-
-    function createPrecinctNormVariantsResolver(precinctIdx) {
-      function isNonGeographicPrecinctCode(code, countyNorm = '') {
-        const c = (code || '').toString().trim().toUpperCase();
-        if (c && precinctIdx && countyNorm) {
-          const codes = precinctIdx.get(countyNorm);
-          if (codes && codes.has(c)) return false;
-        }
-        return isNonGeographicPrecinctToken(c, countyNorm);
-      }
-
-      return function precinctNormVariants(rowName) {
-        const raw = (rowName || '').toString();
-        const out = new Set();
-        const primary = normalizePrecinctOverlayCountyName(raw);
-        if (primary) out.add(primary);
-
-        if (!raw.includes(' - ')) return Array.from(out);
-        const [countyOnlyRaw, precRaw0] = raw.split(' - ', 2);
-        const countyOnly = (countyOnlyRaw || '').trim();
-        const countyNorm = normalizePrecinctOverlayCountyName(countyOnly);
-        const precRaw = (precRaw0 || '').trim().toUpperCase();
-        if (!countyOnly || !precRaw) return Array.from(out);
-        if (isNonGeographicPrecinctCode(precRaw, countyNorm)) return [];
-
-        let baseToken = '';
-        try {
-          const firstToken = precRaw.split(/\s+/, 1)[0].trim();
-          const token0 = (firstToken.includes('_') ? firstToken.split('_', 1)[0] : firstToken).trim();
-          baseToken = (token0 || '').toString().trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '').trim();
-        } catch (_) {
-          baseToken = '';
-        }
-
-        try {
-          const tokenRaw = (baseToken || '').toString().trim().toUpperCase();
-          const token = tokenRaw.replace(/[^A-Z0-9.\-]/g, '').trim();
-          const tokenOk = token && (
-            /^[A-Z]{0,3}\d{1,4}(?:-\d{1,4})?[A-Z]{0,2}$/.test(token) ||
-            /^0*\d{1,3}\.\d{1,3}$/.test(token)
-          );
-          if (tokenOk) {
-            const addKey = (t) => {
-              const altFull = normalizePrecinctOverlayCountyName(`${countyOnly} - ${t}`);
-              if (altFull) out.add(altFull);
-            };
-
-            addKey(token);
-            if (/^\d{1,5}$/.test(token)) {
-              const n = parseInt(token, 10);
-              if (!isNaN(n)) {
-                addKey(String(n));
-                addKey(String(n).padStart(2, '0'));
-                addKey(String(n).padStart(3, '0'));
-                addKey(String(n).padStart(4, '0'));
-              }
-            }
-            const mu = token.match(/^0*([0-9]{1,4})([A-Z]{1,2})$/);
-            if (mu) {
-              const n = parseInt(mu[1], 10);
-              const suf = (mu[2] || '').toUpperCase();
-              if (!isNaN(n)) {
-                addKey(`${n}${suf}`);
-                addKey(`${String(n).padStart(2, '0')}${suf}`);
-                addKey(`${String(n).padStart(3, '0')}${suf}`);
-                addKey(`${String(n).padStart(4, '0')}${suf}`);
-              }
-            }
-            const md = token.match(/^0*([0-9]{1,3})\.([0-9]{1,3})$/);
-            if (md) {
-              const a = String(parseInt(md[1], 10)).padStart(2, '0');
-              const b = String(parseInt(md[2], 10));
-              addKey(`${a}.${b}`);
-            }
-            const mpr = token.match(/^PR(\d{1,3})$/);
-            if (mpr) {
-              const n = parseInt(mpr[1], 10);
-              if (!isNaN(n)) {
-                addKey(`PR${String(n)}`);
-                addKey(`PR${String(n).padStart(2, '0')}`);
-              }
-            }
-          }
-        } catch (_) {}
-
-        const numericOnly = precRaw.match(/^(\d{1,3})(?:-(\d+))?$/);
-        if (numericOnly) {
-          const base = numericOnly[1];
-          const baseInt = String(parseInt(base, 10));
-          if (baseInt && baseInt !== 'NaN') {
-            const altPrec = `${baseInt}A`;
-            const altFull = normalizePrecinctOverlayCountyName(`${countyOnly} - ${altPrec}`);
-            if (altFull) out.add(altFull);
-          }
-        }
-
-        try {
-          const codes = precinctIdx && countyNorm ? precinctIdx.get(countyNorm) : null;
-          const baseCompact = (baseToken || precRaw).replace(/\s+/g, '');
-          if (codes && baseCompact) {
-            const baseNum = baseCompact.match(/^0*([0-9]+)$/);
-            codes.forEach(code => {
-              const c = (code || '').toString().trim().toUpperCase();
-              const cCompact = c.replace(/\s+/g, '');
-              if (!cCompact || cCompact === baseCompact) return;
-
-              if (baseNum) {
-                const cm = cCompact.match(/^0*([0-9]+)([A-Z]{1,2})$/);
-                if (!cm) return;
-                if (parseInt(cm[1], 10) !== parseInt(baseNum[1], 10)) return;
-                const altFull = normalizePrecinctOverlayCountyName(`${countyOnly} - ${c}`);
-                if (altFull) out.add(altFull);
-                return;
-              }
-
-              if (!cCompact.startsWith(baseCompact)) return;
-              const suffix = cCompact.slice(baseCompact.length);
-              if (!suffix || suffix.length > 2) return;
-              if (!/^[A-Z0-9]{1,2}$/.test(suffix)) return;
-              if (!/[A-Z]/.test(suffix)) return;
-              const altFull = normalizePrecinctOverlayCountyName(`${countyOnly} - ${c}`);
-              if (altFull) out.add(altFull);
-            });
-          }
-        } catch (_) {}
-
-        return Array.from(out);
-      };
-    }
-
-    async function syncPrecinctOverlayForContest(contestType, year, mode = 'margins', prevCache = null) {
-      if (!precinctsEnabled) return false;
-
-      let rows = [];
-      try {
-        rows = await loadContestSlice(contestType, year);
-      } catch (_) {
-        rows = [];
-      }
-
-      const totalKey = `${contestType}_total`;
-      const detailRows = (rows || []).filter(row => {
-        const rowName = (row?.county || '').toString();
-        return rowName.includes(' - ') && Number(row?.[totalKey] || 0) > 0;
-      });
-      if (!detailRows.length) {
-        clearPrecinctOverlayResults();
-        return false;
-      }
-
-      let precinctIdx = null;
-      try { precinctIdx = await ensurePrecinctCodeIndex(); } catch (_) { precinctIdx = null; }
-      const precinctNormVariants = createPrecinctNormVariantsResolver(precinctIdx);
-
-      currentPrecinctResults = new Map();
-      detailRows.forEach(row => {
-        precinctNormVariants(row.county).forEach(norm => currentPrecinctResults.set(norm, row));
-      });
-
-      let effectivePrevCache = prevCache;
-      if (!effectivePrevCache && (mode === 'shift' || mode === 'flips')) {
-        try {
-          effectivePrevCache = await ensurePrevContestCache(contestType, Number(year), {
-            includePrecinctMargins: true
-          });
-        } catch (_) {
-          effectivePrevCache = null;
-        }
-      }
-
-      const prevPrecinctMarginByNorm = effectivePrevCache?.prevPrecinctMarginByNorm || null;
-      const exprPrecinct = ['case'];
-      let matchedPrecincts = 0;
-
-      detailRows.forEach(row => {
-        const precinctNames = precinctNormVariants(row.county);
-        const demVotes = Number(row[`${contestType}_dem`] || 0);
-        const repVotes = Number(row[`${contestType}_rep`] || 0);
-        const totalVotes = Number(row[`${contestType}_total`] || 0);
-        if (!precinctNames.length || totalVotes <= 0) return;
-
-        const signedMarginPct = Number(row[`${contestType}_margin_pct`]);
-        const winnerRaw = (row[`${contestType}_winner`] || '').toString().toUpperCase();
-        const winner = winnerRaw.startsWith('REP')
-          ? 'R'
-          : (winnerRaw.startsWith('DEM') ? 'D' : (repVotes === demVotes ? 'T' : (repVotes > demVotes ? 'R' : 'D')));
-        let color = '#d1d5db';
-
-        if (mode === 'flips') {
-          const curSigned = isNaN(signedMarginPct) ? signedMarginPctFromVotes(demVotes, repVotes, totalVotes) : signedMarginPct;
-          let prevSigned = 0;
-          for (const norm of precinctNames) {
-            if (effectivePrevCache?.prevPrecinctMarginByNorm?.has(norm)) {
-              prevSigned = effectivePrevCache.prevPrecinctMarginByNorm.get(norm);
-              break;
-            }
-          }
-          const flip = flipInfo(prevSigned, curSigned);
-          color = flip.flipped ? colorForFlipMode(flip.to) : colorForFlipMode('T');
-        } else if (mode === 'winners') {
-          color = colorForWinnerMode(winner);
-        } else if (mode === 'shift' && prevPrecinctMarginByNorm) {
-          const curSigned = isNaN(signedMarginPct) ? signedMarginPctFromVotes(demVotes, repVotes, totalVotes) : signedMarginPct;
-          let prevSigned = 0;
-          for (const norm of precinctNames) {
-            if (prevPrecinctMarginByNorm.has(norm)) {
-              prevSigned = prevPrecinctMarginByNorm.get(norm);
-              break;
-            }
-          }
-          color = colorForShiftMode(curSigned - prevSigned);
-        } else {
-          const curSigned = isNaN(signedMarginPct) ? signedMarginPctFromVotes(demVotes, repVotes, totalVotes) : signedMarginPct;
-          color = colorForMarginMode(Math.abs(curSigned), winner === 'T' ? 'R' : winner);
-        }
-
-        precinctNames.forEach(precinctName => {
-          exprPrecinct.push(['==', ['get', 'precinct_norm'], precinctName]);
-          exprPrecinct.push(color);
-          matchedPrecincts += 1;
-        });
-      });
-
-      if (!matchedPrecincts) {
-        clearPrecinctOverlayResults();
-        return false;
-      }
-
-      exprPrecinct.push('#d1d5db');
-      paintPrecinctOverlay(exprPrecinct);
-      return true;
-    }
-
     async function applyContest(contestKey) {
       if (!contestKey) return setStatus('Select a contest');
 
@@ -13320,9 +13008,6 @@ document.addEventListener('DOMContentLoaded', function() {
       expr.push('#e0e0e0'); // default color
       
       map.setPaintProperty('district-fill', 'fill-color', expr);
-      if (precinctsEnabled) {
-        clearPrecinctOverlayResults();
-      }
       setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totals.dem, totals.rep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
   setStatewideContestTitle(`US House (${year})`);
       setStatus(`Applied contest: NC US House ${year}`);
@@ -13441,9 +13126,6 @@ document.addEventListener('DOMContentLoaded', function() {
           setStatewideContestTitle(`${formatContestName(contestType, year)} (${year}) - Reallocated to court-ordered 2022 lines${coverageText}`);
           setStatus(`Applied district crosswalk results: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)${coverageText}`);
           setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year} (2022 lines)`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
-          if (precinctsEnabled) {
-            await syncPrecinctOverlayForContest(contestType, year, mode);
-          }
           return;
         }
       }
@@ -13498,9 +13180,6 @@ document.addEventListener('DOMContentLoaded', function() {
   setStatewideContestTitle(`${formatContestName(contestType, year)} (${year}) - Statewide Result`);
       setStatus(`Applied statewide contest: ${formatContestName(contestType, year)} ${year} (${demPct.toFixed(2)}% D, ${repPct.toFixed(2)}% R, ${otherPct.toFixed(2)}% O)`);
       setVoteCounterBaselineState('Statewide', `${formatContestName(contestType, year)} ${year}`, totalDem, totalRep, totalOther, { kind: 'statewide', contestType, year: Number(year) });
-      if (precinctsEnabled) {
-        await syncPrecinctOverlayForContest(contestType, year, 'margins');
-      }
     }
 
     window.onload = init;
