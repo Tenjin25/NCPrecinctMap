@@ -9905,48 +9905,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add county click event handler
         map.on('click', 'county-fill', async (e) => {
           if (e.features && e.features[0] && e.features[0].properties) {
-            const countyName = e.features[0].properties.precinct_name || e.features[0].properties.county_nam || e.features[0].properties.COUNTYNAME || e.features[0].properties.County || e.features[0].properties.NAME || e.features[0].properties.name;
+            const countyName = e.features[0].properties.precinct_name || e.features[0].properties.NAME20 || e.features[0].properties.CountyName || e.features[0].properties.county_nam || e.features[0].properties.COUNTYNAME || e.features[0].properties.County || e.features[0].properties.NAME || e.features[0].properties.name;
             if (countyName) {
               showCountyDetails(countyName);
               lastSelectedCounty = countyName;
               setCountyHoverOutline(countyName);
               
-              // Pin vote counter to this county for current contest (if any).
-              const contestValue = document.getElementById('contestSelect')?.value || '';
-              if (contestValue) {
-                const [contestType, year] = parseContestValue(contestValue);
-                if (contestType && currentElectionResults) {
-                  const norm = (countyName || '').toString().replace(/[^a-z0-9 .\-]/gi, '').replace(/\s+/g, ' ').trim().toUpperCase();
-                  let row = currentElectionResults[norm];
-                  if (!row) {
-                    for (const key of Object.keys(currentElectionResults)) {
-                      const keyNorm = (key || '').toString().replace(/[^a-z0-9 .\-]/gi, '').replace(/\s+/g, ' ').trim().toUpperCase();
-                      if (keyNorm === norm) {
-                        row = currentElectionResults[key];
-                        break;
-                      }
-                    }
-                  }
-                  if (row) {
-                    const demVotes = Number(row[`${contestType}_dem`] || 0);
-                    const repVotes = Number(row[`${contestType}_rep`] || 0);
-                    const otherVotes = Number(row[`${contestType}_other`] || 0);
-                    const demCandidate = row[`${contestType}_dem_candidate`] || getCandidateName(year, formatContestName(contestType, year), 'Democrat');
-                    const repCandidate = row[`${contestType}_rep_candidate`] || getCandidateName(year, formatContestName(contestType, year), 'Republican');
-                    pinVoteCounterState(
-                      `Selected: ${countyName} County`,
-                      `${formatContestName(contestType, year)} ${year}`,
-                      demVotes,
-                      repVotes,
-                      otherVotes,
-                      { demCandidate, repCandidate },
-                      { kind: 'county', county: countyName.toUpperCase(), contestType, year: Number(year) }
-                    );
-                  }
-                }
-              }
-              
-              // Show tooltip with results - match legislative district approach.
+              // Show tooltip with results - use same approach as legislative districts.
               renderCountyHoverAtPoint(e);
               setTooltipPinned(true);      // Pin after rendering (like legislative handler)
               
