@@ -5872,15 +5872,6 @@ document.addEventListener('DOMContentLoaded', function() {
       return Date.now() < hoverSuppressedUntil;
     }
 
-    function maybePinTooltipForTap() {
-      if (!IS_COARSE_POINTER) return;
-      try {
-        setTooltipPinned(true);
-        const pinBtn = document.getElementById('tooltip-pin-btn');
-        if (pinBtn) pinBtn.textContent = 'Unpin';
-      } catch (_) {}
-    }
-
     // Mobile: tapping empty space closes any pinned tooltip/highlight.
     map.on('click', (e) => {
       if (!IS_COARSE_POINTER) return;
@@ -9918,16 +9909,8 @@ document.addEventListener('DOMContentLoaded', function() {
               showCountyDetails(countyName);
               lastSelectedCounty = countyName;
               setCountyHoverOutline(countyName);
-              
-              // Show tooltip with results - use same approach as legislative districts.
-              renderCountyHoverAtPoint(e);
-              setTooltipPinned(true);      // Pin after rendering (like legislative handler)
-              
-              // Update the button text to match the pinned state
-              const pinBtn = document.getElementById('tooltip-pin-btn');
-              if (pinBtn) pinBtn.textContent = 'Unpin';
-              
-              maybePinTooltipForTap();     // Additional handling for touch devices
+              setTooltipPinned(false);
+              hideHoverTooltip();
               
               // Optionally, expand sidebar if minimized
               const sidebar = document.getElementById('sidebar');
@@ -10059,7 +10042,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
           if (e?.point && e?.features?.[0]) {
             renderPrecinctHoverAtPoint(e.point, e.features[0]);
-            maybePinTooltipForTap();
           }
         } catch (_) {}
       });
@@ -10275,7 +10257,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const f = e?.features?.[0];
             if (!f) return;
             renderPrecinctHoverAtPoint(e.point, f);
-            maybePinTooltipForTap();
           } catch (_) {}
         });
         map.on('mouseleave', layerId, () => {
@@ -10409,9 +10390,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
               // Mobile-friendly: show a tap tooltip (and outline) on selection.
               try {
-                await renderDistrictHover(e, 'congressional', 'Congressional District', ['DISTRICT', 'CD118FP', 'district_id', 'district', 'NAMELSAD']);
-                setTooltipPinned(true);  // Explicitly pin the tooltip
-                maybePinTooltipForTap();
+                setDistrictHoverOutline('congressional', districtNum);
+                setTooltipPinned(false);
+                hideHoverTooltip();
               } catch (_) {}
             }
           }
@@ -10499,9 +10480,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
 
               try {
-                await renderDistrictHover(e, 'state_house', 'State House District', ['DISTRICT', 'SLDLST', 'district_id', 'district', 'NAMELSAD']);
-                setTooltipPinned(true);  // Explicitly pin the tooltip
-                maybePinTooltipForTap();
+                setDistrictHoverOutline('state_house', districtNum);
+                setTooltipPinned(false);
+                hideHoverTooltip();
               } catch (_) {}
             }
           }
@@ -10589,9 +10570,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
 
               try {
-                await renderDistrictHover(e, 'state_senate', 'State Senate District', ['DISTRICT', 'SLDUST', 'district_id', 'district', 'NAMELSAD']);
-                setTooltipPinned(true);  // Explicitly pin the tooltip
-                maybePinTooltipForTap();
+                setDistrictHoverOutline('state_senate', districtNum);
+                setTooltipPinned(false);
+                hideHoverTooltip();
               } catch (_) {}
             }
           }
@@ -11330,12 +11311,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function buildTooltipShell(title, innerHtml) {
-      const pinLabel = tooltipPinned ? 'Unpin' : 'Pin';
       return `
         <div class="tooltip-head">
           <div class="tooltip-title">${title}</div>
           <div class="tooltip-actions">
-            <button class="tooltip-btn" id="tooltip-pin-btn" type="button">${pinLabel}</button>
             <button class="tooltip-btn" id="tooltip-close-btn" type="button">Close</button>
           </div>
         </div>
@@ -11344,15 +11323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function wireTooltipButtons() {
-      const pinBtn = document.getElementById('tooltip-pin-btn');
       const closeBtn = document.getElementById('tooltip-close-btn');
-      if (pinBtn) {
-        pinBtn.onclick = () => {
-          const newPinned = !tooltipPinned;  // Calculate the NEW state first
-          setTooltipPinned(newPinned);       // Apply it
-          pinBtn.textContent = newPinned ? 'Unpin' : 'Pin';  // Use the NEW state
-        };
-      }
       if (closeBtn) {
         closeBtn.onclick = () => {
           setTooltipPinned(false);
