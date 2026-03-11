@@ -9949,6 +9949,11 @@ document.addEventListener('DOMContentLoaded', function() {
               // Show tooltip with results - match legislative district approach.
               renderCountyHoverAtPoint(e);
               setTooltipPinned(true);      // Pin after rendering (like legislative handler)
+              
+              // Update the button text to match the pinned state
+              const pinBtn = document.getElementById('tooltip-pin-btn');
+              if (pinBtn) pinBtn.textContent = 'Unpin';
+              
               maybePinTooltipForTap();     // Additional handling for touch devices
               
               // Optionally, expand sidebar if minimized
