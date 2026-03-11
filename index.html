@@ -4624,7 +4624,7 @@ body { height: var(--app-height); }
 
   .vote-item {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(72px, 40%);
     grid-template-areas:
       "head count"
       "percent percent"
@@ -4646,6 +4646,7 @@ body { height: var(--app-height); }
     align-items: center;
     gap: 8px;
     min-width: 0;
+    overflow: hidden;
   }
 
   .vote-swatch {
@@ -4668,6 +4669,8 @@ body { height: var(--app-height); }
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .vote-percent {
