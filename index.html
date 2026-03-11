@@ -11056,6 +11056,9 @@ document.addEventListener('DOMContentLoaded', function() {
         await handlePrecinctSelection(parsed.county, parsed.code);
         return;
       }
+      if (currentView === 'districts' || currentView === 'state_house' || currentView === 'state_senate') {
+        await setMapView('counties');
+      }
       handleCountySelection(query);
     }
 
