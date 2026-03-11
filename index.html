@@ -9946,9 +9946,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
               }
               
-              // Show tooltip with results.
-              setTooltipPinned(true);      // Set pinned BEFORE rendering so button text is correct
+              // Show tooltip with results - match legislative district approach.
               renderCountyHoverAtPoint(e);
+              setTooltipPinned(true);      // Pin after rendering (like legislative handler)
               maybePinTooltipForTap();     // Additional handling for touch devices
               
               // Optionally, expand sidebar if minimized
@@ -11370,8 +11370,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const closeBtn = document.getElementById('tooltip-close-btn');
       if (pinBtn) {
         pinBtn.onclick = () => {
-          setTooltipPinned(!tooltipPinned);
-          pinBtn.textContent = tooltipPinned ? 'Unpin' : 'Pin';
+          const newPinned = !tooltipPinned;  // Calculate the NEW state first
+          setTooltipPinned(newPinned);       // Apply it
+          pinBtn.textContent = newPinned ? 'Unpin' : 'Pin';  // Use the NEW state
         };
       }
       if (closeBtn) {
