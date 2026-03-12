@@ -52,6 +52,7 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 - **Multiple Views:** Counties, Precincts (zoomed in), Congressional Districts, State House, State Senate
 - **Contest Picker:** Only valid contests for the current view are shown, driven by manifest files
 - **Atlas-Style Desktop UI:** Refined left/right control rails, statewide snapshot cards, and map-first layout inspired by modern election atlas interfaces
+- **Mobile Dock + Sheet UI:** On phones, Search / Layers / Legend open as bottom sheets with snap states (collapsed, half, full) so controls stay reachable without covering the map
 - **Regional Quick Jumps:** Preset regions like the Triangle, Triad, Charlotte Metro, Mountains, Coast, and Sandhills can zoom the map and pin an aggregated regional result summary
 - **Unopposed Filtering (Counties):** Unopposed Council of State contests are hidden from the Counties picker
 - **Hover + Sidebar Details:** Margins, vote shares, flip/shift modes, statewide summaries, and trend history for each geography
@@ -61,7 +62,7 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 
 ## Recent Updates (March 2026)
 
-**Last updated:** March 10, 2026
+**Last updated:** March 12, 2026
 
 - Refined the desktop atlas layout with tighter left/right rails, a stronger statewide results card, and a more polished controls panel.
 - Renamed the public-facing app to **North Carolina Election Atlas** on **March 10, 2026** to match the UI overhaul and atlas-style presentation.
@@ -73,6 +74,10 @@ Historical results from 2000–2020 are reallocated to these lines using Census 
 - Replaced the older line-graph-style statewide trend view with a more readable top-right timeline/history module for statewide and regional summaries.
 - Styled the `North Carolina Election Atlas` control header as a pill and carried that treatment into the minimized state so the panel title stays consistent.
 - Adjusted the top-right winner summary so wider desktop layouts can keep full candidate names with party labels while narrower widths fall back to shorter labels.
+- Added a mobile-first bottom dock (`Search`, `Layers`, `Legend`) that drives panel sheets with snap states (`collapsed`, `half`, `full`) while preserving the desktop rail layout.
+- Added touch-first interaction handling on mobile: tap-to-open info cards, reduced hover churn, and pinned tooltip behavior designed for non-hover devices.
+- Added mobile keyboard-aware behavior so focus on map/search inputs temporarily clears panel clutter and restores prior panel state after blur.
+- Updated the vote counter lead pill to show explicit party prefixes (`R+` / `D+`) on lead margin percentages.
 
 - Added historical Counties-view Council of State contest slices for **2000, 2004, and 2008**.
 - Rebuilt **2012** Council of State county/precinct slices with updated manifest metadata.
