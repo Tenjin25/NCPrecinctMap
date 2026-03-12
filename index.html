@@ -5244,6 +5244,198 @@ body { height: var(--app-height); }
       gap: 6px;
     }
   }
+
+  .mobile-sheet-scrim,
+  .mobile-dock {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      --mobile-dock-h: 62px;
+      --mobile-sheet-gap: 10px;
+    }
+
+    .mobile-dock {
+      position: fixed;
+      left: 8px;
+      right: 8px;
+      bottom: calc(8px + var(--safe-bottom, 0px));
+      z-index: 10030;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+    }
+
+    .mobile-dock-btn {
+      min-height: 44px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      background: rgba(248, 250, 252, 0.92);
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .mobile-dock-btn[aria-pressed="true"] {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      border-color: #1d4ed8;
+      color: #fff;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.26);
+    }
+
+    .mobile-sheet-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 10019;
+      display: block;
+      background: rgba(15, 23, 42, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    body.mobile-sheet-open .mobile-sheet-scrim {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-sheet-panel {
+      position: fixed !important;
+      top: auto !important;
+      left: 8px !important;
+      right: 8px !important;
+      bottom: calc(var(--safe-bottom, 0px) + var(--mobile-dock-h, 62px) + var(--mobile-sheet-gap, 10px)) !important;
+      width: auto !important;
+      max-width: none !important;
+      transform: translateY(calc(100% + 28px));
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10020 !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      transition: transform 0.22s ease, opacity 0.2s ease, max-height 0.2s ease;
+    }
+
+    .mobile-sheet-panel.mobile-sheet-active {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-sheet-panel[data-mobile-snap="half"] {
+      max-height: min(56vh, 460px) !important;
+    }
+
+    .mobile-sheet-panel[data-mobile-snap="full"] {
+      max-height: min(84vh, 760px) !important;
+    }
+
+    .mobile-sheet-panel[data-mobile-snap="collapsed"] {
+      max-height: 58px !important;
+      overflow: hidden !important;
+    }
+
+    .map-topbar.mobile-sheet-panel {
+      border-radius: 18px !important;
+      padding: 12px !important;
+      min-height: 0 !important;
+    }
+
+    .map-topbar.mobile-sheet-panel .mobile-topbar-toggle {
+      display: none !important;
+    }
+
+    .map-topbar.mobile-sheet-panel .map-topbar-details {
+      display: block !important;
+    }
+
+    .map-topbar.mobile-sheet-panel[data-mobile-snap="collapsed"] .map-topbar-details,
+    .map-topbar.mobile-sheet-panel[data-mobile-snap="collapsed"] .map-topbar-copy span,
+    .map-topbar.mobile-sheet-panel[data-mobile-snap="collapsed"] .map-topbar-hints {
+      display: none !important;
+    }
+
+    .main-controls.mobile-sheet-panel,
+    .legend.mobile-sheet-panel {
+      border-radius: 18px !important;
+    }
+
+    .legend.mobile-sheet-panel .legend-header {
+      border-radius: 18px 18px 0 0 !important;
+    }
+
+    .vote-counter {
+      bottom: calc(var(--safe-bottom, 0px) + var(--mobile-dock-h, 62px) + 8px) !important;
+    }
+
+    #hover-tooltip {
+      bottom: calc(var(--safe-bottom, 0px) + var(--mobile-dock-h, 62px) + 8px) !important;
+    }
+
+    body.mobile-input-active .vote-counter {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px) !important;
+    }
+
+    .map-topbar,
+    .main-controls,
+    .legend,
+    .vote-counter,
+    #status-panel {
+      backdrop-filter: blur(8px) !important;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.16) !important;
+    }
+  }
+
+  @media (pointer: coarse) and (max-width: 1180px) {
+    button,
+    select,
+    input[type="search"],
+    input[type="text"],
+    .fly-search-chip,
+    .desktop-fly-chip,
+    .region-jump-btn,
+    .view-toggle-btn,
+    .viz-mode-btn {
+      min-height: 44px;
+    }
+  }
+
+  @media (max-width: 900px) and (orientation: landscape) {
+    .mobile-dock {
+      left: 8px;
+      right: auto;
+      width: 126px;
+      grid-template-columns: 1fr;
+      bottom: calc(8px + var(--safe-bottom, 0px));
+    }
+
+    .mobile-sheet-panel {
+      left: 142px !important;
+      right: 8px !important;
+      bottom: 8px !important;
+      max-height: calc(100vh - 16px - var(--safe-top, 0px) - var(--safe-bottom, 0px)) !important;
+    }
+
+    .vote-counter,
+    #hover-tooltip {
+      left: 142px !important;
+      right: 8px !important;
+      bottom: 8px !important;
+    }
+  }
     </style>
 </head>
 <body>
@@ -5779,6 +5971,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Duplicate sidebar removed to fix HTML errors -->
 
+    <div class="mobile-sheet-scrim" id="mobile-sheet-scrim" aria-hidden="true"></div>
+    <nav class="mobile-dock" id="mobile-dock" aria-label="Mobile panel dock">
+      <button type="button" class="mobile-dock-btn" data-mobile-sheet-btn="search" aria-pressed="false">Search</button>
+      <button type="button" class="mobile-dock-btn" data-mobile-sheet-btn="layers" aria-pressed="false">Layers</button>
+      <button type="button" class="mobile-dock-btn" data-mobile-sheet-btn="legend" aria-pressed="false">Legend</button>
+    </nav>
+
     <!-- Hover Tooltip -->
     <div id="hover-tooltip" class="hover-tooltip"></div>
 
@@ -6076,6 +6275,18 @@ document.addEventListener('DOMContentLoaded', function() {
       try { return window.matchMedia && window.matchMedia('(pointer: coarse)').matches; } catch (_) { return false; }
     })();
 
+    function isMobileViewportNow() {
+      try { return !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches); } catch (_) { return window.innerWidth <= 768; }
+    }
+
+    function isTouchInteractionMode() {
+      try {
+        if (IS_COARSE_POINTER) return true;
+        if (window.matchMedia && window.matchMedia('(hover: none)').matches) return true;
+      } catch (_) {}
+      return false;
+    }
+
     function closeHoverUI({ force = false } = {}) {
       if (!force && tooltipPinned) return;
       setTooltipPinned(false);
@@ -6119,6 +6330,7 @@ document.addEventListener('DOMContentLoaded', function() {
       closeHoverUI({ force: true });
     });
     map.on('mousemove', (e) => {
+      if (isTouchInteractionMode()) return;
       lastPointerPoint = e.point;
       if (isHoverRefreshSuppressed()) return;
       // Keep tooltip following the cursor and refresh hovered feature without requiring
@@ -6127,18 +6339,22 @@ document.addEventListener('DOMContentLoaded', function() {
       queueHoverRefresh();
     });
     map.on('move', () => {
+      if (isTouchInteractionMode()) return;
       if (isHoverRefreshSuppressed()) return;
       queueHoverRefresh();
     });
     map.on('zoom', () => {
+      if (isTouchInteractionMode()) return;
       if (isHoverRefreshSuppressed()) return;
       queueHoverRefresh();
     });
     map.on('moveend', () => {
+      if (isTouchInteractionMode()) return;
       if (isHoverRefreshSuppressed()) return;
       queueHoverRefresh();
     });
     map.on('zoomend', () => {
+      if (isTouchInteractionMode()) return;
       if (isHoverRefreshSuppressed()) return;
       queueHoverRefresh();
     });
@@ -9253,7 +9469,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    function renderCountyHoverAtPoint(e) {
+    function renderCountyHoverAtPoint(e, { forceTooltip = false } = {}) {
       if (!(e.features && e.features[0])) return;
 
       // If precinct overlay is enabled and a precinct feature is under the cursor, let the
@@ -9289,7 +9505,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const contestValue = document.getElementById('contestSelect')?.value || '';
 
       if (!contestValue || !row) {
-        showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, '<div style="color:#64748b;">Select a contest to see results</div>'));
+        showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, '<div style="color:#64748b;">Select a contest to see results</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9302,7 +9518,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const otherVotes = Number(row[`${contestType}_other`] || 0);
       const totalVotes = Number(row[`${contestType}_total`] || 0);
       if (totalVotes <= 0) {
-        showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, '<div style="color:#64748b;">No data available</div>'));
+        showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, '<div style="color:#64748b;">No data available</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9355,11 +9571,11 @@ document.addEventListener('DOMContentLoaded', function() {
         ${demoLine}
       `;
 
-      showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, inner));
+      showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${countyDisplay} County`, inner), { force: !!forceTooltip });
       wireTooltipButtons();
     }
 
-    function renderPrecinctHoverAtPoint(point, feature) {
+    function renderPrecinctHoverAtPoint(point, feature, { forceTooltip = false } = {}) {
       const props = feature?.properties || {};
       const precinctNorm = (props.precinct_norm || '').toString().trim().toUpperCase();
       const countyName = (props.county_nam || '').toString().trim();
@@ -9385,14 +9601,14 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (_) {}
       const [contestType, year] = parseContestValue(contestValue);
       if (!contestType || !year) {
-        showHoverTooltip(point.x, point.y, buildTooltipShell(title, '<div style="color:#64748b;">Select a contest to see results</div>'));
+        showHoverTooltip(point.x, point.y, buildTooltipShell(title, '<div style="color:#64748b;">Select a contest to see results</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
 
       const row = currentPrecinctResults ? currentPrecinctResults.get(precinctNorm) : null;
       if (!row) {
-        showHoverTooltip(point.x, point.y, buildTooltipShell(title, '<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>'));
+        showHoverTooltip(point.x, point.y, buildTooltipShell(title, '<div style="color:#64748b;">No precinct results loaded for this contest in this view. Switch to Counties and pick the contest.</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9429,7 +9645,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="hover-meta">${chips.join('')}</div>
         ${buildResultCardHTML('', subtitle, demVotes, repVotes, otherVotes, demCandidate, repCandidate)}
       `;
-      showHoverTooltip(point.x, point.y, buildTooltipShell(title, inner));
+      showHoverTooltip(point.x, point.y, buildTooltipShell(title, inner), { force: !!forceTooltip });
       wireTooltipButtons();
       setVoteCounterHoverState(
         `Hover: ${title}`,
@@ -9493,6 +9709,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function queueHoverRefresh() {
+      if (isTouchInteractionMode() && !tooltipPinned) return;
       if (hoverRefreshRaf) return;
       hoverRefreshRaf = requestAnimationFrame(async () => {
         hoverRefreshRaf = null;
@@ -9500,7 +9717,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    async function renderDistrictHover(e, scope, districtLabel, districtFieldCandidates) {
+    async function renderDistrictHover(e, scope, districtLabel, districtFieldCandidates, { forceTooltip = false } = {}) {
       if (!(e.features && e.features[0])) return;
       const props = e.features[0].properties || {};
       const districtNum = getDistrictNumberFromPropsCandidates(props, districtFieldCandidates);
@@ -9513,7 +9730,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const _demoHTML = buildDemoHTML(_demoRow);
       if (!contestValue) {
         showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`,
-          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">Select a contest to see results</div>'));
+          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">Select a contest to see results</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9536,7 +9753,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!row) {
         showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`,
-          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">No data for this contest</div>'));
+          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">No data for this contest</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9547,7 +9764,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const totalVotes = Number(row.total_votes || 0);
       if (totalVotes <= 0) {
         showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`,
-          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">No data for this contest</div>'));
+          _demoHTML + '<div style="color:#94a3b8;margin-top:6px;">No data for this contest</div>'), { force: !!forceTooltip });
         wireTooltipButtons();
         return;
       }
@@ -9611,7 +9828,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ${_demoHTML}
         ${buildResultCardHTML('', subtitle, demVotes, repVotes, otherVotes, demCandidate, repCandidate)}
       `;
-      showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`, inner));
+      showHoverTooltip(e.point.x, e.point.y, buildTooltipShell(`${districtLabel} ${districtNum}`, inner), { force: !!forceTooltip });
       wireTooltipButtons();
     }
 
@@ -9689,7 +9906,266 @@ document.addEventListener('DOMContentLoaded', function() {
         minimizeBtn.textContent = '+';
         minimizeBtn.title = 'Expand legend';
       }
+      if (isMobileViewportNow() && legend) {
+        legend.classList.add('mobile-sheet-panel');
+        if (legend.classList.contains('minimized')) {
+          legend.classList.remove('mobile-sheet-active');
+          setMobileSheetSnap(legend, 'collapsed');
+          if (activeMobileSheetKey === 'legend') activeMobileSheetKey = null;
+        } else {
+          legend.classList.add('mobile-sheet-active');
+          setMobileSheetSnap(legend, 'half');
+          activeMobileSheetKey = 'legend';
+        }
+        syncMobileDockButtons();
+      }
       try { updateMobileOverlayOffsets(); } catch (_) {}
+    }
+
+    const MOBILE_SHEET_PANEL_IDS = Object.freeze({
+      search: 'map-topbar',
+      layers: 'main-controls',
+      legend: 'legend'
+    });
+    const MOBILE_SHEET_SNAP_SEQUENCE = Object.freeze(['half', 'full', 'collapsed']);
+    let activeMobileSheetKey = null;
+    let mobileSheetSystemReady = false;
+    let mobileInputFocusWired = false;
+    let mobileInputRestoreTimer = null;
+    let mobileInputFocusSnapshot = null;
+
+    function getMobileSheetPanel(key) {
+      const id = MOBILE_SHEET_PANEL_IDS[key];
+      return id ? document.getElementById(id) : null;
+    }
+
+    function getMobileSheetSnap(key) {
+      const panel = getMobileSheetPanel(key);
+      return panel?.dataset?.mobileSnap || 'collapsed';
+    }
+
+    function setMobileSheetSnap(panel, snap) {
+      if (!panel) return;
+      panel.dataset.mobileSnap = snap || 'collapsed';
+    }
+
+    function syncMobileDockButtons() {
+      const buttons = document.querySelectorAll('[data-mobile-sheet-btn]');
+      buttons.forEach(btn => {
+        const key = btn.getAttribute('data-mobile-sheet-btn') || '';
+        const pressed = key && key === activeMobileSheetKey;
+        btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      });
+      document.body.classList.toggle('mobile-sheet-open', !!activeMobileSheetKey && isMobileViewportNow());
+    }
+
+    function expandLegendOnMobile() {
+      const legend = document.getElementById('legend');
+      const legendContent = document.getElementById('legend-content');
+      const minimizeBtn = document.getElementById('legend-minimize-btn');
+      if (!legend || !legendContent || !minimizeBtn) return;
+      legend.classList.remove('minimized');
+      legendContent.style.display = 'block';
+      minimizeBtn.textContent = '-';
+      minimizeBtn.title = 'Minimize legend';
+    }
+
+    function expandMainControlsOnMobile() {
+      const controls = document.getElementById('main-controls');
+      const controlsContent = document.getElementById('controls-content');
+      const minimizeBtn = document.getElementById('controls-minimize-btn');
+      if (!controls || !controlsContent || !minimizeBtn) return;
+      controls.classList.remove('minimized');
+      controlsContent.style.display = 'block';
+      minimizeBtn.textContent = '-';
+      minimizeBtn.title = 'Minimize controls';
+    }
+
+    function closeMobileSheet(key) {
+      const panel = getMobileSheetPanel(key);
+      if (!panel) return;
+      panel.classList.remove('mobile-sheet-active');
+      setMobileSheetSnap(panel, 'collapsed');
+      if (key === 'search') {
+        try {
+          const topbar = document.getElementById('map-topbar');
+          if (topbar) topbar.classList.remove('topbar-expanded');
+          if (typeof window.syncMobileTopbarToggle === 'function') window.syncMobileTopbarToggle();
+        } catch (_) {}
+      } else if (key === 'layers') {
+        try { minimizeMainControlsOnMobile(); } catch (_) {}
+      } else if (key === 'legend') {
+        try { minimizeLegendOnMobile(); } catch (_) {}
+      }
+    }
+
+    function openMobileSheet(key, snap = 'half') {
+      if (!isMobileViewportNow()) return;
+      const panel = getMobileSheetPanel(key);
+      if (!panel) return;
+      Object.keys(MOBILE_SHEET_PANEL_IDS).forEach(otherKey => {
+        if (otherKey === key) return;
+        closeMobileSheet(otherKey);
+      });
+      panel.classList.add('mobile-sheet-panel', 'mobile-sheet-active');
+      setMobileSheetSnap(panel, snap);
+      if (key === 'search') {
+        try {
+          const topbar = document.getElementById('map-topbar');
+          if (topbar) topbar.classList.add('topbar-expanded');
+          if (typeof window.syncMobileTopbarToggle === 'function') window.syncMobileTopbarToggle();
+        } catch (_) {}
+      } else if (key === 'layers') {
+        expandMainControlsOnMobile();
+      } else if (key === 'legend') {
+        expandLegendOnMobile();
+      }
+      if (snap === 'collapsed') {
+        closeMobileSheet(key);
+        activeMobileSheetKey = null;
+      } else {
+        activeMobileSheetKey = key;
+      }
+      syncMobileDockButtons();
+      try { updateMobileOverlayOffsets(); } catch (_) {}
+    }
+
+    function closeAllMobileSheets() {
+      Object.keys(MOBILE_SHEET_PANEL_IDS).forEach(key => closeMobileSheet(key));
+      activeMobileSheetKey = null;
+      syncMobileDockButtons();
+      try { updateMobileOverlayOffsets(); } catch (_) {}
+    }
+
+    function toggleMobileSheet(key) {
+      if (!isMobileViewportNow()) return;
+      if (!MOBILE_SHEET_PANEL_IDS[key]) return;
+      if (activeMobileSheetKey !== key) {
+        openMobileSheet(key, 'half');
+        return;
+      }
+      const current = getMobileSheetSnap(key);
+      const idx = MOBILE_SHEET_SNAP_SEQUENCE.indexOf(current);
+      const next = MOBILE_SHEET_SNAP_SEQUENCE[(idx + 1) % MOBILE_SHEET_SNAP_SEQUENCE.length];
+      if (next === 'collapsed') {
+        closeMobileSheet(key);
+        activeMobileSheetKey = null;
+        syncMobileDockButtons();
+        try { updateMobileOverlayOffsets(); } catch (_) {}
+        return;
+      }
+      openMobileSheet(key, next);
+    }
+
+    function setupMobileDockAndSheets() {
+      if (mobileSheetSystemReady) return;
+      mobileSheetSystemReady = true;
+      try {
+        Object.keys(MOBILE_SHEET_PANEL_IDS).forEach(key => {
+          const panel = getMobileSheetPanel(key);
+          if (!panel) return;
+          panel.classList.add('mobile-sheet-panel');
+          setMobileSheetSnap(panel, 'collapsed');
+          panel.classList.remove('mobile-sheet-active');
+        });
+        document.querySelectorAll('[data-mobile-sheet-btn]').forEach(btn => {
+          if (btn.dataset.mobileSheetReady === 'true') return;
+          btn.dataset.mobileSheetReady = 'true';
+          btn.addEventListener('click', () => {
+            const key = btn.getAttribute('data-mobile-sheet-btn') || '';
+            toggleMobileSheet(key);
+          });
+        });
+        const scrim = document.getElementById('mobile-sheet-scrim');
+        if (scrim && scrim.dataset.mobileSheetReady !== 'true') {
+          scrim.dataset.mobileSheetReady = 'true';
+          scrim.addEventListener('click', () => { closeAllMobileSheets(); });
+        }
+        window.addEventListener('resize', () => {
+          try {
+            if (!isMobileViewportNow()) {
+              closeAllMobileSheets();
+              document.body.classList.remove('mobile-sheet-open', 'mobile-input-active');
+              mobileInputFocusSnapshot = null;
+              if (mobileInputRestoreTimer) {
+                clearTimeout(mobileInputRestoreTimer);
+                mobileInputRestoreTimer = null;
+              }
+              Object.keys(MOBILE_SHEET_PANEL_IDS).forEach(key => {
+                const panel = getMobileSheetPanel(key);
+                if (!panel) return;
+                panel.classList.remove('mobile-sheet-active');
+                setMobileSheetSnap(panel, 'collapsed');
+              });
+            } else {
+              Object.keys(MOBILE_SHEET_PANEL_IDS).forEach(key => {
+                const panel = getMobileSheetPanel(key);
+                if (!panel) return;
+                panel.classList.add('mobile-sheet-panel');
+                if (!panel.dataset.mobileSnap) setMobileSheetSnap(panel, 'collapsed');
+              });
+            }
+          } catch (_) {}
+        }, { passive: true });
+      } catch (_) {}
+      closeAllMobileSheets();
+    }
+
+    function isMobileEditableField(node) {
+      if (!node || !node.tagName) return false;
+      const tag = node.tagName.toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') return false;
+      return !!(node.closest && (node.closest('#map-topbar') || node.closest('#main-controls')));
+    }
+
+    function restoreMobileInputFocusMode() {
+      if (!mobileInputFocusSnapshot) return;
+      const snap = mobileInputFocusSnapshot;
+      mobileInputFocusSnapshot = null;
+      document.body.classList.remove('mobile-input-active');
+      if (!isMobileViewportNow()) return;
+      try {
+        if (!snap.voteCounterWasMinimized) setVoteCounterMinimizedState(false);
+      } catch (_) {}
+      if (snap.activeSheetKey) {
+        openMobileSheet(snap.activeSheetKey, snap.activeSheetSnap || 'half');
+      } else {
+        closeAllMobileSheets();
+      }
+    }
+
+    function setupMobileInputFocusBehavior() {
+      if (mobileInputFocusWired) return;
+      mobileInputFocusWired = true;
+      document.addEventListener('focusin', (event) => {
+        const target = event.target;
+        if (!isMobileViewportNow()) return;
+        if (!isMobileEditableField(target)) return;
+        if (!mobileInputFocusSnapshot) {
+          const counter = document.getElementById('vote-counter');
+          mobileInputFocusSnapshot = {
+            voteCounterWasMinimized: !!(counter && counter.classList.contains('minimized')),
+            activeSheetKey: activeMobileSheetKey,
+            activeSheetSnap: activeMobileSheetKey ? getMobileSheetSnap(activeMobileSheetKey) : 'collapsed'
+          };
+        }
+        document.body.classList.add('mobile-input-active');
+        try { minimizeLegendOnMobile(); } catch (_) {}
+        try { setVoteCounterMinimizedState(true); } catch (_) {}
+        if (target.closest && target.closest('#map-topbar')) {
+          openMobileSheet('search', 'half');
+        }
+      }, true);
+      document.addEventListener('focusout', () => {
+        if (!isMobileViewportNow()) return;
+        if (mobileInputRestoreTimer) clearTimeout(mobileInputRestoreTimer);
+        mobileInputRestoreTimer = setTimeout(() => {
+          const active = document.activeElement;
+          if (isMobileEditableField(active)) return;
+          restoreMobileInputFocusMode();
+          mobileInputRestoreTimer = null;
+        }, 140);
+      }, true);
     }
 
     function updateMobileOverlayOffsets() {
@@ -9700,8 +10176,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const root = document.documentElement;
         const topbar = document.getElementById('map-topbar');
         const voteCounter = document.getElementById('vote-counter');
-        const th = topbar ? Math.round(topbar.getBoundingClientRect().height) : 112;
+        const mobileDock = document.getElementById('mobile-dock');
+        const topbarVisible = !!(topbar && (!isMobile || topbar.classList.contains('mobile-sheet-active')));
+        const th = topbarVisible ? Math.round(topbar.getBoundingClientRect().height || 0) : 0;
+        const dockVisible = !!(isMobile && mobileDock && mobileDock.getClientRects().length);
+        const dh = dockVisible ? Math.round(mobileDock.getBoundingClientRect().height || 0) : 0;
         root.style.setProperty('--topbar-h', `${Math.max(0, th)}px`);
+        root.style.setProperty('--mobile-dock-h', `${Math.max(0, dh)}px`);
         if (isDesktop) {
           const counterVisible = !!(voteCounter && voteCounter.style.display !== 'none' && voteCounter.getClientRects().length);
           const vh = counterVisible ? Math.round(voteCounter.getBoundingClientRect().height) : 0;
@@ -9712,12 +10193,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isMobile) {
           root.style.removeProperty('--legend-h');
           root.style.removeProperty('--controls-h');
+          root.style.removeProperty('--mobile-dock-h');
           return;
         }
         const legend = document.getElementById('legend');
         const controls = document.getElementById('main-controls');
-        const lh = legend ? Math.round(legend.getBoundingClientRect().height) : 56;
-        const ch = controls ? Math.round(controls.getBoundingClientRect().height) : 0;
+        const legendVisible = !!(legend && legend.classList.contains('mobile-sheet-active'));
+        const controlsVisible = !!(controls && controls.classList.contains('mobile-sheet-active'));
+        const lh = legendVisible ? Math.round(legend.getBoundingClientRect().height) : 56;
+        const ch = controlsVisible ? Math.round(controls.getBoundingClientRect().height) : 0;
         root.style.setProperty('--legend-h', `${Math.max(0, lh)}px`);
         root.style.setProperty('--controls-h', `${Math.max(0, ch)}px`);
       } catch (_) {}
@@ -9732,7 +10216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('resize', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
         window.addEventListener('orientationchange', () => { try { updateMobileOverlayOffsets(); } catch (_) {} }, { passive: true });
         if (typeof ResizeObserver !== 'undefined') {
-          const targets = ['map-topbar', 'main-controls', 'legend', 'vote-counter']
+          const targets = ['map-topbar', 'main-controls', 'legend', 'vote-counter', 'mobile-dock']
             .map(id => document.getElementById(id))
             .filter(Boolean);
           if (targets.length) {
@@ -9760,9 +10244,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!legend || !legendContent || !minimizeBtn) return;
         if (legend.classList.contains('minimized')) return;
         legend.classList.add('minimized');
+        legend.classList.remove('mobile-sheet-active');
+        setMobileSheetSnap(legend, 'collapsed');
+        if (activeMobileSheetKey === 'legend') activeMobileSheetKey = null;
         legendContent.style.display = 'none';
         minimizeBtn.textContent = '+';
         minimizeBtn.title = 'Expand legend';
+        syncMobileDockButtons();
         try { updateMobileOverlayOffsets(); } catch (_) {}
       } catch (_) {}
     }
@@ -9777,9 +10265,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!controls || !controlsContent || !minimizeBtn) return;
         if (controls.classList.contains('minimized')) return;
         controls.classList.add('minimized');
+        controls.classList.remove('mobile-sheet-active');
+        setMobileSheetSnap(controls, 'collapsed');
+        if (activeMobileSheetKey === 'layers') activeMobileSheetKey = null;
         controlsContent.style.display = 'none';
         minimizeBtn.textContent = '+';
         minimizeBtn.title = 'Expand controls';
+        syncMobileDockButtons();
         try { updateMobileOverlayOffsets(); } catch (_) {}
       } catch (_) {}
     }
@@ -9805,6 +10297,19 @@ document.addEventListener('DOMContentLoaded', function() {
         minimizeBtn.title = 'Expand controls';
       }
       saveUIState();
+      if (isMobileViewportNow() && controls) {
+        controls.classList.add('mobile-sheet-panel');
+        if (controls.classList.contains('minimized')) {
+          controls.classList.remove('mobile-sheet-active');
+          setMobileSheetSnap(controls, 'collapsed');
+          if (activeMobileSheetKey === 'layers') activeMobileSheetKey = null;
+        } else {
+          controls.classList.add('mobile-sheet-active');
+          setMobileSheetSnap(controls, 'half');
+          activeMobileSheetKey = 'layers';
+        }
+        syncMobileDockButtons();
+      }
       try { updateMobileOverlayOffsets(); } catch (_) {}
     }
 
@@ -10211,7 +10716,12 @@ document.addEventListener('DOMContentLoaded', function() {
               lastSelectedCounty = countyName;
               setCountyHoverOutline(countyName);
               setTooltipPinned(false);
-              hideHoverTooltip();
+              if (isTouchInteractionMode()) {
+                renderCountyHoverAtPoint(e, { forceTooltip: true });
+                setTooltipPinned(true);
+              } else {
+                hideHoverTooltip();
+              }
               
               // Optionally, expand sidebar if minimized
               const sidebar = document.getElementById('sidebar');
@@ -10225,12 +10735,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Hover tooltip with election results
         map.on('mouseenter', 'county-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           map.getCanvas().style.cursor = 'pointer';
           renderCountyHoverAtPoint(e);
         });
         
         let hoverRaf = null;
         map.on('mousemove', 'county-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           if (hoverRaf) return;
           hoverRaf = requestAnimationFrame(() => {
             renderCountyHoverAtPoint(e);
@@ -10342,7 +10854,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         try {
           if (e?.point && e?.features?.[0]) {
-            renderPrecinctHoverAtPoint(e.point, e.features[0]);
+            setTooltipPinned(false);
+            renderPrecinctHoverAtPoint(e.point, e.features[0], { forceTooltip: true });
+            if (isTouchInteractionMode()) setTooltipPinned(true);
           }
         } catch (_) {}
       });
@@ -10502,6 +11016,7 @@ document.addEventListener('DOMContentLoaded', function() {
         precinctDotHoverWired.add(layerId);
         map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mousemove', layerId, (e) => {
+          if (isTouchInteractionMode()) return;
           lastPrecinctDotHoverEvent = e;
           if (precinctDotHoverRaf) return;
           precinctDotHoverRaf = requestAnimationFrame(() => {
@@ -10557,7 +11072,9 @@ document.addEventListener('DOMContentLoaded', function() {
           try {
             const f = e?.features?.[0];
             if (!f) return;
-            renderPrecinctHoverAtPoint(e.point, f);
+            setTooltipPinned(false);
+            renderPrecinctHoverAtPoint(e.point, f, { forceTooltip: true });
+            if (isTouchInteractionMode()) setTooltipPinned(true);
           } catch (_) {}
         });
         map.on('mouseleave', layerId, () => {
@@ -10693,7 +11210,18 @@ document.addEventListener('DOMContentLoaded', function() {
               try {
                 setDistrictHoverOutline('congressional', districtNum);
                 setTooltipPinned(false);
-                hideHoverTooltip();
+                if (isTouchInteractionMode()) {
+                  await renderDistrictHover(
+                    e,
+                    'congressional',
+                    'Congressional District',
+                    ['DISTRICT', 'CD118FP', 'district_id', 'district', 'NAMELSAD'],
+                    { forceTooltip: true }
+                  );
+                  setTooltipPinned(true);
+                } else {
+                  hideHoverTooltip();
+                }
               } catch (_) {}
             }
           }
@@ -10701,11 +11229,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Quick hover tooltip with basic info
         map.on('mouseenter', 'district-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           map.getCanvas().style.cursor = 'pointer';
           queueHoverRefresh();
         });
         let districtHoverRaf = null;
         map.on('mousemove', 'district-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           if (districtHoverRaf) return;
           districtHoverRaf = requestAnimationFrame(() => {
             queueHoverRefresh();
@@ -10783,7 +11313,18 @@ document.addEventListener('DOMContentLoaded', function() {
               try {
                 setDistrictHoverOutline('state_house', districtNum);
                 setTooltipPinned(false);
-                hideHoverTooltip();
+                if (isTouchInteractionMode()) {
+                  await renderDistrictHover(
+                    e,
+                    'state_house',
+                    'State House District',
+                    ['DISTRICT', 'SLDLST', 'district_id', 'district', 'NAMELSAD'],
+                    { forceTooltip: true }
+                  );
+                  setTooltipPinned(true);
+                } else {
+                  hideHoverTooltip();
+                }
               } catch (_) {}
             }
           }
@@ -10791,11 +11332,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Quick hover tooltip with basic info
         map.on('mouseenter', 'state-house-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           map.getCanvas().style.cursor = 'pointer';
           queueHoverRefresh();
         });
         let stateHouseHoverRaf = null;
         map.on('mousemove', 'state-house-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           if (stateHouseHoverRaf) return;
           stateHouseHoverRaf = requestAnimationFrame(() => {
             queueHoverRefresh();
@@ -10873,7 +11416,18 @@ document.addEventListener('DOMContentLoaded', function() {
               try {
                 setDistrictHoverOutline('state_senate', districtNum);
                 setTooltipPinned(false);
-                hideHoverTooltip();
+                if (isTouchInteractionMode()) {
+                  await renderDistrictHover(
+                    e,
+                    'state_senate',
+                    'State Senate District',
+                    ['DISTRICT', 'SLDUST', 'district_id', 'district', 'NAMELSAD'],
+                    { forceTooltip: true }
+                  );
+                  setTooltipPinned(true);
+                } else {
+                  hideHoverTooltip();
+                }
               } catch (_) {}
             }
           }
@@ -10881,11 +11435,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Quick hover tooltip with basic info
         map.on('mouseenter', 'state-senate-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           map.getCanvas().style.cursor = 'pointer';
           queueHoverRefresh();
         });
         let stateSenateHoverRaf = null;
         map.on('mousemove', 'state-senate-fill', (e) => {
+          if (isTouchInteractionMode()) return;
           if (stateSenateHoverRaf) return;
           stateSenateHoverRaf = requestAnimationFrame(() => {
             queueHoverRefresh();
@@ -11573,6 +12129,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showHoverTooltip(x, y, content, { force = false } = {}) {
       const tooltip = document.getElementById('hover-tooltip');
       if (!tooltip) return;
+      if (isTouchInteractionMode() && !force && !tooltipPinned) return;
       if (tooltipPinned && !force) return;
       
       tooltip.innerHTML = content;
@@ -12387,6 +12944,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup visualization mode switcher
         setupVizModes();
         try { wireMobileOverlayOffsets(); } catch (_) {}
+        try { setupMobileDockAndSheets(); } catch (_) {}
+        try { setupMobileInputFocusBehavior(); } catch (_) {}
         try { minimizeLegendOnMobile(); } catch (_) {}
         try { minimizeMainControlsOnMobile(); } catch (_) {}
         appReady = true;
