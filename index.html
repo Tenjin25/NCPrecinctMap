@@ -5205,8 +5205,90 @@ body { height: var(--app-height); }
     }
 
     .vote-counter {
-      max-height: min(34vh, 300px) !important;
+      max-height: min(62vh, 620px) !important;
       overflow-y: auto !important;
+    }
+
+    .vote-counter.minimized {
+      max-height: 64px !important;
+      overflow: hidden !important;
+    }
+
+    .focus-trend-head {
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .focus-trend-caption {
+      max-width: 55%;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      text-align: right;
+      line-height: 1.25;
+    }
+
+    .focus-trend-plot {
+      padding: 10px;
+      border-radius: 14px;
+    }
+
+    .focus-trend-stats {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .focus-trend-list {
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+      gap: 8px;
+    }
+
+    .focus-trend-entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .focus-trend-entry::after {
+      display: none;
+    }
+
+    .focus-trend-entry-year {
+      justify-self: flex-start;
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 10px;
+    }
+
+    .focus-trend-entry-card {
+      gap: 8px;
+      padding: 10px;
+      border-radius: 14px;
+    }
+
+    .focus-trend-entry-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .focus-trend-entry-margin {
+      white-space: normal;
+    }
+
+    .focus-trend-entry-scale {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+
+    .focus-trend-entry-scale .rep {
+      text-align: left;
+    }
+
+    .focus-trend-chip {
+      white-space: normal;
     }
 
     #status-panel {
@@ -5236,6 +5318,17 @@ body { height: var(--app-height); }
 
     .control-summary-title {
       font-size: 15px !important;
+    }
+
+    .focus-trend-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .focus-trend-caption {
+      max-width: none;
+      text-align: left;
     }
 
     .legend-chip-row {
